@@ -1,3 +1,4 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 /*const config = require('config.json');
 const MONGO_USERNAME = 'harfa';
@@ -5,7 +6,7 @@ const MONGO_PASSWORD = 'harfa';
 const MONGO_HOSTNAME = '127.0.0.1';
 const MONGO_PORT = '27017';
 const MONGO_DB = 'harfa';*/
-const url = 'mongodb+srv://harfa:harfa123@cluster0-srtxb.mongodb.net/test?retryWrites=true&w=majority';
+const url = process.env.CONNECTION_STRING;
 
 mongoose.connect(url, { useCreateIndex: true, useNewUrlParser: true });
 mongoose.Promise = global.Promise;
