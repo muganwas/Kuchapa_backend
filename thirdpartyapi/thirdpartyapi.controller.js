@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const ThirdPartyApi = require('./thirdpartyapi.service');
-const config = require('config.json');
+// const config = require('config.json');
 
 var multer  = require('../node_modules/multer');
 // console.log(multer);

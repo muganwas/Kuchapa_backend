@@ -1,21 +1,11 @@
-const config = require('config.json');
+require('dotenv').config();
+const config = process.env;
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const db = require('_helpers/db');
 const User = db.User;
 const Notification = db.Notification;
 const SendMailFunction = require("../_helpers/SendMail");
-
-//   let transport = nodemailer.createTransport({
-//         host: config.email_host,
-//         port: config.email_port,
-//         service: "gmail",
-//         secure:false,
-//         auth: {
-//           user: config.email_user,
-//           pass: config.email_passwrord
-//         }
-//     });transport
 
 module.exports = {
     authenticate,
@@ -49,7 +39,7 @@ async function authenticate(param) {
 
     if (user && bcrypt.compareSync(param.password, user.hash)) {
         const { hash, userWithoutHash } = user.toObject();
-        const token = jwt.sign({ sub: user.id }, config.secret);
+        const token = jwt.sign({ sub: user.id }, config.SECRET);
          if(typeof param.fcm_id !== 'undefined'){
             
             var fcm ={'fcm_id':param.fcm_id};  

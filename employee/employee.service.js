@@ -1,4 +1,5 @@
-const config = require('config.json');
+require('dotenv').config();
+const config = process.env;
 const express = require('express');
 const {ObjectId} = require('mongodb');
 
@@ -64,7 +65,7 @@ async function authenticate(param) {
     
     if (user &&  bcrypt.compareSync(param.password, user.hash) ) {
         const { hash, userWithoutHash } = user.toObject();
-        const token = jwt.sign({ sub: user.id }, config.secret);
+        const token = jwt.sign({ sub: user.id }, config.SECRET);
           if(user.img_status == '1')
         {
              user.image = config.URL+'api/uploads/employee/'+user.image;

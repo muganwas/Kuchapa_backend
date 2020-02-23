@@ -1,4 +1,5 @@
-const config = require('config.json');
+require('dotenv').config();
+const config = process.env;
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const db = require('_helpers/db');
@@ -25,7 +26,7 @@ async function authenticate({ email, password }) {
      }   
     if (admin &&  bcrypt.compareSync(password, admin.hash) ) {
         const { hash, userWithoutHash } = admin.toObject();
-        const token = jwt.sign({ sub: admin.id }, config.secret);
+        const token = jwt.sign({ sub: admin.id }, config.SECRET);
           
         return {result:true,message:'Login successfull',token:token,id:admin.id};
     }else{

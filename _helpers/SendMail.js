@@ -1,4 +1,5 @@
-const config = require('../config.json');
+require('dotenv').config();
+const config = process.env;
 const request = require('request');
 const nodemailer = require("nodemailer");
 
@@ -18,18 +19,18 @@ async function SendMail(email, subject, message){
 
   // create reusable transporter object using the default SMTP transport
   let transporter = nodemailer.createTransport({
-    host: config.email_host,
-    port: config.email_port,
+    host: config.EMAIL_HOST,
+    port: config.EMAIL_PORT,
     secure: false, // true for 465, false for other ports
     auth: {
-      user: config.email_user, // generated ethereal user
-      pass: config.email_passwrord // generated ethereal password
+      user: config.EMAIL_USER, // generated ethereal user
+      pass: config.EMAIL_PASSWORD // generated ethereal password
     }
   });
 
   // send mail with defined transport object
   let info = await transporter.sendMail({
-    from: `"${config.Website_Name}" <${config.Website_Email}>`, // sender address
+    from: `"${config.WEBSITE_NAME}" <${config.WEBSITE_EMAIL}>`, // sender address
     to: email, // list of receivers
     subject: subject, // Subject line
     text: message, // plain text body

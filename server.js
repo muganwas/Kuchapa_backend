@@ -1,9 +1,9 @@
-const hostname = '162.241.174.138';
+require('dotenv').config();
 require('rootpath')();
 const express = require('express');
-const MongoClient = require('mongodb').MongoClient;
+// const MongoClient = require('mongodb').MongoClient;
 
-var multer  = require('multer');
+// var multer  = require('multer');
 const app = express();
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -44,7 +44,7 @@ cron.schedule('* * * * *', function () {
 });
 
 // start server
-const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : 8080;
+const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : (process.env.PORT || 8080);
 const io	 = require('socket.io').listen(app.listen(port, function () {
     console.log('Server listening on port ' + port);
 }));

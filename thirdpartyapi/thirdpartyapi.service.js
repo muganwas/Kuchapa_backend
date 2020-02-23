@@ -1,4 +1,5 @@
-const config = require('config.json');
+require('dotenv').config();
+const config = process.env;
 const request = require('request');
 const SendMailFunction = require("../_helpers/SendMail");
 
