@@ -1,0 +1,32 @@
+{
+  "name": "Harfa",
+  "version": "1.0.0",
+  "description": "NodeJS + MongoDB API for harfa",
+  "license": "MIT",
+  "repository": {
+    "type": "git"
+  },
+  "scripts": {
+    "start": "node ./server.js",
+    "start-dev": "nodemon ./server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.4",
+    "express": "^4.17.1",
+    "express-jwt": "^5.3.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongodb": "^3.2.7",
+    "mongoose": "^5.6.8",
+    "multer": "^1.4.2",
+    "node-cron": "^2.0.3",
+    "node-gcm": "^1.0.2",
+    "nodemailer": "^6.3.1",
+    "rootpath": "^0.1.2",
+    "socket.io": "^2.2.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.1"
+  }
+}

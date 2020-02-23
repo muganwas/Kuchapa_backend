@@ -1,0 +1,206 @@
+
+
+		<style>
+		.tag{
+		   list-style: none;
+		}
+		.tag:before{
+		   content: '';
+		   display: inline-block;
+		   height: 10;
+		   width: 10;
+		   background-image: url('http://www.clker.com/cliparts/9/1/6/c/12456876221083093551Soeb_Plain_Arrow_3.svg.hi.png');
+		   float:left;
+		   margin: 4px 10px;
+		}
+		</style>
+		<p><b>(f)</b>:file </p>
+		<p><b>(o)</b>:optional parameters</p>
+		<ul>
+		   	<li>
+		      <p><b>BASE URL</b>:http://162.241.174.138:8080</p>
+		   	</li>
+
+
+
+
+ <li style="border : 1px solid black" > <h4>Provider Api</h4>  </li>
+		<li>
+            <b>Register</b>
+            <ul>
+               <li>description:Provider registeration api</li>
+               <li>parameters:[username,surname,mobile,address,services,invoice,description,lat(o),lang(o)]</li>      
+               <li>link:POST<b> http://162.241.174.138:8080/employee/register </b></li>      
+            </ul>
+         </li>
+         <li>
+            <b>Check Mobile</b>
+            <ul>
+               <li>description:Check Mobile no api</li>
+               <li>parameters:[mobile]</li>      
+               <li>link:POST<b> http://162.241.174.138:8080/employee/check/mobile </b></li>      
+            </ul>
+         </li>
+		<li>
+            <b>Login</b>
+            <ul>
+               <li>description:Provider Login api</li>
+               <li>parameters:[mobile,password]</li>      
+               <li>link:POST<b> http://162.241.174.138:8080/employee/authenticate </b></li>      
+            </ul>
+         </li>
+		<li>
+            <b>Profile</b>
+            <ul>
+               <li>description:Provider Profile api</li>
+               <li>parameters:[id]</li>      
+               <li>link:GET<b> http://162.241.174.138:8080/employee/id </b></li>      
+            </ul>
+         </li>
+		<li>
+            <b>Update profile</b>
+            <ul>
+               <li>description:Update Provider Profile api</li>
+               <li>parameters:[username,surname,mobile,address,services,description,lat,lang]</li>      
+               <li>link:POST<b> http://162.241.174.138:8080/employee/id </b></li>      
+            </ul>
+         </li>
+		<li>
+            <b>Update Image</b>
+            <ul>
+               <li>description:Upload Provider image api</li>
+               <li>parameters:[image]</li>      
+               <li>link:POST<b> http://162.241.174.138:8080/employee/upload/id </b></li>      
+            </ul>
+         </li>
+		<li>
+            <b>All Providers</b>
+            <ul>
+               <li>description:Get all Providers api</li>
+               <li>parameters:[]</li>      
+               <li>link:GET<b> http://162.241.174.138:8080/employee/ </b></li>      
+            </ul>
+         </li>
+<li style="border : 1px solid black"> <h4>Customer Api</h4>  </li>
+		<li>
+            <b>Register</b>
+            <ul>
+               <li>description:Customer registeration api</li>
+               <li>parameters:[username,mobile,dob,image]</li>      
+               <li>link:POST<b> http://162.241.174.138:8080/users/register </b></li>      
+            </ul>
+         </li>
+         <li>
+            <b>Check Mobile</b>
+            <ul>
+               <li>description:Check Mobile no api</li>
+               <li>parameters:[mobile]</li>      
+               <li>link:POST<b> http://162.241.174.138:8080/users/check/mobile </b></li>      
+            </ul>
+         </li>
+		<li>
+            <b>Login</b>
+            <ul>
+               <li>description:Customer Login api</li>
+               <li>parameters:[mobile,password]</li>      
+               <li>link:POST<b> http://162.241.174.138:8080/users/authenticate </b></li>      
+            </ul>
+         </li>
+		<li>
+            <b>Profile</b>
+            <ul>
+               <li>description:Customer Profile api</li>
+               <li>parameters:[id]</li>      
+               <li>link:GET<b> http://162.241.174.138:8080/users/id </b></li>      
+            </ul>
+         </li>
+		<li>
+            <b>Update profile</b>
+            <ul>
+               <li>description:Update Customer Profile api</li>
+               <li>parameters:[username,email,mobile,password,address,dob,lat,lang]</li>      
+               <li>link:POST<b> http://162.241.174.138:8080/users/id </b></li>      
+            </ul>
+         </li>
+         <li>
+            <b>Update Image</b>
+            <ul>
+               <li>description:Upload Customer image api</li>
+               <li>parameters:[image]</li>      
+               <li>link:POST<b> http://162.241.174.138:8080/users/upload/id </b></li>      
+            </ul>
+         </li>
+		<li>
+            <b>All Customer</b>
+            <ul>
+               <li>description:Get all Customer api</li>
+               <li>parameters:[]</li>      
+               <li>link:GET<b> http://162.241.174.138:8080/users/ </b></li>      
+            </ul>
+         </li>
+         
+		<li>
+            <b>All Services</b>
+            <ul>
+               <li>description:Get all services api</li>
+               <li>parameters:[]</li>      
+               <li>link:GET<b>http://162.241.174.138:8080/service/getall</b></li>      
+            </ul>
+         </li>
+         
+		<li>
+            <b>Add Job</b>
+            <ul>
+               <li>description:add job api</li>
+            <li>parameters:['user_id','service_id','service_name','location','lat','lang']</li>      
+               <li>link:POST<b>http://162.241.174.138:8080/job/create</b></li>      
+            </ul>
+         </li>
+		<li>
+            <b>find provider for Job</b>
+            <ul>
+               <li>description:Get Provider for my Job api</li>
+            <li>parameters:['lat','lang']</li>      
+               <li>link:POST<b>http://162.241.174.138:8080/job/serviceprovider/:service_id</b></li>      
+            </ul>
+         </li>
+		<li>
+            <b>Get specific job detail</b>
+            <ul>
+               <li>description:</li>
+            <li>parameters:[]</li>      
+               <li>link:POST<b>http://162.241.174.138:8080/job/:job_id</b></li>      
+            </ul>
+         </li>
+		<li>
+            <b>Get all job detail of user</b>
+            <ul>
+               <li>description:</li>
+            <li>parameters:[]</li>      
+               <li>link:GET<b>http://162.241.174.138:8080/job/user/:user_id</b></li>      
+            </ul>
+         </li>
+         </ul>
+
+<li style="border : 1px solid black"> <h4>Job Request Api</h4>  </li>
+
+        <ul>  
+    		<li>
+                <b>Add job request</b>
+                <ul>
+                   <li>description:</li>
+                <li>parameters:[user_id,employee_id, service_id,notification(for push notification)]</li>      
+                   <li>link:POST<b>http://162.241.174.138:8080/job/addjobrequest</b></li>      
+                </ul>
+             </li>
+    		<li>
+                <b>Update job request</b>
+                <ul>
+                   <li>description:</li>
+                <li>parameters:[main_id ,chat_status(o),notification(o), status(o)]</li>      
+                   <li>link:POST<b>http://162.241.174.138:8080/jobrequest/updatejobrequest</b></li>      
+                </ul>
+             </li>
+         </ul>
+         
+         
