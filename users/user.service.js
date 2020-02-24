@@ -127,7 +127,7 @@ async function CheckMobile(param){
 }
 
 async function create(userParam,image) {
-    console.log(userParam);
+    // console.log(userParam);
     if(typeof userParam.username === 'undefined'){
         return {result:false,message:'username,email,password,dob, acc_type(Individual,Company) and image  is required'}
     };
