@@ -147,27 +147,27 @@ async function create(userParam,image) {
     }
     var output='';
     
-    const user1 =await User.findOne({ email: userParam.email });
+    const user1 = await User.findOne({ email: userParam.email }, (error, response) => {
+
+        if (error) return {result:false, message: 'Something went wrong, try again later'}
+        else {
+            if (response) {
+                console.log(response)
+            }
+        }
+
+    })
     
     if (user1) {
-   
-
-
-
- 
-       var output=Object.assign(user1, {username:userParam,image:userParam.image,img_status:userParam.img_status});
+        var output = Object.assign(user1, {username:userParam,image:userParam.image,img_status:userParam.img_status});
         if(output.img_status == '1')
         {
             output.image = config.URL+'api/uploads/users/'+output.image;
         }
-      
         return {result:false , message:'Email is already Exists',data:output};
     }
 
-
-
     const user = new User(userParam);
-
 
      var data = '';
      if(data = await user.save()){
