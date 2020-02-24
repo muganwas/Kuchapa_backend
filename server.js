@@ -36,7 +36,6 @@ app.use('/thirdpartyapi', require('./thirdpartyapi/thirdpartyapi.controller'));
 // global error handler
 app.use(errorHandler);
 
-
 var cron_request = require('./cron/cron.service.js');
 
 cron.schedule('* * * * *', function () {
@@ -45,7 +44,7 @@ cron.schedule('* * * * *', function () {
 
 // start server
 const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : (process.env.PORT || 8080);
-const io	 = require('socket.io').listen(app.listen(port, function () {
+const io = require('socket.io').listen(app.listen(port, function () {
     console.log('Server listening on port ' + port);
 }));
 
