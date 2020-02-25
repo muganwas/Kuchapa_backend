@@ -1,5 +1,4 @@
-require('dotenv').config();
-const config = process.env;
+const config = require('config.json');
 const express = require('express');
 const {ObjectId} = require('mongodb');
 
@@ -48,11 +47,11 @@ async function authenticate(param) {
     if(user.status == '0'){
                return {result:false,message:"Your account is deactivated by admin"};
     }
-    if(user.email_verification == '0'){
+/*    if(user.email_verification == '0'){
          var message  = `Please <a href="${config.URL}#/customer_verification/${user.id}">Click Here </a> To verify your Email`;
          var mail = await SendMailFunction.SendMail(user.email,"Verification Request By Harfa", message);
                return {result:false,message:"Your email is not verified.Verify link sent"};
-    }
+    }*/
     
     
      if(typeof param.fcm_id !== 'undefined'){
@@ -65,7 +64,7 @@ async function authenticate(param) {
     
     if (user &&  bcrypt.compareSync(param.password, user.hash) ) {
         const { hash, userWithoutHash } = user.toObject();
-        const token = jwt.sign({ sub: user.id }, config.SECRET);
+        const token = jwt.sign({ sub: user.id }, config.secret);
           if(user.img_status == '1')
         {
              user.image = config.URL+'api/uploads/employee/'+user.image;
@@ -100,6 +99,7 @@ async function getAll() {
             
               for (var j = 0; j < arr.length ; j++){
                  var service =   await Service.find(ObjectId(arr[j]));
+                 console.log(service);
                  if(service){
                    ser_arr.push(service[0].service_name);     
                  }
@@ -165,8 +165,6 @@ async function Verification(id) {
        Object.assign(output, userParam);
       var v = await output.save();
        
-         console.log("output");
-         console.log(v);
         return  {result:true,message:'Provider verified successfully'};
     }else{
       return  {result:false,message:'Provider Not Found'};
@@ -209,7 +207,7 @@ async function getById(id, param) {
        if(output.img_status ==1){
        output.image = config.URL+'api/uploads/employee/'+output.image;
        }
-      /* console.log(output);*/
+     
         return {result:true,message:'employee  found',data:output};
     }else{
         return {result:false,message:'employee not found'};
@@ -218,7 +216,7 @@ async function getById(id, param) {
 
 
 async function CheckMobile(param){
-  /*  console.log(param);*/
+ 
     if(typeof param.email === 'undefined'){
         return {result:false,message:'Email is required'};
     }
@@ -252,7 +250,7 @@ async function CheckMobile(param){
           
         return {result:true,message:'Email is already Exists',data:emp_data};
     }
-   /* console.log(param);*/
+  
     
 /*    var output = '';
      if (output = await Employee.findOne({ email: param.email })) {
@@ -311,16 +309,18 @@ async function create(userParam) {
      var emp_data='';
     const user1 = await Employee.findOne({ email: userParam.email });
    if (user1) {
-       if(userParam.type == "google")
-       {
+        if(userParam.type == "google")
+        {
         emp_data=   Object.assign(user1, {username:userParam.username,image:userParam.image});
         if(emp_data.img_status == '1')
         {
             emp_data.image = config.URL+'api/uploads/employee/'+emp_data.image;
         }
-         
+         if(emp_data.status == '0'){
+               return {result:false,message:"Your account is deactivated by admin"};
+    }
         return {result:true,message:'Email is already Exist',data:emp_data};
-   }
+        }
    else
    {
       return {result:false,message:'Email is already Exist'};  
@@ -336,7 +336,7 @@ async function create(userParam) {
    if(output =  await emp.save()){ 
        
         var message  = `Please <a href="${config.URL}#/employee_verification/${output.id}">Click Here </a> To verify your Email`;
-        var mail = await SendMailFunction.SendMail(userParam.email,"Verification Request By Harfa", message);
+        /*var mail = await SendMailFunction.SendMail(userParam.email,"Verification Request By Harfa", message);*/
         
           
             
@@ -387,8 +387,6 @@ async function ForgotPassword(param){
         return {result:false,message:"Email does not exist"};
     } 
     
-    
-    console.log(user);
     const message = {
     from: 'team.harfa@gmail.com', // Sender address
     to: param.email,         // List of recipients
@@ -400,7 +398,7 @@ async function ForgotPassword(param){
 return new Promise(function (resolve , reject) {
         transport.sendMail(message, function(err, info) {
             if (err) {
-                console.log(err);
+              
                reject({result:false,message:'Something went wrong',error:err});
             } else {
                resolve({result:true,message:'email sent successfull'});

@@ -3,12 +3,21 @@ const router = express.Router();
 const userService = require('./user.service');
 var multer  = require('../node_modules/multer');
 // console.log(multer);
+
 var Storage = multer.diskStorage({
 destination: function (req, file, callback) {
 callback(null, "uploads/users/");
 },
 filename: function (req, file, callback) {
-callback(null, file.fieldname + "_" + Date.now() + "_" + file.originalname);
+  var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+   var charactersLength = characters.length;
+   var result='';
+   for ( var i = 0; i < 10; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+         
+   }
+return true;
+callback(null, file.fieldname + "_" + Date.now() + "_" + result + "_" + file.originalname);
 }
 });
 var upload = multer({ storage: Storage });
@@ -16,6 +25,7 @@ var upload = multer({ storage: Storage });
 router.post('/authenticate', authenticate);
 router.post('/register/create', upload.single('image'), register);
 router.get('/', getAll);
+router.post('/get_search', get_search);
 router.get('/verification/:id', Verification);
 router.get('/current', getCurrent);
 router.get('/:id', getById);
@@ -34,7 +44,8 @@ function authenticate(req, res, next) {
 }
 
 function register(req, res, next) {
-   
+    console.log(req.body);
+   console.log(image);
    if(req.body.type == 'normal')
    {
    if(req.file.filename){
@@ -43,11 +54,13 @@ function register(req, res, next) {
      var image = '';    
     }
    }
-      console.log(req.body);
+  
     userService.create(req.body,image)
         .then((user) => res.json(user))
         .catch(err => next(err));
 }
+
+
 
 function CheckMobile(req, res, next) {
     userService.CheckMobile(req.body)
@@ -62,6 +75,12 @@ function ForgotPassword(req, res, next) {
 
 function getAll(req, res, next) {
     userService.getAll()
+        .then(users => res.json(users))
+        .catch(err => next(err));
+}
+
+function get_search(req, res, next) {
+    userService.get_search(req.body)
         .then(users => res.json(users))
         .catch(err => next(err));
 }
