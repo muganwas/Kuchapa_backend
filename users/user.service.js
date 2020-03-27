@@ -213,7 +213,8 @@ async function create(userParam, image) {
         if (data.img_status == '1') {
           data.image = config.URL + 'api/uploads/users/' + data.image
         }
-    
+
+        console.log('saved');
         const message = `Please <a href="${config.URL}#/customer_verification/${data.id}">Click Here </a> To verify your Email`
         /* var mail = await SendMailFunction.SendMail(userParam.email,"Verification Request By Harfa", message);*/
     
@@ -230,9 +231,11 @@ async function create(userParam, image) {
           title: 'New Customer'
         })
     
-        await notification.save()
+        await notification.save().then( res => {
+            if (res) return { result: true, message: 'Register Successfull', data: res }
+            else return { result: false, message: 'Something went wrong' }
+        });
     
-        return { result: true, message: 'Register Successfull', data: data }
       } else {
         return { result: false, message: 'Something went wrong' }
       }
