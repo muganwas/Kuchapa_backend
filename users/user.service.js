@@ -199,22 +199,21 @@ async function create(userParam, image) {
           message: 'Your account is deactivated by admin'
         }
       }
-      return { result: true, message: 'Email is already Exists', data: output }
+      return { result: true, message: 'Email already exists', data: output }
     } else {
-      return { result: false, message: 'Email is already Exist' }
+      return { result: false, message: 'Email already exist' }
     }
   }
 
   const user = new User(userParam);
 
   await user.save().then(async res => {
+    console.log('user data saved');
       const data = res;
       if (data) {
         if (data.img_status == '1') {
           data.image = config.URL + 'api/uploads/users/' + data.image
         }
-
-        console.log('saved');
         const message = `Please <a href="${config.URL}#/customer_verification/${data.id}">Click Here </a> To verify your Email`
         /* var mail = await SendMailFunction.SendMail(userParam.email,"Verification Request By Harfa", message);*/
     
@@ -231,15 +230,27 @@ async function create(userParam, image) {
           title: 'New Customer'
         })
     
-        await notification.save().then( res => {
-            if (res) return { result: true, message: 'Register Successfull', data: res }
-            else return { result: false, message: 'Something went wrong' }
+        await notification.save().then(res => {
+            if (res) {
+                console.log('notification saved')
+                return {result: true, message: 'Register Successfull'};
+            }
+            else {
+                return { result: false, message: 'Something went wrong' };
+            }
+        }).catch(e => {
+            console.log(e);
+            return { result: false, message: 'Something went wrong', error: e.message };
         });
-    
-      } else {
+        return {result: true, message: 'Register Successfull'};
+      } 
+      else {
         return { result: false, message: 'Something went wrong' }
       }
-  });
+  }).catch(e => {
+      console.log(e);
+      return { result: false, message: 'Something went wrong', error: e.message }
+  })
 }
 
 async function update(id, userParam) {

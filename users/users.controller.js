@@ -56,7 +56,7 @@ function register(req, res, next) {
     }
   
     userService.create(req.body,image)
-        .then((user) => res.json(user))
+        .then(user => res.json(user))
         .catch(err => next(err));
 }
 
