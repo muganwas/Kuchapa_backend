@@ -1,4 +1,4 @@
-const config = require('config.json')
+const config = require('../config')
 const express = require('express')
 const { ObjectId } = require('mongodb')
 
@@ -14,21 +14,7 @@ const Employee = db.Employee
 const Service = db.Services
 
 const Notification = db.Notification
-const SendMailFunction = require('../_helpers/SendMail')
-
-module.exports = {
-  authenticate,
-  getAll,
-  getById,
-  Verification,
-  create,
-  update,
-  CheckMobile,
-  ForgotPassword,
-  PushNotif,
-  uploadImage,
-  _delete
-}
+const SendMail = require('../_helpers/SendMail')
 
 async function authenticate(param) {
   if (typeof param.email === 'undefined') {
@@ -241,8 +227,7 @@ async function CheckMobile(param) {
 
     return { result: true, message: 'Email is already Exists', data: emp_data }
   } else {
-
-  /*    var output = '';
+    /*    var output = '';
      if (output = await Employee.findOne({ email: param.email })) {
          
     if(typeof param.fcm_id !== 'undefined'){
@@ -327,9 +312,11 @@ async function create(userParam) {
 
   var output = ''
 
-  if (output = await emp.save()) {
+  if ((output = await emp.save())) {
     var message = `Please <a href="${config.URL}#/employee_verification/${output.id}">Click Here </a> To verify your Email`
     /*var mail = await SendMailFunction.SendMail(userParam.email,"Verification Request By Harfa", message);*/
+
+    SendMail(userParam.email, 'Email Address Verification', message )
 
     const notification = new Notification({
       type: 'New User',
@@ -447,3 +434,17 @@ async function uploadImage(id, image) {
 async function _delete(id) {
   await Employee.findByIdAndRemove(id)
 }
+
+module.exports = {
+    authenticate,
+    getAll,
+    getById,
+    Verification,
+    create,
+    update,
+    CheckMobile,
+    ForgotPassword,
+    PushNotif,
+    uploadImage,
+    _delete
+  }

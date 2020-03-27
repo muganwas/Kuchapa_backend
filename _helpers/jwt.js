@@ -1,5 +1,5 @@
 const expressJwt = require('express-jwt');
-const config = require('config.json');
+const config = require('../config');
 const userService = require('../users/user.service');
 const adminService = require('../admin/admin.service');
 
