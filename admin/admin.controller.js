@@ -14,7 +14,7 @@ router.post('/changepassword/:id', ChangePassword);
 module.exports = router;
 
 function authenticate(req, res, next) {
-
+   
     adminService.authenticate(req.body.userInfo)
         .then(user => user ? res.json(user) : res.status(400).json({ message: 'email and   is incorrect' }))
         .catch(err => next({result:false,message:err}));
@@ -57,6 +57,7 @@ function update(req, res, next) {
 }
 
 function ChangePassword(req, res, next) {
+
     adminService.ChangePassword(req.params.id, req.body)
         .then((rslt) => res.json(rslt))
         .catch(err => next(err));

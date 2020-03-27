@@ -1,0 +1,14 @@
+(node:17513) DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+node[17513]: ../src/node.cc:627:void node::ResetStdio(): Assertion `(0) == (err)' failed.
+ 1: 0x9dab70 node::Abort() [node]
+ 2: 0x9dabf7  [node]
+ 3: 0x9a89b7 node::ResetStdio() [node]
+ 4: 0x9a8a20 node::SignalExit(int) [node]
+ 5: 0x7f2b72e89390  [/lib/x86_64-linux-gnu/libpthread.so.0]
+ 6: 0x7f2b72bb5a13 epoll_wait [/lib/x86_64-linux-gnu/libc.so.6]
+ 7: 0x12e9e80  [node]
+ 8: 0x12d82db uv_run [node]
+ 9: 0xa1ce80 node::NodeMainInstance::Run() [node]
+10: 0x9acb68 node::Start(int, char**) [node]
+11: 0x7f2b72ace830 __libc_start_main [/lib/x86_64-linux-gnu/libc.so.6]
+12: 0x94a115  [node]

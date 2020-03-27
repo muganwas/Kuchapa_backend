@@ -18,7 +18,7 @@ const schema = new Schema({
     image: { type: String ,default:'no-image.jpg'},
     img_status: { type: String, default: '0' },
     status: { type: String ,default:'1'},
-    email_verification: { type: String ,default:'0'},
+    email_verification: { type: Number ,default:0},
     paying: { type: String ,default:'No'},
     account_type: { type: String ,default:''},
     fcm_id: { type: String ,default:''},

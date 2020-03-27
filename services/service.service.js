@@ -1,4 +1,4 @@
-const config = require('config.json');
+const config = require('../config');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const db = require('_helpers/db');
@@ -40,6 +40,7 @@ async function getAll() {
         sub_c = await Sub_Category.find({_id:data[i].sub_category});
         
          if(main_c.length > 0 && sub_c.length > 0){
+
            data[i].main_category =main_c[0].main_category;
            data[i].sub_category =sub_c[0].sub_category;
            data[i].image = config.URL+'api/uploads/services/'+data[i].image;
@@ -79,7 +80,7 @@ async function create(userParam) {
 
     const user = new User(userParam);
 
-
+ 
      var output = '';
     if(output = await user.save()){
         return {result:true,message:'Add Service Successfull',data:output};

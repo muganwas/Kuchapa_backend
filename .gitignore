@@ -3,5 +3,7 @@ node_modules/
 # enviromental var
 .env
 .env.development
-#mac file
-.DC_Store
+# macOS files
+.DS_Store
+# core
+core

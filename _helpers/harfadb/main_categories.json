@@ -1,0 +1,5 @@
+{"_id":{"$oid":"5d31a05da8211d2c9e6c677f"},"main_category":"Electronics","createdDate":{"$date":"2019-07-19T10:50:05.684Z"},"__v":0}
+{"_id":{"$oid":"5d31a067a8211d2c9e6c6780"},"main_category":"Construction","createdDate":{"$date":"2019-07-19T10:50:15.492Z"},"__v":0}
+{"_id":{"$oid":"5d31a073a8211d2c9e6c6783"},"main_category":"Other","createdDate":"2019-07-19T10:50:25.409+00:00"}
+{"_id":{"$oid":"5d480c330a030546ca735080"},"main_category":"testing","createdDate":{"$date":"2019-08-05T11:00:03.924Z"},"__v":0}
+{"_id":{"$oid":"5df991e56553697b41c68173"},"main_category":"Cuisinier","createdDate":{"$date":"2019-12-18T02:41:41.880Z"},"__v":0}
