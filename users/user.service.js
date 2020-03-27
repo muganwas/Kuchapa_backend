@@ -205,37 +205,38 @@ async function create(userParam, image) {
     }
   }
 
-  const user = new User(userParam)
+  const user = new User(userParam);
 
-  var data = ''
-  if ((data = await user.save())) {
-    console.log(data)
-    if (data.img_status == '1') {
-      data.image = config.URL + 'api/uploads/users/' + data.image
-    }
-
-    const message = `Please <a href="${config.URL}#/customer_verification/${data.id}">Click Here </a> To verify your Email`
-    /* var mail = await SendMailFunction.SendMail(userParam.email,"Verification Request By Harfa", message);*/
-
-    SendMail(userParam.email, 'Email Address Verification', message)
-
-    const notification = new Notification({
-      type: 'New User',
-      order_id: '',
-      message: userParam.username + ' register as Customer',
-      notification_for: 'Admin',
-      notification_link: '/user/' + data._id,
-      user_id: data._id,
-      employee_id: data._id,
-      title: 'New Customer'
-    })
-
-    await notification.save()
-
-    return { result: true, message: 'Register Successfull', data: data }
-  } else {
-    return { result: false, message: 'Something went wrong' }
-  }
+  await user.save().then(async res => {
+      const data = res;
+      if (data) {
+        if (data.img_status == '1') {
+          data.image = config.URL + 'api/uploads/users/' + data.image
+        }
+    
+        const message = `Please <a href="${config.URL}#/customer_verification/${data.id}">Click Here </a> To verify your Email`
+        /* var mail = await SendMailFunction.SendMail(userParam.email,"Verification Request By Harfa", message);*/
+    
+        SendMail(userParam.email, 'Email Address Verification', message)
+    
+        const notification = new Notification({
+          type: 'New User',
+          order_id: '',
+          message: userParam.username + ' register as Customer',
+          notification_for: 'Admin',
+          notification_link: '/user/' + data._id,
+          user_id: data._id,
+          employee_id: data._id,
+          title: 'New Customer'
+        })
+    
+        await notification.save()
+    
+        return { result: true, message: 'Register Successfull', data: data }
+      } else {
+        return { result: false, message: 'Something went wrong' }
+      }
+  });
 }
 
 async function update(id, userParam) {
