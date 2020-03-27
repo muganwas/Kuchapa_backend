@@ -209,7 +209,7 @@ async function create(userParam, image) {
 
   await user.save().then(async res => {
     console.log('user data saved');
-      const data = Object.assign({}, res);
+      const data = res;
       if (data) {
         if (data.img_status == '1') {
           data.image = config.URL + 'api/uploads/users/' + data.image

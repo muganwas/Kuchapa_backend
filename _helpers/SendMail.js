@@ -1,3 +1,4 @@
+require('dotenv').config();
 const config = require('../config.js')
 const request = require('request')
 const nodemailer = require('nodemailer')
@@ -19,7 +20,7 @@ module.exports = async (email, subject, message) => {
   let transporter = nodemailer.createTransport({
     host: config.email_host,
     port: config.email_port,
-    secure: true, // true for 465, false for other ports
+    secure: process.env.NODE_ENV === 'development' ? false : true, // true for 465, false for other ports
     requireTLS: true,
     auth: {
       user: config.email_user, // generated ethereal user
