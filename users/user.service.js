@@ -209,7 +209,7 @@ async function create(userParam, image) {
 
   await user.save().then(async res => {
     console.log('user data saved');
-      const data = res;
+      const data = Object.assign({}, res);
       if (data) {
         if (data.img_status == '1') {
           data.image = config.URL + 'api/uploads/users/' + data.image
@@ -231,18 +231,11 @@ async function create(userParam, image) {
         })
     
         await notification.save().then(res => {
-            if (res) {
-                console.log('notification saved')
-                return {result: true, message: 'Register Successfull'};
-            }
-            else {
-                return { result: false, message: 'Something went wrong' };
-            }
+            if (res) console.log('notification saved');
         }).catch(e => {
             console.log(e);
             return { result: false, message: 'Something went wrong', error: e.message };
         });
-        return {result: true, message: 'Register Successfull'};
       } 
       else {
         return { result: false, message: 'Something went wrong' }
@@ -250,7 +243,8 @@ async function create(userParam, image) {
   }).catch(e => {
       console.log(e);
       return { result: false, message: 'Something went wrong', error: e.message }
-  })
+  });
+  return {result: true, message: 'Register Successfull'};
 }
 
 async function update(id, userParam) {

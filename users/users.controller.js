@@ -44,7 +44,6 @@ function authenticate(req, res, next) {
 }
 
 function register(req, res, next) {
-    console.log(req.body);
     if (req.body.type == 'normal')
     {
         if (req.file.filename) {
