@@ -1,6 +1,6 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-/*const config = require('config.json');
+/*const config = require('../config');
 const MONGO_USERNAME = 'harfa';
 const MONGO_PASSWORD = 'harfa';
 const MONGO_HOSTNAME = '127.0.0.1';
