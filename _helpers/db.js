@@ -6,13 +6,18 @@ const MONGO_PASSWORD = 'harfa';
 const MONGO_HOSTNAME = '127.0.0.1';
 const MONGO_PORT = '27017';
 const MONGO_DB = 'harfa';*/
-const url = process.env.CONNECTION_STRING;
 
-mongoose.connect(url, { useCreateIndex: true, useNewUrlParser: true });
-mongoose.Promise = global.Promise;
+mongoose.connect(process.env.CONNECTION_STRING, { useCreateIndex: true, useNewUrlParser: true }, function (err, db) {
+   
+     if(err) throw err;
+
+     //Write databse Insert/Update/Query code here..
+                
+});
 // console.log(url);
 module.exports = {
     User: require('../users/user.model'),
+    Contact: require('../contact/contact.model'),
     Admin: require('../admin/admin.model'),
     Employee: require('../employee/employee.model'),
     Services: require('../services/service.model'),

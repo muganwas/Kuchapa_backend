@@ -1,5 +1,4 @@
-require('dotenv').config();
-const config = process.env;
+const config = require('config.json');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const db = require('_helpers/db');
@@ -19,31 +18,34 @@ module.exports = {
 
 async function authenticate({ email, password }) {
     const admin = await Admin.findOne({ email });
- 
+    
     // if (admin && bcrypt.compareSync(password, admin.hash)) {
      if(!admin){
         return {result:false,message:"email not found"};
      }   
+
     if (admin &&  bcrypt.compareSync(password, admin.hash) ) {
         const { hash, userWithoutHash } = admin.toObject();
-        const token = jwt.sign({ sub: admin.id }, config.SECRET);
-          
+        const token = jwt.sign({ sub: admin.id }, config.secret);
+         
         return {result:true,message:'Login successfull',token:token,id:admin.id};
     }else{
+
         return {result:false,message:"Password not matched"};
     }
 }
 
-async function ChangePassword(id,{password}) {
+async function ChangePassword(id,param) {
     const admin = await Admin.findById(id);
+
      // if (admin && bcrypt.compareSync(password, admin.hash)) {
      if(!admin){
         return {result:false,message:"admin not found"};
      }   
     
-    if (admin && bcrypt.compareSync(password, admin.hash)) {
-     admin.hash = bcrypt.hashSync(password, 10);
-      Object.assign(admin, {password:password,hash:admin.hash});
+    if (admin && bcrypt.compareSync(param.cpassword, admin.hash)) {
+       admin.hash = bcrypt.hashSync(param.password, 10);
+      Object.assign(admin, {password:param.password,hash:admin.hash});
         if(await admin.save()){
           return {result:true,message:'Update password successfull'};
         }else{
@@ -78,9 +80,9 @@ async function dashboard() {
   
      provider = p + np;
      var total = customer + provider;
-      pie[0] = parseFloat(customer / total *100); 
-      pie[1] = parseFloat(p / total *100); 
-      pie[2] = parseFloat(np / total *100); 
+      pie[0] = Math.round(customer / total *100); 
+      pie[1] = Math.round(p / total *100); 
+      pie[2] = Math.round(np / total *100); 
   
     return {result:true,customer:customer, provider:provider, pie : pie};
 }
@@ -95,7 +97,6 @@ return await Admin.find();
 
 async function update(id, userParam) {
     const user = await Admin.findById(id);
-
     // validate
        if(!user){
         return {result:false,message:"user not found"};
@@ -127,9 +128,10 @@ async function create(userParam) {
     // hash password
     if (userParam.password) {
         admin.hash = bcrypt.hashSync(userParam.password, 10);
-        console.log(admin.hash);
+        
     }
+    var c = await admin.save();
     console.log(admin);
     // save user
-    console.log(await admin.save());
+    console.log(c);
 }
