@@ -312,8 +312,9 @@ async function create(userParam) {
 
   var output = ''
 
-  if ((output = await emp.save())) {
-    var message = `Please <a href="${config.URL}#/employee_verification/${output.id}">Click Here </a> To verify your Email`
+  if (output = await emp.save()) {
+    console.log(output);
+    const message = `Please <a href="${config.URL}#/employee_verification/${output.id}">Click Here </a> To verify your Email`
     /*var mail = await SendMailFunction.SendMail(userParam.email,"Verification Request By Harfa", message);*/
 
     SendMail(userParam.email, 'Email Address Verification', message )
