@@ -120,7 +120,7 @@ async function Verification(id) {
      const output = await User.findById(id);
     if(output){
         var userParam = {};
-        userParam['email_verification'] = "1";  
+        userParam['email_verification'] = 1;  
        Object.assign(output, userParam);
       var v = await output.save();
        
@@ -162,10 +162,10 @@ async function create(userParam,image) {
     {
         userParam.image=image;
         userParam.img_status=1;
-        userParam.email_verification = "1";
+        userParam.email_verification = 1;
     }
     }else{
-        userParam.email_verification = "1";
+        userParam.email_verification = 1;
     }
     
      if (userParam.password) {

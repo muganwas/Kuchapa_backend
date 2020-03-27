@@ -45,15 +45,16 @@ function authenticate(req, res, next) {
 
 function register(req, res, next) {
     console.log(req.body);
-   console.log(image);
-   if(req.body.type == 'normal')
-   {
-   if(req.file.filename){
-     var  image = req.file.filename;    
-    }else{
-     var image = '';    
+    console.log(image);
+    if (req.body.type == 'normal')
+    {
+        if (req.file.filename) {
+            var  image = req.file.filename;    
+        }
+        else {
+            var image = '';    
+        }
     }
-   }
   
     userService.create(req.body,image)
         .then((user) => res.json(user))
