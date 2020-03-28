@@ -7,7 +7,7 @@ const schema = new Schema({
     email: { type: String, required: true },
     password: { type: String, required: false,default: ''},
     hash: { type: String, default:'' },
-    country: { type: String,  },
+    country: { type: String, default:''},
     mobile: { type: String, default:'' },
     address: { type: String, required: true },
     services: { type: String, required: true },

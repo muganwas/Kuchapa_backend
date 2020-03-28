@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const path = require('path');
 const userService = require('./user.service');
 var multer  = require('../node_modules/multer');
 // console.log(multer);
@@ -54,12 +55,11 @@ function register(req, res, next) {
         }
     }
   
-    userService.create(req.body,image)
+    userService.create(req.body)
         .then(user => res.json(user))
         .catch(err => next(err));
+
 }
-
-
 
 function CheckMobile(req, res, next) {
     userService.CheckMobile(req.body)
@@ -92,7 +92,13 @@ function getCurrent(req, res, next) {
 
 function Verification(req, res, next) {
     userService.Verification(req.params.id)
-        .then(user => user ? res.json(user) : res.sendStatus(404))
+        .then(user => {
+            if (user) {
+                if (user.result) res.sendFile(path.join(__dirname,'../public/Successful.html'));
+                else res.json(user);
+            }
+            else res.sendStatus(404)
+        })
         .catch(err => next(err));
 }
 function getById(req, res, next) {

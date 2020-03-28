@@ -6,31 +6,6 @@ const User = db.User
 const Notification = db.Notification
 const SendMail = require('../_helpers/SendMail')
 
-/*  let transport = nodemailer.createTransport({
-        host: config.email_host,
-        port: config.email_port,
-        service: "gmail",
-        secure:false,
-        auth: {
-          user: config.email_user,
-          pass: config.email_passwrord
-        }
-    });transport*/
-
-module.exports = {
-  authenticate,
-  Verification,
-  getAll,
-  get_search,
-  getById,
-  create,
-  update,
-  CheckMobile,
-  ForgotPassword,
-  uploadImage,
-  _delete
-}
-
 async function authenticate(param) {
   const user = await User.findOne({ email: param.email })
 
@@ -43,11 +18,11 @@ async function authenticate(param) {
   }
   /* console.log(user);*/
 
-  /*  if(user.email_verification == '0'){
-         var message  = `Please <a href="${config.URL}#/customer_verification/${user.id}">Click Here </a> To verify your Email`;
-         var mail = await SendMailFunction.SendMail(user.email,"Verification Request By Harfa", message);
-             return {result:false,message:"Your email is not verified.Verify link sent"};
-    }*/
+  if(user.email_verification == '0'){
+    var message  = `Please <a href="${config.URL}/users/verification/${user.id}">Click Here </a> to verify your Email`;
+    SendMail(user.email,"Verification Request By Harfa", message);
+    return {result:false,message:"Your email is not verified. We sent you a link"};
+  }
 
   if (user && bcrypt.compareSync(param.password, user.hash)) {
     const { hash, userWithoutHash } = user.toObject()
@@ -128,8 +103,7 @@ async function Verification(id) {
     var userParam = {}
     userParam['email_verification'] = 1
     Object.assign(output, userParam)
-    var v = await output.save()
-
+    await output.save()
     return { result: true, message: 'Customer verified successfully' }
   } else {
     return { result: false, message: 'Customer Not Found' }
@@ -158,7 +132,10 @@ async function CheckMobile(param) {
   }
 }
 
-async function create(userParam, image) {
+async function create(params) {
+  const userParam = JSON.parse(params.data);
+  const image = userParam.image;
+  var data;
   if (typeof userParam.username === 'undefined') {
     return {
       result: false,
@@ -167,11 +144,10 @@ async function create(userParam, image) {
     }
   }
   if (userParam.type == 'normal') {
-    if (image != '') {
-      userParam.image = image
+    if (image != undefined && image != '') {
       userParam.img_status = 1
-      userParam.email_verification = 1
     }
+    userParam.email_verification = 0
   } else {
     userParam.email_verification = 1
   }
@@ -209,13 +185,12 @@ async function create(userParam, image) {
 
   await user.save().then(async res => {
     console.log('user data saved');
-      const data = res;
+      data = res;
       if (data) {
-        if (data.img_status == '1') {
-          data.image = config.URL + 'api/uploads/users/' + data.image
+        if (data.img_status === '1') {
+          data.image = config.URL + 'api/uploads/users/' + data.image.name
         }
-        const message = `Please <a href="${config.URL}#/customer_verification/${data.id}">Click Here </a> To verify your Email`
-        /* var mail = await SendMailFunction.SendMail(userParam.email,"Verification Request By Harfa", message);*/
+        const message = `Please <a href="${config.URL}users/verification/${data.id}">Click Here </a> To verify your Email`;
     
         SendMail(userParam.email, 'Email Address Verification', message)
     
@@ -244,7 +219,7 @@ async function create(userParam, image) {
       console.log(e);
       return { result: false, message: 'Something went wrong', error: e.message }
   });
-  return {result: true, message: 'Register Successfull'};
+  return data;
 }
 
 async function update(id, userParam) {
@@ -304,25 +279,23 @@ async function ForgotPassword(param) {
   if (!user) {
     return { result: false, message: 'Email does not exist' }
   }
-
-  const message = {
-    from: 'team.harfa@gmail.com', // Sender address
-    to: param.email, // List of recipients
-    subject: 'Password Recovery Mail', // Subject line
-    text: `Hello ${user.username}, \r\n Your password is ${user.password}` // Plain text body
-  }
-
-  return new Promise(function(resolve, reject) {
-    transport.sendMail(message, function(err, info) {
-      if (err) {
-        reject({ result: false, message: 'Something went wrong', error: err })
-      } else {
-        resolve({ result: true, message: 'email sent' })
-      }
-    })
-  })
+  await SendMail(param.email, 'Password Recovery Mail', `Hello ${user.username}, \r\n Your password is ${user.password}`)
 }
 
 async function _delete(id) {
   await User.findByIdAndRemove(id)
 }
+
+module.exports = {
+    authenticate,
+    Verification,
+    getAll,
+    get_search,
+    getById,
+    create,
+    update,
+    CheckMobile,
+    ForgotPassword,
+    uploadImage,
+    _delete
+  }
