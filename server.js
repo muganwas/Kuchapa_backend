@@ -32,6 +32,7 @@ app.use('/users', require('./users/users.controller'));
 app.use('/contact', require('./contact/contact.controller'));
 app.use('/employee', require('./employee/employee.controller'));
 app.use('/service', require('./services/services.controller'));
+app.use('/api/uploads/services', express.static(__dirname + '/uploads/services'));
 app.use('/main_category', require('./main_category/main_category.controller'));
 app.use('/sub_category', require('./sub_category/sub_category.controller'));
 app.use('/job', require('./job/job.controller'));
