@@ -19,7 +19,7 @@ async function authenticate(param) {
   /* console.log(user);*/
 
   if(user.email_verification == '0'){
-    var message  = `Please <a href="${config.URL}/users/verification/${user.id}">Click Here </a> to verify your Email`;
+    var message  = `Please <a href="${config.URL}users/verification/${user.id}">Click Here </a> to verify your Email`;
     SendMail(user.email,"Verification Request By Harfa", message);
     return {result:false,message:"Your email is not verified. We sent you a link"};
   }
