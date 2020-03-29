@@ -139,7 +139,10 @@ async function create(params) {
   const userParam = JSON.parse(params.data)
   const image = userParam.image
   var data
-  if (typeof userParam.username === 'undefined') {
+  if (
+    typeof userParam.username === 'undefined' ||
+    typeof userParam.email === 'undefined'
+  ) {
     return {
       result: false,
       message:
@@ -159,83 +162,83 @@ async function create(params) {
     userParam.hash = bcrypt.hashSync(userParam.password, 10)
   }
 
-  await User.findOne({ email: userParam.email }).then(user => {
+  await User.findOne({ email: userParam.email }).then(async user => {
 
     if (user) {
-        if (userParam.type == 'google') {
-          var output = Object.assign(user, {
-            username: userParam,
-            image: userParam.image,
-            img_status: userParam.img_status
-          })
-          if (output.img_status == '1') {
-            output.image = config.URL + 'api/uploads/users/' + output.image
-          }
-          if (output.status == '0') {
-            return {
-              result: false,
-              message: 'Your account is deactivated by admin'
-            }
-          }
-          return { result: true, message: 'Email is already Exists', data: output }
-        } else {
-          return { result: false, message: 'Email is already Exist' }
-        }
-      }
-  });
-
-  const user = new User(userParam)
-
-  await user
-    .save()
-    .then(async res => {
-      console.log('user data saved')
-      data = res
-      if (data) {
-        if (data.img_status === '1') {
-          data.image = config.URL + 'api/uploads/users/' + data.image.name
-        }
-        const message = `Please <a href="${config.URL}users/verification/${data.id}">Click Here </a> To verify your Email`
-        /**send verification email if not verified */
-        if (userParam.email_verification === 0)
-          SendMail(userParam.email, 'Email Address Verification', message)
-
-        const notification = new Notification({
-          type: 'New User',
-          order_id: '',
-          message: userParam.username + ' register as Customer',
-          notification_for: 'Admin',
-          notification_link: '/user/' + data._id,
-          user_id: data._id,
-          employee_id: data._id,
-          title: 'New Customer'
+      if (userParam.type == 'google') {
+        var output = Object.assign(user, {
+          username: userParam,
+          image: userParam.image,
+          img_status: userParam.img_status
         })
-
-        await notification
-          .save()
-          .then(res => {
-            if (res) console.log('notification saved')
-          })
-          .catch(e => {
-            console.log(e)
-            return {
-              result: false,
-              message: 'Something went wrong',
-              error: e.message
-            }
-          })
+        if (output.img_status == '1') {
+          output.image = config.URL + 'api/uploads/users/' + output.image
+        }
+        if (output.status == '0') {
+          return {
+            result: false,
+            message: 'Your account is deactivated by admin'
+          }
+        }
+        data = output
       } else {
-        return { result: false, message: 'Something went wrong' }
+        return { result: false, message: 'Email is already Exist' }
       }
-    })
-    .catch(e => {
-      console.log(e)
-      return {
-        result: false,
-        message: 'Something went wrong',
-        error: e.message
-      }
-    })
+    } else {
+      const user = new User(userParam)
+
+      await user
+        .save()
+        .then(async res => {
+          console.log('user data saved')
+          data = res
+          if (data) {
+            if (data.img_status === '1') {
+              data.image = config.URL + 'api/uploads/users/' + data.image.name
+            }
+            const message = `Please <a href="${config.URL}users/verification/${data.id}">Click Here </a> To verify your Email`
+            /**send verification email if not verified */
+            if (userParam.email_verification === 0)
+              SendMail(userParam.email, 'Email Address Verification', message)
+
+            const notification = new Notification({
+              type: 'New User',
+              order_id: '',
+              message: userParam.username + ' register as Customer',
+              notification_for: 'Admin',
+              notification_link: '/user/' + data._id,
+              user_id: data._id,
+              employee_id: data._id,
+              title: 'New Customer'
+            })
+
+            await notification
+              .save()
+              .then(res => {
+                if (res) console.log('notification saved')
+              })
+              .catch(e => {
+                console.log(e)
+                return {
+                  result: false,
+                  message: 'Something went wrong',
+                  error: e.message
+                }
+              })
+          } else {
+            return { result: false, message: 'Something went wrong' }
+          }
+        })
+        .catch(e => {
+          console.log(e)
+          return {
+            result: false,
+            message: 'Something went wrong',
+            error: e.message
+          }
+        })
+    }
+  })
   return data
 }
 
