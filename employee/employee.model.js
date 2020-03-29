@@ -11,7 +11,7 @@ const schema = new Schema({
     mobile: { type: String, default:'' },
     address: { type: String, required: true },
     services: { type: String, required: true },
-    invoice: { type: String, required: true },
+    invoice: { type: Number, required: true },
     description: { type: String, required: true },
     lat: { type: String,  },
     lang: { type: String, },

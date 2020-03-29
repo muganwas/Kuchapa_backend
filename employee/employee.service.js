@@ -260,7 +260,9 @@ async function CheckMobile(param) {
   }
 }
 
-async function create(userParam) {
+async function create(params) {
+  const userParam = JSON.parse(params.data)
+  var data
   if (
     typeof userParam.username === 'undefined' ||
     typeof userParam.email === 'undefined' ||
@@ -285,72 +287,79 @@ async function create(userParam) {
   if (userParam.password) {
     userParam.hash = bcrypt.hashSync(userParam.password, 10)
   }
-  var emp_data = ''
-  const user1 = await Employee.findOne({ email: userParam.email })
-  if (user1) {
-    if (userParam.type == 'google') {
-      emp_data = Object.assign(user1, {
-        username: userParam.username,
-        image: userParam.image
-      })
-      if (emp_data.img_status == '1') {
-        emp_data.image = config.URL + 'api/uploads/employee/' + emp_data.image
-      }
-      if (emp_data.status == '0') {
-        return {
-          result: false,
-          message: 'Your account is deactivated by admin'
+  /**look for user in database */
+  await Employee.findOne({ email: userParam.email }).then(user => {
+    if (user) {
+      if (userParam.type == 'google') {
+        emp_data = Object.assign(user, {
+          username: userParam.username,
+          image: userParam.image
+        })
+        if (emp_data.img_status == '1') {
+          emp_data.image = config.URL + 'api/uploads/employee/' + emp_data.image
         }
+        if (emp_data.status == '0') {
+          return {
+            result: false,
+            message: 'Your account is deactivated by admin'
+          }
+        }
+        return {
+          result: true,
+          message: 'Email is already Exist',
+          data: emp_data
+        }
+      } else {
+        return { result: false, message: 'Email is already Exist' }
       }
-      return { result: true, message: 'Email already exists', data: emp_data }
-    } else {
-      return { result: false, message: 'Email already exists' }
     }
-  }
+  })
 
   const emp = new Employee(userParam)
 
-  var output = ''
+  await emp.save().then(async output => {
+    if (output) {
+      console.log(output)
+      const message = `Please <a href="${config.URL}employee/verification/${output.id}">Click Here </a> To verify your Email`
+      /*var mail = await SendMailFunction.SendMail(userParam.email,"Verification Request By Harfa", message);*/
 
-  if (output = await emp.save()) {
-    console.log(output);
-    const message = `Please <a href="${config.URL}#/employee_verification/${output.id}">Click Here </a> To verify your Email`
-    /*var mail = await SendMailFunction.SendMail(userParam.email,"Verification Request By Harfa", message);*/
+      SendMail(userParam.email, 'Email Address Verification', message)
 
-    SendMail(userParam.email, 'Email Address Verification', message )
+      const notification = new Notification({
+        type: 'New User',
+        order_id: '',
+        message: output.username + ' register as Customer',
+        notification_for: 'Admin',
+        notification_link: '/employee/' + output._id,
+        user_id: output._id,
+        employee_id: output._id,
+        title: 'New Provider'
+      })
 
-    const notification = new Notification({
-      type: 'New User',
-      order_id: '',
-      message: output.username + ' register as Customer',
-      notification_for: 'Admin',
-      notification_link: '/employee/' + output._id,
-      user_id: output._id,
-      employee_id: output._id,
-      title: 'New Provider'
-    })
+      await notification.save().then(notification => {
+        if (notification) console.log('notification saved')
+      })
 
-    var notif = await notification.save()
+      var mystr = output.services
+      var arr = mystr.split(',')
+      let ser_arr = new Array()
 
-    var mystr = output.services
-    var arr = mystr.split(',')
-    let ser_arr = new Array()
-
-    for (var i = 0; i < arr.length; i++) {
-      var service = await Service.find({ _id: arr[i] })
-      if (service.length) {
-        ser_arr.push(service[0])
+      for (var i = 0; i < arr.length; i++) {
+        var service = await Service.find({ _id: arr[i] })
+        if (service.length) {
+          ser_arr.push(service[0])
+        }
       }
+      output.services = JSON.stringify(ser_arr)
+      if (output.img_status == '1') {
+        output.image = config.URL + 'api/uploads/employee/' + output.image
+      }
+      data = output
+    } else {
+      return { result: false, message: 'Registeration failed try again later' }
     }
-    output.services = JSON.stringify(ser_arr)
-    if (output.img_status == '1') {
-      output.image = config.URL + 'api/uploads/employee/' + output.image
-    }
-
-    return { result: true, message: 'Registeration successfull', data: output }
-  } else {
-    return { result: false, message: 'Registeration failed try again later' }
-  }
+  })
+  return data
 }
 
 async function ForgotPassword(param) {
@@ -437,15 +446,15 @@ async function _delete(id) {
 }
 
 module.exports = {
-    authenticate,
-    getAll,
-    getById,
-    Verification,
-    create,
-    update,
-    CheckMobile,
-    ForgotPassword,
-    PushNotif,
-    uploadImage,
-    _delete
-  }
+  authenticate,
+  getAll,
+  getById,
+  Verification,
+  create,
+  update,
+  CheckMobile,
+  ForgotPassword,
+  PushNotif,
+  uploadImage,
+  _delete
+}

@@ -18,10 +18,13 @@ async function authenticate(param) {
   }
   /* console.log(user);*/
 
-  if(user.email_verification == '0'){
-    var message  = `Please <a href="${config.URL}users/verification/${user.id}">Click Here </a> to verify your Email`;
-    SendMail(user.email,"Verification Request By Harfa", message);
-    return {result:false,message:"Your email is not verified. We sent you a link"};
+  if (user.email_verification == '0') {
+    var message = `Please <a href="${config.URL}users/verification/${user.id}">Click Here </a> to verify your Email`
+    SendMail(user.email, 'Verification Request By Harfa', message)
+    return {
+      result: false,
+      message: 'Your email is not verified. We sent you a link'
+    }
   }
 
   if (user && bcrypt.compareSync(param.password, user.hash)) {
@@ -133,9 +136,9 @@ async function CheckMobile(param) {
 }
 
 async function create(params) {
-  const userParam = JSON.parse(params.data);
-  const image = userParam.image;
-  var data;
+  const userParam = JSON.parse(params.data)
+  const image = userParam.image
+  var data
   if (typeof userParam.username === 'undefined') {
     return {
       result: false,
@@ -155,45 +158,48 @@ async function create(params) {
   if (userParam.password) {
     userParam.hash = bcrypt.hashSync(userParam.password, 10)
   }
-  var output = ''
 
-  const user1 = await User.findOne({ email: userParam.email })
+  await User.findOne({ email: userParam.email }).then(user => {
 
-  if (user1) {
-    if (userParam.type == 'google') {
-      var output = Object.assign(user1, {
-        username: userParam,
-        image: userParam.image,
-        img_status: userParam.img_status
-      })
-      if (output.img_status == '1') {
-        output.image = config.URL + 'api/uploads/users/' + output.image
-      }
-      if (output.status == '0') {
-        return {
-          result: false,
-          message: 'Your account is deactivated by admin'
+    if (user) {
+        if (userParam.type == 'google') {
+          var output = Object.assign(user, {
+            username: userParam,
+            image: userParam.image,
+            img_status: userParam.img_status
+          })
+          if (output.img_status == '1') {
+            output.image = config.URL + 'api/uploads/users/' + output.image
+          }
+          if (output.status == '0') {
+            return {
+              result: false,
+              message: 'Your account is deactivated by admin'
+            }
+          }
+          return { result: true, message: 'Email is already Exists', data: output }
+        } else {
+          return { result: false, message: 'Email is already Exist' }
         }
       }
-      return { result: true, message: 'Email already exists', data: output }
-    } else {
-      return { result: false, message: 'Email already exist' }
-    }
-  }
+  });
 
-  const user = new User(userParam);
+  const user = new User(userParam)
 
-  await user.save().then(async res => {
-    console.log('user data saved');
-      data = res;
+  await user
+    .save()
+    .then(async res => {
+      console.log('user data saved')
+      data = res
       if (data) {
         if (data.img_status === '1') {
           data.image = config.URL + 'api/uploads/users/' + data.image.name
         }
-        const message = `Please <a href="${config.URL}users/verification/${data.id}">Click Here </a> To verify your Email`;
-    
-        SendMail(userParam.email, 'Email Address Verification', message)
-    
+        const message = `Please <a href="${config.URL}users/verification/${data.id}">Click Here </a> To verify your Email`
+        /**send verification email if not verified */
+        if (userParam.email_verification === 0)
+          SendMail(userParam.email, 'Email Address Verification', message)
+
         const notification = new Notification({
           type: 'New User',
           order_id: '',
@@ -204,22 +210,33 @@ async function create(params) {
           employee_id: data._id,
           title: 'New Customer'
         })
-    
-        await notification.save().then(res => {
-            if (res) console.log('notification saved');
-        }).catch(e => {
-            console.log(e);
-            return { result: false, message: 'Something went wrong', error: e.message };
-        });
-      } 
-      else {
+
+        await notification
+          .save()
+          .then(res => {
+            if (res) console.log('notification saved')
+          })
+          .catch(e => {
+            console.log(e)
+            return {
+              result: false,
+              message: 'Something went wrong',
+              error: e.message
+            }
+          })
+      } else {
         return { result: false, message: 'Something went wrong' }
       }
-  }).catch(e => {
-      console.log(e);
-      return { result: false, message: 'Something went wrong', error: e.message }
-  });
-  return data;
+    })
+    .catch(e => {
+      console.log(e)
+      return {
+        result: false,
+        message: 'Something went wrong',
+        error: e.message
+      }
+    })
+  return data
 }
 
 async function update(id, userParam) {
@@ -279,7 +296,11 @@ async function ForgotPassword(param) {
   if (!user) {
     return { result: false, message: 'Email does not exist' }
   }
-  await SendMail(param.email, 'Password Recovery Mail', `Hello ${user.username}, \r\n Your password is ${user.password}`)
+  await SendMail(
+    param.email,
+    'Password Recovery Mail',
+    `Hello ${user.username}, \r\n Your password is ${user.password}`
+  )
 }
 
 async function _delete(id) {
@@ -287,15 +308,15 @@ async function _delete(id) {
 }
 
 module.exports = {
-    authenticate,
-    Verification,
-    getAll,
-    get_search,
-    getById,
-    create,
-    update,
-    CheckMobile,
-    ForgotPassword,
-    uploadImage,
-    _delete
-  }
+  authenticate,
+  Verification,
+  getAll,
+  get_search,
+  getById,
+  create,
+  update,
+  CheckMobile,
+  ForgotPassword,
+  uploadImage,
+  _delete
+}

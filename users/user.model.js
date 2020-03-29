@@ -12,7 +12,7 @@ const schema = new Schema({
     address: { type: String, default: '' },
     lat: { type: String, default: '' },
     lang: { type: String, default: '' },
-    image: { type: Object, default: { type: { type: String, default: 'image/jpeg'}, uri: { type: String }, name: { type: String, default: 'no-image.jpg'} } },
+    image: { type: String, default: 'no-image.jpg' },
     img_status: { type: String, default: '0' },
     status: { type: String, default: '1' },
     email_verification: { type: Number, default:0},
