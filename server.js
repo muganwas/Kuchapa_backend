@@ -18,6 +18,9 @@ const bodyParser = require('body-parser');
 const errorHandler = require('_helpers/error-handler');
 const cron = require('node-cron');
 
+//live users
+var users = {};
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
@@ -46,7 +49,7 @@ app.use('/thirdpartyapi', require('./thirdpartyapi/thirdpartyapi.controller'));
 app.use(errorHandler);
 
 
-var cron_request = require('./cron/cron.service.js');
+const cron_request = require('./cron/cron.service.js');
 
 cron.schedule('* * * * *', function () {
     cron_request.ChnageReqStatus();
@@ -70,11 +73,23 @@ const io = require('socket.io').listen(app.listen(port, function () {
     requestCert: true
 };*/
 
-var controller = require('./main_category/main_category.service.js');
-var job = require('./job/job.service.js');
-var chat = require('./chat/chat.service.js');
-io.sockets.on('connection', function (socket) {
-     controller.respond(socket);
-     job.respond(socket);
-  chat.respond(socket);
+//var controller = require('./main_category/main_category.service.js');
+//var job = require('./job/job.service.js');
+//var chat = require('./chat/chat.service.js');
+io.sockets.on('connection', socket => {
+    socket.on('connected', userId => {
+        socket.userId = userId;
+        users[userId] = {status: '1', socketId: socket.id};
+        io.emit('user-joined', users);
+        console.log(users)
+    });
+    socket.on('disconnect', () => {
+        if (socket.userId) users[socket.userId].status = '0';
+        io.emit('user-disconnected', users);
+        console.log(users);
+    });
+    /**Steven muganwa has not clarified what the code below does*/
+    //controller.respond(socket);
+    //job.respond(socket);
+    //chat.respond(socket);
 });

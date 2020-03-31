@@ -1,5 +1,5 @@
 {
-  "name": "Harfa",
+  "name": "harfa-backend",
   "version": "1.0.0",
   "description": "NodeJS + MongoDB API for harfa",
   "license": "MIT",
