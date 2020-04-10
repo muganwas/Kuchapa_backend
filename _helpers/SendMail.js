@@ -1,3 +1,4 @@
+require('dotenv').config();
 const config = require('../config.js')
 const request = require('request')
 const nodemailer = require('nodemailer')
@@ -19,7 +20,7 @@ module.exports = async (email, subject, message) => {
   let transporter = nodemailer.createTransport({
     host: config.email_host,
     port: config.email_port,
-    secure: true, // true for 465, false for other ports
+    //secure: process.env.NODE_ENV === 'development' ? false : true, // true for 465, false for other ports
     requireTLS: true,
     auth: {
       user: config.email_user, // generated ethereal user
@@ -28,15 +29,17 @@ module.exports = async (email, subject, message) => {
   })
 
   // send mail with defined transport object
-  let info = await transporter.sendMail({
+  await transporter.sendMail({
     from: `"${config.Website_Name}" <${config.Website_Email}>`, // sender address
     to: email, // list of receivers
     subject: subject, // Subject line
     text: message, // plain text body
     html: message // html body
-  })
-  console.log('Message sent: %s', info.messageId)
-  console.log(info)
-
-  return { result: true, message: 'mail sent' }
+  }).then( res => {
+    console.log(res)
+    return { result: true, message: 'mail sent' }
+  }).catch(e => {
+      console.log(e);
+      return  { result: false, message: 'something went wrong', error: e.message }
+  });
 }

@@ -6,31 +6,6 @@ const User = db.User
 const Notification = db.Notification
 const SendMail = require('../_helpers/SendMail')
 
-/*  let transport = nodemailer.createTransport({
-        host: config.email_host,
-        port: config.email_port,
-        service: "gmail",
-        secure:false,
-        auth: {
-          user: config.email_user,
-          pass: config.email_passwrord
-        }
-    });transport*/
-
-module.exports = {
-  authenticate,
-  Verification,
-  getAll,
-  get_search,
-  getById,
-  create,
-  update,
-  CheckMobile,
-  ForgotPassword,
-  uploadImage,
-  _delete
-}
-
 async function authenticate(param) {
   const user = await User.findOne({ email: param.email })
 
@@ -43,11 +18,14 @@ async function authenticate(param) {
   }
   /* console.log(user);*/
 
-  /*  if(user.email_verification == '0'){
-         var message  = `Please <a href="${config.URL}#/customer_verification/${user.id}">Click Here </a> To verify your Email`;
-         var mail = await SendMailFunction.SendMail(user.email,"Verification Request By Harfa", message);
-             return {result:false,message:"Your email is not verified.Verify link sent"};
-    }*/
+  if (user.email_verification == '0') {
+    var message = `Please <a href="${config.URL}users/verification/${user.id}">Click Here </a> to verify your Email`
+    SendMail(user.email, 'Verification Request By Harfa', message)
+    return {
+      result: false,
+      message: 'Your email is not verified. We sent you a link'
+    }
+  }
 
   if (user && bcrypt.compareSync(param.password, user.hash)) {
     const { hash, userWithoutHash } = user.toObject()
@@ -128,8 +106,7 @@ async function Verification(id) {
     var userParam = {}
     userParam['email_verification'] = 1
     Object.assign(output, userParam)
-    var v = await output.save()
-
+    await output.save()
     return { result: true, message: 'Customer verified successfully' }
   } else {
     return { result: false, message: 'Customer Not Found' }
@@ -158,8 +135,14 @@ async function CheckMobile(param) {
   }
 }
 
-async function create(userParam, image) {
-  if (typeof userParam.username === 'undefined') {
+async function create(params) {
+  const userParam = JSON.parse(params.data)
+  const image = userParam.image
+  var data
+  if (
+    typeof userParam.username === 'undefined' ||
+    typeof userParam.email === 'undefined'
+  ) {
     return {
       result: false,
       message:
@@ -167,11 +150,10 @@ async function create(userParam, image) {
     }
   }
   if (userParam.type == 'normal') {
-    if (image != '') {
-      userParam.image = image
+    if (image != undefined && image != '') {
       userParam.img_status = 1
-      userParam.email_verification = 1
     }
+    userParam.email_verification = 0
   } else {
     userParam.email_verification = 1
   }
@@ -179,64 +161,85 @@ async function create(userParam, image) {
   if (userParam.password) {
     userParam.hash = bcrypt.hashSync(userParam.password, 10)
   }
-  var output = ''
 
-  const user1 = await User.findOne({ email: userParam.email })
+  await User.findOne({ email: userParam.email }).then(async user => {
 
-  if (user1) {
-    if (userParam.type == 'google') {
-      var output = Object.assign(user1, {
-        username: userParam,
-        image: userParam.image,
-        img_status: userParam.img_status
-      })
-      if (output.img_status == '1') {
-        output.image = config.URL + 'api/uploads/users/' + output.image
-      }
-      if (output.status == '0') {
-        return {
-          result: false,
-          message: 'Your account is deactivated by admin'
-        }
-      }
-      return { result: true, message: 'Email is already Exists', data: output }
-    } else {
-      return { result: false, message: 'Email is already Exist' }
-    }
-  }
-
-  const user = new User(userParam);
-
-  await user.save().then(async res => {
-      const data = res;
-      if (data) {
-        if (data.img_status == '1') {
-          data.image = config.URL + 'api/uploads/users/' + data.image
-        }
-    
-        const message = `Please <a href="${config.URL}#/customer_verification/${data.id}">Click Here </a> To verify your Email`
-        /* var mail = await SendMailFunction.SendMail(userParam.email,"Verification Request By Harfa", message);*/
-    
-        SendMail(userParam.email, 'Email Address Verification', message)
-    
-        const notification = new Notification({
-          type: 'New User',
-          order_id: '',
-          message: userParam.username + ' register as Customer',
-          notification_for: 'Admin',
-          notification_link: '/user/' + data._id,
-          user_id: data._id,
-          employee_id: data._id,
-          title: 'New Customer'
+    if (user) {
+      if (userParam.type == 'google') {
+        var output = Object.assign(user, {
+          username: userParam,
+          image: userParam.image,
+          img_status: userParam.img_status
         })
-    
-        await notification.save()
-    
-        return { result: true, message: 'Register Successfull', data: data }
+        if (output.img_status == '1') {
+          output.image = config.URL + 'api/uploads/users/' + output.image
+        }
+        if (output.status == '0') {
+          return {
+            result: false,
+            message: 'Your account is deactivated by admin'
+          }
+        }
+        data = output
       } else {
-        return { result: false, message: 'Something went wrong' }
+        return { result: false, message: 'Email is already Exist' }
       }
-  });
+    } else {
+      const user = new User(userParam)
+
+      await user
+        .save()
+        .then(async res => {
+          console.log('user data saved')
+          data = res
+          if (data) {
+            if (data.img_status === '1') {
+              data.image = config.URL + 'api/uploads/users/' + data.image.name
+            }
+            const message = `Please <a href="${config.URL}users/verification/${data.id}">Click Here </a> To verify your Email`
+            /**send verification email if not verified */
+            if (userParam.email_verification === 0)
+              SendMail(userParam.email, 'Email Address Verification', message)
+
+            const notification = new Notification({
+              type: 'New User',
+              order_id: '',
+              message: userParam.username + ' register as Customer',
+              notification_for: 'Admin',
+              notification_link: '/user/' + data._id,
+              user_id: data._id,
+              employee_id: data._id,
+              title: 'New Customer'
+            })
+
+            await notification
+              .save()
+              .then(res => {
+                if (res) console.log('notification saved')
+              })
+              .catch(e => {
+                console.log(e)
+                return {
+                  result: false,
+                  message: 'Something went wrong',
+                  error: e.message
+                }
+              })
+          } else {
+            return { result: false, message: 'Something went wrong' }
+          }
+        })
+        .catch(e => {
+          console.log(e)
+          return {
+            result: false,
+            message: 'Something went wrong',
+            error: e.message
+          }
+        })
+    }
+  })
+  return data
 }
 
 async function update(id, userParam) {
@@ -296,25 +299,27 @@ async function ForgotPassword(param) {
   if (!user) {
     return { result: false, message: 'Email does not exist' }
   }
-
-  const message = {
-    from: 'team.harfa@gmail.com', // Sender address
-    to: param.email, // List of recipients
-    subject: 'Password Recovery Mail', // Subject line
-    text: `Hello ${user.username}, \r\n Your password is ${user.password}` // Plain text body
-  }
-
-  return new Promise(function(resolve, reject) {
-    transport.sendMail(message, function(err, info) {
-      if (err) {
-        reject({ result: false, message: 'Something went wrong', error: err })
-      } else {
-        resolve({ result: true, message: 'email sent' })
-      }
-    })
-  })
+  await SendMail(
+    param.email,
+    'Password Recovery Mail',
+    `Hello ${user.username}, \r\n Your password is ${user.password}`
+  )
 }
 
 async function _delete(id) {
   await User.findByIdAndRemove(id)
+}
+
+module.exports = {
+  authenticate,
+  Verification,
+  getAll,
+  get_search,
+  getById,
+  create,
+  update,
+  CheckMobile,
+  ForgotPassword,
+  uploadImage,
+  _delete
 }

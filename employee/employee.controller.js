@@ -1,16 +1,17 @@
 const express = require('express');
 
 const router = express.Router();
+const path = require('path');
 const employeeService = require('./employee.service');
 var multer  = require('../node_modules/multer');
 // console.log(multer);
 var Storage = multer.diskStorage({
 destination: function (req, file, callback) {
-callback(null, "uploads/employee/");
+    callback(null, "uploads/employee/");
 },
-filename: function (req, file, callback) {
-callback(null, file.fieldname + "_" + Date.now() + "_" + file.originalname);
-}
+    filename: function (req, file, callback) {
+        callback(null, file.fieldname + "_" + Date.now() + "_" + file.originalname);
+    }
 });
 
 var upload = multer({ storage: Storage }); 
@@ -46,7 +47,13 @@ function register(req, res, next) {
 
 function Verification(req, res, next) {
     employeeService.Verification(req.params.id)
-        .then(user => user ? res.json(user) : res.sendStatus(404))
+        .then(user => {
+            if (user) {
+                if (user.result) res.sendFile(path.join(__dirname,'../public/Successful.html'));
+                else res.json(user);
+            }
+            else res.sendStatus(404);
+        })
         .catch(err => next(err));
 }
 
