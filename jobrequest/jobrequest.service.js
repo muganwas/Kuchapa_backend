@@ -552,7 +552,7 @@ async function CustomerJobRequest(id){
             var new_date = JSon[i].createdDate;
             var d = new Date(new_date);
             // console.log(new_date);
-                new_date = ("0" + d.getDate()).slice(-2)+'-'+monthNames[d.getMonth()]+'-'+d.getFullYear();   
+                new_date = ("0" + d.getDate()).slice(-2)+'-' + monthNames[d.getMonth()]+'-' + d.getFullYear();   
              new_data['createdDate'] = new_date;
             
             
@@ -579,11 +579,10 @@ async function CustomerJobRequest(id){
             new_arr.push(new_data);
         }
         
-        
-        
         return {result:true,'message':'data found',data:new_arr};
         
-    }else{
+    }
+    else {
         
         return {result:false,'message':'data not found'};
     }
@@ -611,7 +610,10 @@ async function EmployeeDataRequest(id){
      "$project": {
       "user_id": {
         "$toObjectId": "$user_id"
-      }, 
+      },
+      "employee_id": {
+        "$toObjectId": "$employee_id"
+      },
       "service_id": {
         "$toObjectId": "$service_id"
       }, 
