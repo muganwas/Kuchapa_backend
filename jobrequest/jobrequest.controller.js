@@ -16,32 +16,16 @@ callback(null, file.fieldname + "_" + Date.now() + "_" + file.originalname);
 
 var upload = multer({ storage: Storage }); 
 
-
-
-//routes
-// router.get('/', getAll);
-
-router.post('/serviceprovider/:id', serviceprovider);
-router.post('/addjobrequest', AddJobRequest);
-router.post('/updatejobrequest', UpdateJobRequest);
-router.post('/ratingreview', Ratingreview);
-router.get('/customer_request/:id', CustomerJobRequest);
-router.get('/employee_request/:id', EmployeeDataRequest);
-router.get('/usergroupby/:id', Usergroupby);
-router.get('/addrating/:id/:rating/:review', Addrating);
-router.get('/user_status_check/:id', Userstatuscheck);
-router.get('/customer_status_check/:id', Customerstatuscheck);
-
-module.exports = router;
-
-
-//functions
-
-
 function serviceprovider(req, res, next) {
     JobRequest.serviceprovider(req.params.id,req.body)
         .then(users => res.json(users))
         .catch(err => next(err));
+}
+
+function getEmpReviews(req, res, next){
+    JobRequest.employeeRatingsDataRequest(req.params.id)
+        .then(data => res.json(data))
+        .catch(err => next(err))
 }
 
 function AddJobRequest(req, res, next) {
@@ -92,8 +76,16 @@ function Addrating(req, res, next) {
         .catch(err => next(err));
 }
 
+router.post('/serviceprovider/:id', serviceprovider);
+router.post('/addjobrequest', AddJobRequest);
+router.post('/updatejobrequest', UpdateJobRequest);
+router.post('/ratingreview', Ratingreview);
+router.get('/customer_request/:id', CustomerJobRequest);
+router.get('/employeeReviews/:id', getEmpReviews);
+router.get('/employee_request/:id', EmployeeDataRequest);
+router.get('/usergroupby/:id', Usergroupby);
+router.get('/addrating/:id/:rating/:review', Addrating);
+router.get('/user_status_check/:id', Userstatuscheck);
+router.get('/customer_status_check/:id', Customerstatuscheck);
 
-
-
-
-
+module.exports = router;
