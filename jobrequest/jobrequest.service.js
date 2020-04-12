@@ -11,27 +11,8 @@ const monthNames = ["January", "February", "March", "April", "May", "June",
 const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
 const gcm = require("node-gcm");
 
-
-
-module.exports = {
-    serviceprovider,
-    AddJobRequest,
-    UpdateJobRequest,
-    CustomerJobRequest,
-    EmployeeDataRequest,
-    Addrating,
-    Userstatuscheck,
-    Customerstatuscheck,
-    Ratingreview,
-    Usergroupby,
-};
-
-
-
-
 async function serviceprovider(id,job){
     
-   
      if(typeof job.lat === 'undefined' ||
         typeof job.lang === 'undefined'){
             return  {result:false,message:'lat and lang is required'};
@@ -84,8 +65,6 @@ async function AddJobRequest(param){
     var request = await JobRequest.find(search);
     var emp_search={ user_id:param.employee_id,status: [ 'Pending', 'Accepted' ] };
     var emp_request = await JobRequest.find(emp_search);
-   console.log(emp_request);
-   console.log(emp_request.length);
     if(request.length > 0)
      {
            return {result:false,'message' : 'Already Exist'};
@@ -312,8 +291,7 @@ async function Customerstatuscheck(id){
             order_id_str ='HRF-'+order_id_str.toUpperCase();
             new_data['order_id'] = order_id_str;
             var new_emp= JSon[i].customer_details[0];
-             console.log(new_emp);
-         
+             //console.log(new_emp);
             new_emp.image = config.URL+'api/uploads/users/'+new_emp.image;
             new_data['customer_details'] = new_emp;
             
@@ -389,9 +367,7 @@ async function UpdateJobRequest(param){
         save_['status'] = param.status; 
     }
 
-    
     Object.assign(request, save_);
-    
     
     var output = await request.save();
      /* var order_id = output.id;
@@ -427,7 +403,7 @@ async function Ratingreview(param){
          return {result:false , message:'main_id not found' };
     }
     
-    var save_ ={};
+    var save_ = {};
    
     if(param.type == 'Customer')
     {
@@ -446,17 +422,12 @@ async function Ratingreview(param){
     
     var output = await request.save();
    
-     if(output){
-         
-          
+     if (output) {
           return {result:true,message:'Update successfull',data: output};
-     }else{
+     }
+     else {
           return {result:false,message:'Something went wrong'};
-     }  
-    
-    
-    
-    
+     }   
 }
 
 
@@ -587,6 +558,35 @@ async function CustomerJobRequest(id){
         return {result:false,'message':'data not found'};
     }
     
+}
+
+const employeeRatingsDataRequest = async id => {
+    let param = {};
+    let ratingArr = [];
+    let avg = 0;
+    if(typeof id === 'undefined'){
+        return {result:false,'message':'id is required'};
+    }
+    else {
+        param['employee_id']=id;
+        const output = await JobRequest.find(param);
+        if (output.length > 0) {
+            await output.map(obj => {
+                const { employee_rating } = obj;
+                ratingArr.push(parseInt(employee_rating));
+            });
+        }
+    }
+    if (ratingArr.length > 0) {
+        let combRat = 0;
+        let arrLen = ratingArr.length;
+        
+        ratingArr.map(rat => {
+            combRat  = combRat + rat;
+        });
+        avg = combRat / arrLen;
+    }
+    return {result:true,'message':'rating returned', rating: avg};
 }
 
 
@@ -907,9 +907,7 @@ return new Promise(function (resolve , reject) {
               resolve({result:true,message:response});
             }
         });
-        });
-        
-
+    });
 }
 
 
@@ -935,5 +933,16 @@ function distance(lat1, lon1, lat2, lon2, unit) {
 	}
 }   
 
-
-
+module.exports = {
+    serviceprovider,
+    AddJobRequest,
+    UpdateJobRequest,
+    CustomerJobRequest,
+    EmployeeDataRequest,
+    Addrating,
+    Userstatuscheck,
+    Customerstatuscheck,
+    Ratingreview,
+    Usergroupby,
+    employeeRatingsDataRequest
+};
