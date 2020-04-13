@@ -196,7 +196,7 @@ async function getById(id, param) {
     if (output.img_status == 1) {
       output.image = config.URL + 'api/uploads/employee/' + output.image
     }
-    return { result: true, message: 'employee  found', data: output }
+    return { result: true, message: 'employee found', data: output }
   } else {
     return { result: false, message: 'employee not found' }
   }
@@ -236,7 +236,7 @@ async function CheckMobile(param) {
       }
     }
     emp_data.services = JSON.stringify(ser_arr)
-    return { result: true, message: 'Email is already Exists', data: emp_data }
+    return { result: true, message: 'Email already Exists', data: emp_data }
   } else {
     /*    var output = '';
      if (output = await Employee.findOne({ email: param.email })) {

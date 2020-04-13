@@ -573,14 +573,13 @@ const employeeRatingsDataRequest = async id => {
         if (output.length > 0) {
             await output.map(obj => {
                 const { employee_rating } = obj;
-                ratingArr.push(parseInt(employee_rating));
+                if (employee_rating) ratingArr.push(parseInt(employee_rating));
             });
         }
     }
     if (ratingArr.length > 0) {
         let combRat = 0;
         let arrLen = ratingArr.length;
-        
         ratingArr.map(rat => {
             combRat  = combRat + rat;
         });
