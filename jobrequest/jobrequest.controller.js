@@ -3,26 +3,26 @@ const router = express.Router();
 const JobRequest = require('./jobrequest.service');
 
 
-var multer  = require('../node_modules/multer');
+var multer = require('../node_modules/multer');
 
 var Storage = multer.diskStorage({
-destination: function (req, file, callback) {
-callback(null, "./uploads/services/");
-},
-filename: function (req, file, callback) {
-callback(null, file.fieldname + "_" + Date.now() + "_" + file.originalname);
-}
+    destination: function (req, file, callback) {
+        callback(null, "./uploads/services/");
+    },
+    filename: function (req, file, callback) {
+        callback(null, file.fieldname + "_" + Date.now() + "_" + file.originalname);
+    }
 });
 
-var upload = multer({ storage: Storage }); 
+var upload = multer({ storage: Storage });
 
 function serviceprovider(req, res, next) {
-    JobRequest.serviceprovider(req.params.id,req.body)
+    JobRequest.serviceprovider(req.params.id, req.body)
         .then(users => res.json(users))
         .catch(err => next(err));
 }
 
-function getEmpReviews(req, res, next){
+function getEmpReviews(req, res, next) {
     JobRequest.employeeRatingsDataRequest(req.params.id)
         .then(data => res.json(data))
         .catch(err => next(err))
