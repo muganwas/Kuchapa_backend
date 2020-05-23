@@ -59,7 +59,7 @@ async function AddJobRequest(param) {
         typeof param.service_id === 'undefined') {
         return { result: false, message: 'user_id,employee_id,notification(for push notification),delivery_address , delivery_lat(o), delivery_lang(o) and service_id is required' };
     }
-    var search = { user_id: param.user_id, employee_id: param.employee_id, status: { $ne: 'Failed'} };
+    var search = { user_id: param.user_id, employee_id: param.employee_id, status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"]} };
     var request = await JobRequest.find(search);
     //var emp_search = { user_id: param.employee_id, status: ['Pending', 'Accepted'] };
     //var emp_request = await JobRequest.find(emp_search);
