@@ -2,11 +2,13 @@ const config = require('../config')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const db = require('_helpers/db')
-const User = db.User
+const User = db.User;
+const { employeeRatingsDataRequest } = require('../jobrequest/jobrequest.service');
 const Notification = db.Notification
 const SendMail = require('../_helpers/SendMail')
 
 async function authenticate(param) {
+    var avgRating
   const user = await User.findOne({ email: param.email })
 
   if (!user) {
@@ -31,14 +33,19 @@ async function authenticate(param) {
     const { hash, userWithoutHash } = user.toObject()
     const token = jwt.sign({ sub: user.id }, config.secret)
     if (typeof param.fcm_id !== 'undefined') {
-      var fcm = { fcm_id: param.fcm_id }
+        if (user._id)
+            await employeeRatingsDataRequest(user._id).then(res => {
+                avgRating = res.rating;
+            });
+      var fcm = { fcm_id: param.fcm_id, avgRating }
 
-      Object.assign(user, fcm)
-      user1 = await user.save()
+      Object.assign(user, fcm);
+      await user.save();
     }
     if (user.img_status == '1') {
       user.image = config.URL + 'api/uploads/users/' + user.image
     }
+
     return {
       result: true,
       message: 'Login successfull',
@@ -84,12 +91,17 @@ async function get_search(param) {
 }
 
 async function getById(id, param) {
-  var output = ''
+  var output = '';
+  var avgRating = 0;
   if ((output = await User.findById(id).select('-hash'))) {
     if (typeof param.fcm_id !== 'undefined') {
-      var fcm = { fcm_id: param.fcm_id }
+        if (output._id)
+        await employeeRatingsDataRequest(output._id).then(res => {
+            avgRating = res.rating;
+        });
+      var fcm = { fcm_id: param.fcm_id, avgRating }
       Object.assign(output, fcm)
-      user1 = await output.save()
+      await output.save()
     }
     if (output.img_status == 1) {
       output.image = config.URL + 'api/uploads/users/' + output.image

@@ -1,5 +1,6 @@
 const config = require('../config')
 //const express = require('express')
+const { employeeRatingsDataRequest } = require('../jobrequest/jobrequest.service');
 const { ObjectId } = require('mongodb')
 
 //const app = express();
@@ -17,13 +18,16 @@ const Notification = db.Notification
 const SendMail = require('../_helpers/SendMail')
 
 async function authenticate(param) {
+    console.log('authenitcating')
+    var avgRating = 0;
   if (typeof param.email === 'undefined') {
     return {
       result: false,
       message: 'email, fcm_id(o) and password is required'
     }
   }
-  const user = await Employee.findOne({ email: param.email })
+  const user = await Employee.findOne({ email: param.email });
+
 
   if (!user) {
     return { result: false, message: 'email not found' }
@@ -39,10 +43,14 @@ async function authenticate(param) {
     }*/
 
   if (typeof param.fcm_id !== 'undefined') {
-    var fcm = { fcm_id: param.fcm_id }
-
+      //if id exists update average rating
+    if (user._id)
+        await employeeRatingsDataRequest(user._id).then(res => {
+            avgRating = res.rating;
+        });
+    var fcm = { fcm_id: param.fcm_id, avgRating }
     Object.assign(user, fcm)
-    user1 = await user.save()
+    await user.save()
   }
 
   if (user && bcrypt.compareSync(param.password, user.hash)) {
@@ -62,7 +70,7 @@ async function authenticate(param) {
         ser_arr.push(service[0])
       }
     }
-    user.services = JSON.stringify(ser_arr)
+    user.services = JSON.stringify(ser_arr);
     return {
       result: true,
       message: 'Login successfull',
@@ -76,6 +84,7 @@ async function authenticate(param) {
 }
 
 async function getAll() {
+    console.log('getting all')
   var output = await Employee.find()
 
   for (var i = 0; i < output.length; i++) {
@@ -85,7 +94,6 @@ async function getAll() {
 
     for (var j = 0; j < arr.length; j++) {
       var service = await Service.find(ObjectId(arr[j]))
-      console.log(service)
       if (service) {
         ser_arr.push(service[0].service_name)
       }
@@ -141,6 +149,7 @@ async function PushNotif(param) {
 }
 
 async function Verification(id) {
+    console.log('verifying')
   const output = await Employee.findById(id)
   if (output) {
     var userParam = {}
@@ -155,18 +164,22 @@ async function Verification(id) {
 }
 
 async function getById(id, param) {
+    console.log('getting by id')
+    var avgRating = 0;
   if (typeof id === 'undefined') {
     return { result: false, message: 'id is required' }
   }
 
   var output = ''
-  var arr = []
+  var arr = [];
   if ((output = await Employee.findById(id).select('-hash'))) {
+    await employeeRatingsDataRequest(output._id).then(res => {
+        avgRating = res.rating;
+    });
     if (typeof param.fcm_id !== 'undefined') {
-      var fcm = { fcm_id: param.fcm_id }
-
+      var fcm = { fcm_id: param.fcm_id, avgRating }
       Object.assign(output, fcm)
-      output = await output.save()
+      output = await output.save();
     }
 
     var mystr = output.services
@@ -183,8 +196,7 @@ async function getById(id, param) {
     if (output.img_status == 1) {
       output.image = config.URL + 'api/uploads/employee/' + output.image
     }
-
-    return { result: true, message: 'employee  found', data: output }
+    return { result: true, message: 'employee found', data: output }
   } else {
     return { result: false, message: 'employee not found' }
   }
@@ -224,8 +236,7 @@ async function CheckMobile(param) {
       }
     }
     emp_data.services = JSON.stringify(ser_arr)
-
-    return { result: true, message: 'Email is already Exists', data: emp_data }
+    return { result: true, message: 'Email already Exists', data: emp_data }
   } else {
     /*    var output = '';
      if (output = await Employee.findOne({ email: param.email })) {

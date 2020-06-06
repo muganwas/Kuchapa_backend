@@ -6,19 +6,12 @@ const Job = db.Job;
 const Employee = db.Employee;
 
 
-
-
-
 module.exports = {
     serviceprovider,
 };
 
-
-
-
 async function serviceprovider(id,job){
     
-   
      if(typeof job.lat === 'undefined' ||
         typeof job.lang === 'undefined'){
             return  {result:false,message:'lat and lang is required'};
@@ -28,32 +21,30 @@ async function serviceprovider(id,job){
     
     var data = new Array();
     
-    for(var i = 0 ; i< emp.length ; i++){
+    for(var i = 0 ; i < emp.length ; i++){
     
      var emp_services = emp[i].services.split(',');
      var a = emp_services.indexOf(id);
      
-     if(a != -1){
+     if (a != -1) {
         var emp_lat = emp[i].lat;
         var emp_lang = emp[i].lang;
         if(emp[i].img_status == '1')
         {
-        emp[i].image = config.URL+'api/uploads/employee/'+emp[i].image;
+            emp[i].image = config.URL + 'api/uploads/employee/' + emp[i].image;
         }
-       var distance_a = await distance(job.lat,job.lang,emp_lat,emp_lang,'K');
+       var distance_a = distance(job.lat,job.lang,emp_lat,emp_lang,'K');
         
         var new_a = emp[i];
-        var round_distance  =Number.parseFloat(distance_a).toFixed(1);
+        var round_distance = Number.parseFloat(distance_a).toFixed(1);
         if(round_distance == 0.0){
             round_distance = 0;
         }
         new_a.hash =round_distance;
        data.push(new_a);
-       
      }
     }
-    
-    if(data.length){
+    if (data.length){
          return  {result:true,message:'Employee Found',data:data};          
     }else{
          return  {result:false,message:'Provider not Found'};          
@@ -83,6 +74,3 @@ function distance(lat1, lon1, lat2, lon2, unit) {
 		return dist;
 	}
 }   
-
-
-
