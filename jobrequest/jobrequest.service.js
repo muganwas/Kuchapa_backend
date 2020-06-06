@@ -53,7 +53,7 @@ async function serviceprovider(id, job) {
 }
 
 async function AddJobRequest(param) {
-    /* console.log(param);*/
+
     if (typeof param.user_id === 'undefined' ||
         typeof param.employee_id === 'undefined' ||
         typeof param.service_id === 'undefined') {
@@ -61,17 +61,11 @@ async function AddJobRequest(param) {
     }
     var search = { user_id: param.user_id, employee_id: param.employee_id, status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"]} };
     var request = await JobRequest.find(search);
-    //var emp_search = { user_id: param.employee_id, status: ['Pending', 'Accepted'] };
-    //var emp_request = await JobRequest.find(emp_search);
+
     if (request.length > 0) {
         return { result: false, 'message': 'Already Exist' };
     }
     else {
-
-        /*if (emp_request.length > 0) {
-            return { result: false, 'message': 'Service provider busy' };
-        }*/
-
         var save = {};
         save['user_id'] = param.user_id;
         save['employee_id'] = param.employee_id;
@@ -108,8 +102,6 @@ async function AddJobRequest(param) {
 }
 
 async function Userstatuscheck(id) {
-    console.log('checking user status')
-    console.log(id)
     if (typeof id === 'undefined') {
         return { result: false, 'message': 'id is required' };
     }
@@ -121,7 +113,7 @@ async function Userstatuscheck(id) {
     output = await JobRequest.find(search);
     if (output != 0) {
         var JSon = await JobRequest.aggregate([
-            { $match: { user_id: { $gte: id }, status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] } } },
+            { $match: { user_id: id , status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] } } },
             {
                 "$project": {
                     "employee_id": {
@@ -205,8 +197,6 @@ async function Userstatuscheck(id) {
 }
 
 async function Customerstatuscheck(id) {
-    console.log('checking customer status')
-    console.log(id)
     if (typeof id === 'undefined') {
         return { result: false, 'message': 'id is required' };
     }
@@ -219,7 +209,7 @@ async function Customerstatuscheck(id) {
     var output = await JobRequest.find(search);
     if (output != 0) {
         var JSon = await JobRequest.aggregate([
-            { $match: { employee_id: { $gte: id }, status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] } } },
+            { $match: { employee_id: id, status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] } } },
             {
                 "$project": {
                     "user_id": {
@@ -302,12 +292,6 @@ async function Customerstatuscheck(id) {
 }
 
 async function Addrating(param) {
-    /*  if(typeof param.id === 'undefined' ||
-          typeof param.customer_rating === 'undefined' ||
-          typeof param.customer_review === 'undefined'){
-              return  {result:false,message:'user_id,employee_id and service_id is required'};
-          }
-      */
 
     var save = {};
     save['id'] = param.id;
@@ -424,7 +408,7 @@ async function CustomerJobRequest(id) {
 
     var JSon = await JobRequest.aggregate([
 
-        { $match: { user_id: { $gte: id } } },
+        { $match: { user_id: id } },
         {
             "$project": {
                 "employee_id": {
@@ -577,7 +561,7 @@ async function EmployeeDataRequest(id) {
 
     var JSon = await JobRequest.aggregate([
 
-        { $match: { employee_id: { $gte: id } } },
+        { $match: { employee_id: id } },
         {
             "$project": {
                 "user_id": {
@@ -700,7 +684,7 @@ async function Usergroupby(id) {
     var output = await JobRequest.find(param);
 
     var JSon = await JobRequest.aggregate([
-        { $match: { employee_id: { $gte: id } } },
+        { $match: { employee_id: id } },
         {
             $group: {
                 _id: '$user_id',
