@@ -818,8 +818,6 @@ async function PushNotif(param) {
         return { result: false, message: 'fcm_id,title,data(o) and body is required' }
     }
 
-
-
     let sender = new gcm.Sender(config.SERVER_KEY);
     var newdata = {};
 
