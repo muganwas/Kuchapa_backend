@@ -99,9 +99,6 @@ async function getById(id, param) {
       Object.assign(output, fcm)
       await output.save()
     }
-    if (output.img_status == 1) {
-      output.image = config.URL + 'api/uploads/users/' + output.image
-    }
     return { result: true, message: 'Customer Found', data: output }
   } else {
     return { result: false, message: 'Customer Not Found' }
@@ -179,9 +176,6 @@ async function create(params) {
           image: userParam.image,
           img_status: userParam.img_status
         })
-        if (output.img_status == '1') {
-          output.image = config.URL + 'api/uploads/users/' + output.image
-        }
         if (output.status == '0') {
           return {
             result: false,
@@ -201,9 +195,6 @@ async function create(params) {
           console.log('user data saved')
           data = res
           if (data) {
-            if (data.img_status === '1') {
-              data.image = config.URL + 'api/uploads/users/' + data.image.name
-            }
             const message = `Please <a href="${config.URL}users/verification/${data.id}">Click Here </a> To verify your Email`
             /**send verification email if not verified */
             if (userParam.email_verification === 0)
@@ -290,8 +281,6 @@ async function uploadImage(id, image) {
   Object.assign(user, { image: image, img_status: 1 })
   var output = ''
   if ((output = await user.save())) {
-    data.image = config.URL + 'api/uploads/users/' + output.image
-
     return { result: true, message: 'Image Update successfull', data: output }
   } else {
     return { result: false, message: 'Something went wrong' }
