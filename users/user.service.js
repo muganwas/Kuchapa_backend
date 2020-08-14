@@ -42,10 +42,6 @@ async function authenticate(param) {
       Object.assign(user, fcm);
       await user.save();
     }
-    if (user.img_status == '1') {
-      user.image = config.URL + 'api/uploads/users/' + user.image
-    }
-
     return {
       result: true,
       message: 'Login successfull',
