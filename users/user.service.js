@@ -168,9 +168,8 @@ async function create(params) {
   }
 
   await User.findOne({ email: userParam.email }).then(async user => {
-
     if (user) {
-      if (userParam.type == 'google') {
+      if (userParam.type == 'google' || userParam.type === 'facebook') {
         var output = Object.assign(user, {
           username: userParam,
           image: userParam.image,
@@ -184,11 +183,10 @@ async function create(params) {
         }
         data = output
       } else {
-        return { result: false, message: 'Email is already Exist' }
+        return { result: false, message: 'Email already Exist' }
       }
     } else {
-      const user = new User(userParam)
-
+      const user = new User(userParam);
       await user
         .save()
         .then(async res => {
@@ -199,7 +197,6 @@ async function create(params) {
             /**send verification email if not verified */
             if (userParam.email_verification === 0)
               SendMail(userParam.email, 'Email Address Verification', message)
-
             const notification = new Notification({
               type: 'New User',
               order_id: '',
@@ -210,7 +207,6 @@ async function create(params) {
               employee_id: data._id,
               title: 'New Customer'
             })
-
             await notification
               .save()
               .then(res => {
