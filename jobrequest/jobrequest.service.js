@@ -383,7 +383,6 @@ async function Ratingreview(param) {
 
     Object.assign(request, save_);
 
-
     var output = await request.save();
 
     if (output) {
@@ -404,7 +403,6 @@ async function CustomerJobRequest(id) {
     param['user_id'] = id;
 
     var output = await JobRequest.find(param);
-
 
     var JSon = await JobRequest.aggregate([
 
