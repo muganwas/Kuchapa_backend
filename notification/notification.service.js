@@ -27,7 +27,6 @@ async function AddReviewRequest(param) {
     return { result: false, message: 'user_id,employee_id,order_id,notification.title,notification.body and notification(o) is required' };
   }
 
-
   var save = {};
   save['user_id'] = param.user_id;
   save['employee_id'] = param.employee_id;
@@ -136,7 +135,6 @@ async function GetCustomerNotification(id) {
         notif[i].createdDate = ("0" + d.getDate()).slice(-2) + '-' + shortMonths[d.getMonth()] + '-' + d.getFullYear();
 
         notif[i].employee_details = notif[i].employee_details[0];
-        notif[i].employee_details.image = config.URL + 'api/uploads/employee/' + notif[i].employee_details.image;
         output.push(notif[i]);
 
       }
