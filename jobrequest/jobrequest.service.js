@@ -30,9 +30,7 @@ async function serviceprovider(id, job) {
         if (a != -1) {
             var emp_lat = emp[i].lat;
             var emp_lang = emp[i].lang;
-            emp[i].image = config.URL + 'api/uploads/employee/' + emp[i].image;
             var distance_a = await distance(job.lat, job.lang, emp_lat, emp_lang, 'K');
-
             var new_a = emp[i];
             var round_distance = Number.parseFloat(distance_a).toFixed(1);
             if (round_distance == 0.0) {
@@ -176,9 +174,6 @@ async function Userstatuscheck(id) {
 
                 new_data['order_id'] = order_id_str;
                 var new_emp = JSon[i].employee_details[0];
-                if (new_emp.img_status == '1') {
-                    new_emp.image = config.URL + 'api/uploads/employee/' + new_emp.image;
-                }
                 new_data['employee_details'] = new_emp;
 
                 var new_ser = JSon[i].service_details[0];
@@ -273,8 +268,6 @@ async function Customerstatuscheck(id) {
                 order_id_str = 'HRF-' + order_id_str.toUpperCase();
                 new_data['order_id'] = order_id_str;
                 var new_emp = JSon[i].customer_details[0];
-                //console.log(new_emp);
-                new_emp.image = config.URL + 'api/uploads/users/' + new_emp.image;
                 new_data['customer_details'] = new_emp;
 
                 var new_ser = JSon[i].service_details[0];
@@ -494,10 +487,6 @@ async function CustomerJobRequest(id) {
             new_data['order_id'] = order_id_str;
             var new_emp = JSon[i].employee_details[0];
 
-
-            if (new_emp.img_status == '1') {
-                new_emp.image = config.URL + 'api/uploads/employee/' + new_emp.image;
-            }
             new_data['employee_details'] = new_emp;
 
             var new_ser = JSon[i].service_details[0];
@@ -648,9 +637,6 @@ async function EmployeeDataRequest(id) {
 
             new_data['order_id'] = order_id_str;
             var new_emp = JSon[i].user_details[0];
-            if (new_emp.img_status == '1') {
-                new_emp.image = config.URL + 'api/uploads/users/' + new_emp.image;
-            }
             new_data['user_details'] = new_emp;
 
             var new_ser = JSon[i].service_details[0];
@@ -786,9 +772,6 @@ async function Usergroupby(id) {
 
             new_data['order_id'] = order_id_str;
             var new_emp = JSon[i].user_details[0];
-            if (new_emp.img_status == '1') {
-                new_emp.image = config.URL + 'api/uploads/users/' + new_emp.image;
-            }
             new_data['user_details'] = new_emp;
 
             var new_ser = JSon[i].service_details[0];
