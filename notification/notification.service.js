@@ -74,8 +74,7 @@ async function GetCustomerNotification(id) {
   if (typeof id === 'undefined') {
     return { result: false, message: 'id is required' };
   }
-
-
+  
   var notif = await Notification.aggregate([
     { $match: { user_id: id } },
     {
