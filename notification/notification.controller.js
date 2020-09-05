@@ -36,8 +36,7 @@ const GetAdminNotification = (req, res, next) => {
 }
 
 const SendNotification = (req, res, next) => {
-    console.log('req --', req)
-    Notification.PushNotif(req.params)
+    Notification.PushNotif(req.body)
         .then(resp => res.json(resp))
         .catch(err => next(err));
 }
