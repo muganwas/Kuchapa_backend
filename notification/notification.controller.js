@@ -44,6 +44,6 @@ const SendNotification = (req, res, next) => {
 router.post('/addreviewrequest', AddReviewRequest);
 router.get('/get-customer-notification/:id', GetCustomerNotification);
 router.get('/get-admin-notification', GetAdminNotification);
-router.get('/sendNotification', SendNotification)
+router.post('/sendNotification', SendNotification)
 
 module.exports = router;
