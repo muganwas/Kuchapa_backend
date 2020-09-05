@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const db = require('_helpers/db');
 const Job = db.Job;
+const Notification = db.Notification;
 const JobRequest = db.JobRequest;
 const Employee = db.Employee;
 const monthNames = ["January", "February", "March", "April", "May", "June",
@@ -57,7 +58,7 @@ async function AddJobRequest(param) {
         typeof param.service_id === 'undefined') {
         return { result: false, message: 'user_id,employee_id,notification(for push notification),delivery_address , delivery_lat(o), delivery_lang(o) and service_id is required' };
     }
-    var search = { user_id: param.user_id, employee_id: param.employee_id, status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"]} };
+    var search = { user_id: param.user_id, employee_id: param.employee_id, status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] } };
     var request = await JobRequest.find(search);
 
     if (request.length > 0) {
@@ -111,7 +112,7 @@ async function Userstatuscheck(id) {
     output = await JobRequest.find(search);
     if (output != 0) {
         var JSon = await JobRequest.aggregate([
-            { $match: { user_id: id , status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] } } },
+            { $match: { user_id: id, status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] } } },
             {
                 "$project": {
                     "employee_id": {
@@ -285,15 +286,11 @@ async function Customerstatuscheck(id) {
 }
 
 async function Addrating(param) {
-
     var save = {};
     save['id'] = param.id;
     save['rating'] = param.customer_rating;
     save['review'] = param.customer_review;
-
-
     const jobrequest = new JobRequest(save);
-
     var output = {};
     if (output = await jobrequest.save()) {
         var notif = {};
@@ -334,14 +331,21 @@ async function UpdateJobRequest(param) {
 
     Object.assign(request, save_);
 
-    var output = await request.save();
-    /* var order_id = output.id;
-    order_id = order_id.substr(order_id.length - 5);
-    output['order_id'] ='HRF-'+order_id.toUpperCase();
-   console.log(output);*/
+    let output = await request.save();
+    let save = {};
+    save['user_id'] = param.user_id;
+    save['employee_id'] = param.employee_id;
+    save['order_id'] = param.order_id;
+    save['title'] = param.notification.title;
+    save['message'] = param.notification.body;
+    save['type'] = param.notification.type;
+    save['notification_by'] = param.notification.notification_by
+
+    const notif_save = new Notification(save);
+
     if (output) {
         var notif = {};
-        if (param.notification !== 'undefined') {
+        if (param.notification !== 'undefined' && notif_save.save()) {
             notif = await PushNotif(param.notification);
         }
         return { result: true, message: 'Update successfull', data: output, notification: notif };
@@ -362,10 +366,20 @@ async function Ratingreview(param) {
         return { result: false, message: 'main_id not found' };
     }
 
-    var save_ = {};
+    let save = {};
+    save['user_id'] = param.user_id;
+    save['employee_id'] = param.employee_id;
+    save['order_id'] = param.order_id;
+    save['title'] = param.notification.title;
+    save['message'] = param.notification.body;
+    save['type'] = param.notification.type;
+    save['notification_by'] = param.notification.notification_by;
+
+    let notif_save = new Notification(save);
+
+    let save_ = {};
 
     if (param.type == 'Customer') {
-
         save_['customer_rating'] = param.rating;
         save_['customer_review'] = param.review;
     }
@@ -374,11 +388,12 @@ async function Ratingreview(param) {
         save_['employee_review'] = param.review;
     }
 
-    Object.assign(request, save_);
+    let newRequest = Object.assign(request, save_);
 
-    var output = await request.save();
+    let output = await newRequest.save();
 
     if (output) {
+        notif_save.save();
         return { result: true, message: 'Update successfull', data: output };
     }
     else {
@@ -492,7 +507,7 @@ async function CustomerJobRequest(id) {
             var new_ser = JSon[i].service_details[0];
 
             new_data['service_details'] = new_ser;
-            
+
             new_arr.push(new_data);
         }
 
@@ -801,7 +816,6 @@ async function PushNotif(param) {
 
     let sender = new gcm.Sender(config.SERVER_KEY);
     var newdata = {};
-
     if (param.data !== 'undefined') {
         newdata = param.data;
     }
@@ -817,7 +831,7 @@ async function PushNotif(param) {
 
     let output = '';
 
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         sender.sendNoRetry(message, [param.fcm_id], (err, response) => {
             if (err) {
                 console.log(err);

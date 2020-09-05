@@ -15,7 +15,8 @@ const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Se
 module.exports = {
   AddReviewRequest,
   GetCustomerNotification,
-  GetAdminNotification
+  GetAdminNotification,
+  PushNotif
 };
 
 async function AddReviewRequest(param) {
