@@ -15,6 +15,7 @@ const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Se
 module.exports = {
   AddReviewRequest,
   GetCustomerNotification,
+  GetEmployeeNotifications,
   GetAdminNotification,
   PushNotif
 };
@@ -70,6 +71,82 @@ async function AddReviewRequest(param) {
 
 }
 
+async function GetEmployeeNotifications(id) {
+
+  if (typeof id === 'undefined') {
+    return { result: false, message: 'id is required' };
+  }
+  
+  var notif = await Notification.aggregate([
+    { $match: { employee_id: id } },
+    {
+      "$project": {
+        "employee_id": {
+          "$toObjectId": "$employee_id"
+        },
+        "user_id": {
+          "$toString": "$user_id"
+        },
+        "order_id": {
+          "$toString": "$order_id"
+        },
+        "type": {
+          "$toString": "$type"
+        },
+        "title": {
+          "$toString": "$title"
+        },
+        "message": {
+          "$toString": "$message"
+        },
+        "notification_by": {
+          "$toString": "$notification_by"
+        },
+        "createdDate": {
+          "$toString": "$createdDate"
+        },
+        "employee_details": {
+          "$toString": "$employee_details"
+        },
+      }
+    },
+
+    {
+      $lookup:
+      {
+        from: "Customer",
+        localField: "user_id",
+        foreignField: "_id",
+        as: "customer_details"
+      }
+    }
+  ]);
+
+  var output = new Array();
+  if (notif.length > 0) {
+
+    for (var i = 0; i < notif.length; i++) {
+
+      if (notif[i].notification_for == 'Admin') {
+        continue;
+      }
+
+      if (notif[i].notification_by == 'Customer') {
+        var d = new Date(notif[i].createdDate);
+        notif[i].createdDate = ("0" + d.getDate()).slice(-2) + '-' + shortMonths[d.getMonth()] + '-' + d.getFullYear();
+
+        notif[i].customer_details = notif[i].customer_details[0];
+        output.push(notif[i]);
+
+      }
+    }
+    // console.log(output);
+    return { result: true, message: 'Data found', data: output };
+  } else {
+    return { result: false, message: 'Data not found' };
+  }
+}
+
 async function GetCustomerNotification(id) {
 
   if (typeof id === 'undefined') {
@@ -113,7 +190,7 @@ async function GetCustomerNotification(id) {
     {
       $lookup:
       {
-        from: "employees",
+        from: "Employee",
         localField: "employee_id",
         foreignField: "_id",
         as: "employee_details"

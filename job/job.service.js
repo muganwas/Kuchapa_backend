@@ -31,7 +31,7 @@ async function serviceprovider(id,job){
         var emp_lang = emp[i].lang;
         if(emp[i].img_status == '1')
         {
-            emp[i].image = config.URL + 'api/uploads/employee/' + emp[i].image;
+            emp[i].image = emp[i].image;
         }
        var distance_a = distance(job.lat,job.lang,emp_lat,emp_lang,'K');
         

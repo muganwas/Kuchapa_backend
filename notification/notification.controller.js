@@ -29,6 +29,12 @@ const GetCustomerNotification = (req, res, next) => {
         .catch(err => next(err));
 }
 
+const GetEmployeeNotifications = (req, res, next) => {
+    Notification.GetEmployeeNotifications(req.params.id)
+        .then(users => res.json(users))
+        .catch(err => next(err));
+}
+
 const GetAdminNotification = (req, res, next) => {
     Notification.GetAdminNotification(req.params.id)
         .then(users => res.json(users))
@@ -44,6 +50,7 @@ const SendNotification = (req, res, next) => {
 router.post('/addreviewrequest', AddReviewRequest);
 router.get('/get-customer-notification/:id', GetCustomerNotification);
 router.get('/get-admin-notification', GetAdminNotification);
-router.post('/sendNotification', SendNotification)
+router.post('/sendNotification', SendNotification);
+router.get('/get-employee-notification/:id', GetEmployeeNotifications);
 
 module.exports = router;
