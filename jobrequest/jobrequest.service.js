@@ -311,7 +311,7 @@ async function Addrating(param) {
 }
 
 async function UpdateJobRequest(param) {
-    const notificationData = param.notification && param.notificaton.data ? param.notification.data : {};
+    const notificationData = param.notification && param.notification.data ? param.notification.data : {};
     if (typeof param.main_id === 'undefined') {
         return { result: false, message: 'main_id ,chat_status(o),notification(o) and status(o) is required' };
     }
