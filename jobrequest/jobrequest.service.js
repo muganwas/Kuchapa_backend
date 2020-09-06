@@ -347,8 +347,10 @@ async function UpdateJobRequest(param) {
     if (output) {
         var notif = {};
         if (param.notification !== 'undefined' && notif_save.save()) {
+            console.log('notification saved')
             notif = await PushNotif(param.notification);
         }
+        else console.log('notification not saved')
         return { result: true, message: 'Update successfull', data: output, notification: notif };
     }
     else {

@@ -60,7 +60,6 @@ async function AddReviewRequest(param) {
     var notif = {};
     if (param.notification !== 'undefined') {
       notif = await PushNotif(param.notification);
-
     }
 
     return { result: true, 'message': 'Add request successfull', 'notification': notif, data: output };
@@ -76,7 +75,7 @@ async function GetEmployeeNotifications(id) {
   if (typeof id === 'undefined') {
     return { result: false, message: 'id is required' };
   }
-  
+
   var notif = await Notification.aggregate([
     { $match: { employee_id: id } },
     {
@@ -152,7 +151,7 @@ async function GetCustomerNotification(id) {
   if (typeof id === 'undefined') {
     return { result: false, message: 'id is required' };
   }
-  
+
   var notif = await Notification.aggregate([
     { $match: { user_id: id } },
     {
@@ -229,6 +228,7 @@ async function GetAdminNotification() {
 
 async function PushNotif(param) {
   /*  console.log(param);*/
+  const { save_notification } = param;
   if (typeof param.fcm_id === 'undefined' || typeof param.title === 'undefined' || typeof param.body == 'undefined') {
     return { result: false, message: 'fcm_id,title,data(o) and body is required' }
   }
@@ -249,8 +249,22 @@ async function PushNotif(param) {
     data: newdata,
   });
 
-  let output = '';
+  if (save_notification) { 
+    console.log('we gonna save')
+    let save = {};
+    save['user_id'] = param.user_id;
+    save['employee_id'] = param.employee_id;
+    save['order_id'] = param.order_Id;
+    save['title'] = param.title;
+    save['message'] = param.body;
+    save['type'] = param.type;
+    save['notification_by'] = param.notification_by
 
+    const notif_save = new Notification(save);
+    notif_save.save();
+  }
+
+  let output = '';
   return new Promise(function (resolve, reject) {
     sender.sendNoRetry(message, [param.fcm_id], (err, response) => {
       if (err) {
