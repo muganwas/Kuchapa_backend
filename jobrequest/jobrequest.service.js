@@ -58,7 +58,7 @@ async function AddJobRequest(param) {
         typeof param.service_id === 'undefined') {
         return { result: false, message: 'user_id,employee_id,notification(for push notification),delivery_address , delivery_lat(o), delivery_lang(o) and service_id is required' };
     }
-    var search = { user_id: param.user_id, employee_id: param.employee_id, status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] } };
+    var search = { user_id: param.user_id, employee_id: param.employee_id, status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "sendeted"] } };
     var request = await JobRequest.find(search);
 
     if (request.length > 0) {
@@ -311,6 +311,7 @@ async function Addrating(param) {
 }
 
 async function UpdateJobRequest(param) {
+    const notificationData = param.notification && param.notificaton.data ? param.notification.data : {};
     if (typeof param.main_id === 'undefined') {
         return { result: false, message: 'main_id ,chat_status(o),notification(o) and status(o) is required' };
     }
@@ -333,9 +334,9 @@ async function UpdateJobRequest(param) {
 
     let output = await request.save();
     let save = {};
-    save['user_id'] = param.user_id;
-    save['employee_id'] = param.employee_id;
-    save['order_id'] = param.order_id;
+    save['user_id'] = notificationData.user_id;
+    save['employee_id'] = notificationData.providerId;
+    save['order_id'] = notificationData.orderId;
     save['title'] = param.notification.title;
     save['message'] = param.notification.body;
     save['type'] = param.notification.type;
