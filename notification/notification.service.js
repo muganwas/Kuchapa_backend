@@ -114,7 +114,7 @@ async function GetEmployeeNotifications(id) {
     {
       $lookup:
       {
-        from: "Customer",
+        from: "users",
         localField: "user_id",
         foreignField: "_id",
         as: "customer_details"
@@ -190,7 +190,7 @@ async function GetCustomerNotification(id) {
     {
       $lookup:
       {
-        from: "Employee",
+        from: "employees",
         localField: "employee_id",
         foreignField: "_id",
         as: "employee_details"
