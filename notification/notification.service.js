@@ -15,7 +15,9 @@ const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Se
 module.exports = {
   AddReviewRequest,
   GetCustomerNotification,
-  GetAdminNotification
+  GetEmployeeNotifications,
+  GetAdminNotification,
+  PushNotif
 };
 
 async function AddReviewRequest(param) {
@@ -58,7 +60,6 @@ async function AddReviewRequest(param) {
     var notif = {};
     if (param.notification !== 'undefined') {
       notif = await PushNotif(param.notification);
-
     }
 
     return { result: true, 'message': 'Add request successfull', 'notification': notif, data: output };
@@ -69,12 +70,87 @@ async function AddReviewRequest(param) {
 
 }
 
-async function GetCustomerNotification(id) {
+async function GetEmployeeNotifications(id) {
 
   if (typeof id === 'undefined') {
     return { result: false, message: 'id is required' };
   }
 
+  var notif = await Notification.aggregate([
+    { $match: { employee_id: id } },
+    {
+      "$project": {
+        "employee_id": {
+          "$toObjectId": "$employee_id"
+        },
+        "user_id": {
+          "$toString": "$user_id"
+        },
+        "order_id": {
+          "$toString": "$order_id"
+        },
+        "type": {
+          "$toString": "$type"
+        },
+        "title": {
+          "$toString": "$title"
+        },
+        "message": {
+          "$toString": "$message"
+        },
+        "notification_by": {
+          "$toString": "$notification_by"
+        },
+        "createdDate": {
+          "$toString": "$createdDate"
+        },
+        "employee_details": {
+          "$toString": "$employee_details"
+        },
+      }
+    },
+
+    {
+      $lookup:
+      {
+        from: "users",
+        localField: "user_id",
+        foreignField: "_id",
+        as: "customer_details"
+      }
+    }
+  ]);
+
+  var output = new Array();
+  if (notif.length > 0) {
+
+    for (var i = 0; i < notif.length; i++) {
+
+      if (notif[i].notification_for == 'Admin') {
+        continue;
+      }
+
+      if (notif[i].notification_by == 'Customer') {
+        var d = new Date(notif[i].createdDate);
+        notif[i].createdDate = ("0" + d.getDate()).slice(-2) + '-' + shortMonths[d.getMonth()] + '-' + d.getFullYear();
+
+        notif[i].customer_details = notif[i].customer_details[0];
+        output.push(notif[i]);
+
+      }
+    }
+    // console.log(output);
+    return { result: true, message: 'Data found', data: output };
+  } else {
+    return { result: false, message: 'Data not found' };
+  }
+}
+
+async function GetCustomerNotification(id) {
+
+  if (typeof id === 'undefined') {
+    return { result: false, message: 'id is required' };
+  }
 
   var notif = await Notification.aggregate([
     { $match: { user_id: id } },
@@ -152,6 +228,7 @@ async function GetAdminNotification() {
 
 async function PushNotif(param) {
   /*  console.log(param);*/
+  const { save_notification } = param;
   if (typeof param.fcm_id === 'undefined' || typeof param.title === 'undefined' || typeof param.body == 'undefined') {
     return { result: false, message: 'fcm_id,title,data(o) and body is required' }
   }
@@ -172,8 +249,22 @@ async function PushNotif(param) {
     data: newdata,
   });
 
-  let output = '';
+  if (save_notification) { 
+    console.log('we gonna save')
+    let save = {};
+    save['user_id'] = param.user_id;
+    save['employee_id'] = param.employee_id;
+    save['order_id'] = param.order_Id;
+    save['title'] = param.title;
+    save['message'] = param.body;
+    save['type'] = param.type;
+    save['notification_by'] = param.notification_by
 
+    const notif_save = new Notification(save);
+    notif_save.save();
+  }
+
+  let output = '';
   return new Promise(function (resolve, reject) {
     sender.sendNoRetry(message, [param.fcm_id], (err, response) => {
       if (err) {

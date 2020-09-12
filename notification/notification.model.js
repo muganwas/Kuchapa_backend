@@ -5,7 +5,7 @@ const schema = new Schema({
     user_id: { type: String, required: true },
     employee_id: { type: String, required: true },
     order_id: { type: String, default:'' },
-    title: { type: String, required:true },
+    title: { type: String, required: true },
     message: { type: String, default:'' },
     type: { type: String, default:'' },
     notification_by: { type: String, default:'Customer' },
