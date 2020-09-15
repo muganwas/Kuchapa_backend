@@ -1,25 +1,72 @@
 require('dotenv').config();
-//const hostname = 'harfa.app';
 require('rootpath')();
-
 const express = require('express');
 //const MongoClient = require('mongodb').MongoClient;
-
-
 //var multer  = require('multer');
-
 //var fs = require('fs');
 //var http = require('http');
-
 const app = express();
 const cors = require('cors');
 const bodyParser = require('body-parser');
 // const jwt = require('_helpers/jwt');
 const errorHandler = require('_helpers/error-handler');
 const cron = require('node-cron');
+const admin = require("firebase-admin");
+const serviceAccount = require("./adminsdk.js").vars;
+const jsonServiceAcount = JSON.parse(JSON.stringify(serviceAccount));
+const mongoose = require('mongoose');
+const db_connection_url = process.env.CONNECTION_STRING;
+const { storeChat } = require('./misc/helperFunctions');
+const { Verification } = require('./users/user.service');
+const firebase = require('firebase');
 
+const config = {
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.AUTH_DOMAIN,
+  databaseURL: process.env.DATABASE_URL,
+  storageBucket: process.env.STORAGE_BUCKET
+};
+
+let isListened = false;
+
+// initialize firebase
+firebase.initializeApp(config);
+admin.initializeApp({
+  credential: admin.credential.cert(jsonServiceAcount),
+  databaseURL: process.env.DATABASE_URL
+});
+
+//options to avaoid the topology was destroyed error
+const mongooseOptions = {
+  keepAlive: 1,
+  connectTimeoutMS: 30000,
+  useUnifiedTopology: true,
+  useNewUrlParser: true
+};
+
+mongoose.Promise = global.Promise;
+mongoose.connect(db_connection_url, mongooseOptions, err => {
+  if (err) console.log(err);
+  console.log("connected to db");
+});
+
+// Get a reference to the database service
+const database = firebase.database();
+const usersRef = database.ref('users');
+
+let messages = {};
 //live users
-var users = {};
+let users = {};
+let connectedUsers = {};
+
+usersRef.once('value').then(snapshot => {
+  const current = snapshot.val();
+  Object.keys(current).map(userId => {
+    users[userId] = { status: '0' };
+  });
+}, error => {
+  console.log(error);
+});
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -48,48 +95,95 @@ app.use('/thirdpartyapi', require('./thirdpartyapi/thirdpartyapi.controller'));
 // global error handler
 app.use(errorHandler);
 
-
 const cron_request = require('./cron/cron.service.js');
 
 cron.schedule('* * * * *', function () {
-    cron_request.ChnageReqStatus();
+  cron_request.ChnageReqStatus();
 });
 
 // start server
 const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : (process.env.PORT || 8080);
 
 const io = require('socket.io').listen(app.listen(port, function () {
-    console.log('Server listening on port ' + port);
+  console.log('Server listening on port ' + port);
 }));
 
-/*https.createServer({},app)
-.listen(8080, function () {
-  console.log('Example app listening on port 8080! Go to https://localhost:8080/')
-})*/
-
-/*var options = {
-    key: fs.readFileSync('/etc/ssl/private/ssl-cert-snakeoil.key'),
-    cert: fs.readFileSync('/etc/ssl/certs/ca-certificates.crt'),
-    requestCert: true
-};*/
-
-//var controller = require('./main_category/main_category.service.js');
-//var job = require('./job/job.service.js');
-//var chat = require('./chat/chat.service.js');
-io.sockets.on('connection', socket => {
-    socket.on('connected', userId => {
-        socket.userId = userId;
-        users[userId] = {status: '1', socketId: socket.id};
-        io.emit('user-joined', users);
-        console.log(users)
+if (!isListened) {
+  io.sockets.on("connection", socket => {
+    if (this.authentication) socket.off('authentication', this.authentication);
+    if (this.sentMessage) socket.off('sent-message', this.sentMessage);
+    this.authentication = () => socket.on('authentication', async data => {
+      const { id } = data;
+      if (id) {
+        Verification(id).then(verification => {
+          const { result, message } = verification;
+          if (result) {
+            users[id] = { status: '1', socketId: socket.id};
+            socket.uid = id;
+            socket.emit('authorized', { message });
+          }
+          else {
+            console.log(`Socket ${socket.id} unauthorized.`);
+            socket.emit('unauthorized', { message: 'UNAUTHORIZED', detail: message })
+          }
+        }).catch(error => {
+          const code = error.code;
+          console.log(`Socket ${socket.id} unauthorized. Error: ${error}`);
+          socket.emit('unauthorized', { message: 'UNAUTHORIZED', detail: error.message })
+        });
+      }
+      else {
+        console.log('user id missing');
+        socket.emit('unauthorized', { message: 'UNAUTHORIZED', code: " uid" });
+      }
     });
+
+    this.sentMessage = () => socket.on('sent-message', data => {
+      const { message, recipient, sender } = data;
+      const timestamp = new Date().getTime();
+      messages[recipient] = { sender, message };
+      // -- make sure to save message to the db
+      if (connectedUsers[recipient]) {
+        const receipientSocketId = connectedUsers[recipient].socketId;
+        const messageObject = { sender, recipient, message, time: timestamp, read: false };
+
+        socket.to(receipientSocketId).emit('chat-message', messageObject);
+
+        storeChat(messageObject).then(response => {
+          console.log(response);
+        });
+      }
+      else {
+        // just save the massages for when user available
+        const messageObject = { sender, recipient, message, time: timestamp, read: false };
+
+        storeChat(messageObject).then(response => {
+          console.log(response);
+        })
+        console.log('messaged user offline');
+      }
+    });
+
+    this.authentication();
+    this.sentMessage();
+
+    // wait for authentication if non disconnect
+    setTimeout(() => {
+      if (!socket.uid) {
+        socket.emit('unauthorized', { message: 'UNAUTHORIZED', code: 'request timed out' });
+        socket.disconnect();
+      }
+      else console.log(`Socket: ${socket.id} is authenticated.`);
+    }, process.env.AUTH_TIMEOUT);
+
     socket.on('disconnect', () => {
-        if (socket.userId) users[socket.userId].status = '0';
-        io.emit('user-disconnected', users);
-        console.log(users);
-    });
-    /**Steven muganwa has not clarified what the code below does*/
-    //controller.respond(socket);
-    //job.respond(socket);
-    //chat.respond(socket);
-});
+      //console.log(`Socket: ${socket.id} has disconnected.`);
+      if (socket.uid) {
+        delete connectedUsers[socket.uid];
+        io.emit('user-disconnected', connectedUsers);
+      }
+    })
+  });
+  // already listening to connection
+  isListened = true;
+}
