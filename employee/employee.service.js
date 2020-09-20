@@ -149,7 +149,6 @@ async function PushNotif(param) {
 }
 
 async function Verification(id) {
-    console.log('verifying')
   const output = await Employee.findById(id)
   if (output) {
     var userParam = {}

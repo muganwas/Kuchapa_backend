@@ -16,25 +16,25 @@ const serviceAccount = require("./adminsdk.js").vars;
 const jsonServiceAcount = JSON.parse(JSON.stringify(serviceAccount));
 const mongoose = require('mongoose');
 const db_connection_url = process.env.CONNECTION_STRING;
-const { storeChat } = require('./misc/helperFunctions');
-const { Verification } = require('./users/user.service');
+const userService = require('./users/user.service');
+const employeeService = require('./employee/employee.service');
 const firebase = require('firebase');
-
 const config = {
   apiKey: process.env.FIREBASE_API_KEY,
   authDomain: process.env.AUTH_DOMAIN,
   databaseURL: process.env.DATABASE_URL,
   storageBucket: process.env.STORAGE_BUCKET
 };
-
-let isListened = false;
-
-// initialize firebase
+/**firebase initialization */
 firebase.initializeApp(config);
 admin.initializeApp({
   credential: admin.credential.cert(jsonServiceAcount),
   databaseURL: process.env.DATABASE_URL
 });
+
+const { storeMessage } = require('./chat/chat.service');
+
+let isListened = false;
 
 //options to avaoid the topology was destroyed error
 const mongooseOptions = {
@@ -113,8 +113,9 @@ if (!isListened) {
     if (this.authentication) socket.off('authentication', this.authentication);
     if (this.sentMessage) socket.off('sent-message', this.sentMessage);
     this.authentication = () => socket.on('authentication', async data => {
-      const { id } = data;
+      const { id, userType } = data;
       if (id) {
+        let Verification = userType === 'client' ? userService.Verification : employeeService.Verification;
         Verification(id).then(verification => {
           const { result, message } = verification;
           if (result) {
@@ -139,27 +140,20 @@ if (!isListened) {
     });
 
     this.sentMessage = () => socket.on('sent-message', data => {
-      const { message, recipient, sender } = data;
-      const timestamp = new Date().getTime();
-      messages[recipient] = { sender, message };
+      const { inputMessage, senderId, receiverId } = Object.assign({}, data);
+      messages[receiverId] = { sender: senderId, message: inputMessage };
       // -- make sure to save message to the db
-      if (connectedUsers[recipient]) {
-        const receipientSocketId = connectedUsers[recipient].socketId;
-        const messageObject = { sender, recipient, message, time: timestamp, read: false };
-
+      if (users[receiverId]) {
+        const receipientSocketId = users[receiverId].socketId;
+        const messageObject = Object.assign({}, data);
+        console.log('message about to be emited', receipientSocketId)
         socket.to(receipientSocketId).emit('chat-message', messageObject);
-
-        storeChat(messageObject).then(response => {
-          console.log(response);
-        });
+        storeMessage(messageObject, data.userType);
       }
       else {
         // just save the massages for when user available
-        const messageObject = { sender, recipient, message, time: timestamp, read: false };
-
-        storeChat(messageObject).then(response => {
-          console.log(response);
-        })
+        const messageObject = Object.assign({}, data);
+        storeMessage(messageObject, data.userType);
         console.log('messaged user offline');
       }
     });
