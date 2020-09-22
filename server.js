@@ -7,6 +7,7 @@ const express = require('express');
 //var http = require('http');
 const app = express();
 const cors = require('cors');
+const moment = require('moment');
 const bodyParser = require('body-parser');
 // const jwt = require('_helpers/jwt');
 const errorHandler = require('_helpers/error-handler');
@@ -51,8 +52,8 @@ mongoose.connect(db_connection_url, mongooseOptions, err => {
 });
 
 // Get a reference to the database service
-const database = firebase.database();
-const usersRef = database.ref('users');
+const database = firebase.database;
+const usersRef = database().ref('users');
 
 let messages = {};
 //live users
@@ -145,14 +146,17 @@ if (!isListened) {
       // -- make sure to save message to the db
       if (users[receiverId]) {
         const receipientSocketId = users[receiverId].socketId;
-        const messageObject = Object.assign({}, data);
-        console.log('message about to be emited', receipientSocketId)
+        let messageObject = Object.assign({}, data);
+        messageObject.time = moment().unix();
+        messageObject.date = new Date().getDate() + "/" + (new Date().getMonth() + 1) + "/" + new Date().getFullYear();
         socket.to(receipientSocketId).emit('chat-message', messageObject);
         storeMessage(messageObject, data.userType);
       }
       else {
         // just save the massages for when user available
-        const messageObject = Object.assign({}, data);
+        let messageObject = Object.assign({}, data);
+        messageObject.time = moment().unix();
+        messageObject.date = new Date().getDate() + "/" + (new Date().getMonth() + 1) + "/" + new Date().getFullYear();
         storeMessage(messageObject, data.userType);
         console.log('messaged user offline');
       }

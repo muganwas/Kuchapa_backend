@@ -16,14 +16,14 @@ const respond = async socket => {
 
 const storeMessage = async (params, userType) => {
     try {
-        const { inputMessage, senderId, senderName, senderImage, receiverId, receiverImage, fcm_id, receiverName, serviceName, orderId } = params;
+        const { type, textMessage, senderId, senderName, senderImage, receiverId, receiverImage, fcm_id, receiverName, serviceName, orderId, date, time } = params;
         let msgId = database().ref('chatting').child(senderId).child(receiverId).push().key;
         let updates = {};
         let recentUpdates = {};
         let message = {
-            textMessage: inputMessage,
+            textMessage,
             imageMessage: '',
-            time: database.ServerValue.TIMESTAMP,
+            time,
             senderId: senderId,
             senderImage: senderImage,
             senderName: senderName,
@@ -32,32 +32,32 @@ const storeMessage = async (params, userType) => {
             receiverImage: receiverImage,
             serviceName: serviceName,
             orderId: orderId,
-            type: "text",
-            date: new Date().getDate() + "/" + (new Date().getMonth() + 1) + "/" + new Date().getFullYear(),
+            type,
+            date,
         }
         let recentMessageReceiver = {
-            textMessage: inputMessage,
+            textMessage,
             imageMessage: '',
-            time: database.ServerValue.TIMESTAMP,
-            date: new Date().getDate() + "/" + (new Date().getMonth() + 1) + "/" + new Date().getFullYear(),
+            time,
+            date,
             id: senderId,
             name: senderName,
             image: senderImage,
             serviceName: serviceName,
             orderId: orderId,
-            type: "text",
+            type,
         }
         let recentMessageSender = {
-            textMessage: inputMessage,
+            textMessage,
             imageMessage: '',
-            time: database.ServerValue.TIMESTAMP,
-            date: new Date().getDate() + "/" + (new Date().getMonth() + 1) + "/" + new Date().getFullYear(),
+            time,
+            date,
             id: receiverId,
             name: receiverName,
             image: receiverImage,
             serviceName: serviceName,
             orderId: orderId,
-            type: "text",
+            type,
         }
         updates['chatting/' + senderId + '/' + receiverId + '/' + msgId] = message;
         updates['chatting/' + receiverId + '/' + senderId + '/' + msgId] = message;
