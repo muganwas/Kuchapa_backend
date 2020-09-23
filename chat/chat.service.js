@@ -32,11 +32,9 @@ const fetchChatMessages = async (req, res) => {
     let Verification = userType === 'client' ? userService.Verification : employeeService.Verification;
     // either or condition
     await Verification(sender).then(verification => {
-            console.log('ver', verification)
             const { result, message } = verification;
             if (result) {
                 chats.find({ $or: [{ sender }, { recipient: sender }] }, (err, result) => {
-                    console.log('chats find', result, 'err', err )
                     if (err) res.send(err);
                     res.json(result);
                 });
