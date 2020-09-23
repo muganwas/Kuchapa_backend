@@ -1,8 +1,8 @@
 const express = require('express');
-
 const router = express.Router();
 const path = require('path');
 const employeeService = require('./employee.service');
+
 var multer  = require('../node_modules/multer');
 // console.log(multer);
 var Storage = multer.diskStorage({

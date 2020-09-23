@@ -1,17 +1,53 @@
-﻿const config = require('../config');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const db = require('_helpers/db');
-const Job = db.Job;
-const Employee = db.Employee;
-const Chat = db.Chat;
+﻿const db = require('_helpers/db');
+const chats = db.Chat;
 const firebase = require('firebase');
+const userService = require('../users/user.service');
+const employeeService = require('../employee/employee.service');
 const { PushNotif } = require("../notification/notification.service");
 
 const database = firebase.database;
 
-const respond = async socket => {
-    global.socket = await socket;
+const storeChat = async chatObject => {
+    const { sender, recipient, time } = chatObject;
+    await chats.findOne({ sender, recipient, time }, (err, data) => {
+        if (err) return err;
+        else if (data) return "chat stored already";
+        else {
+            newChats = new chats(chatObject);
+            newChats.save((err, details) => {
+                console.log('err', err)
+                console.log('dits', details)
+                if (err) return err;
+                else return ({ saved: true, details });
+            });
+        }
+    }).catch(e => {
+        return e;
+    });
+    return 'huh!';
+}
+
+const fetchChatMessages = async (req, res) => {
+    const { sender, userType } = req;
+    let Verification = userType === 'client' ? userService.Verification : employeeService.Verification;
+    // either or condition
+    await Verification(sender).then(verification => {
+            console.log('ver', verification)
+            const { result, message } = verification;
+            if (result) {
+                chats.find({ $or: [{ sender }, { recipient: sender }] }, (err, result) => {
+                    console.log('chats find', result, 'err', err )
+                    if (err) res.send(err);
+                    res.json(result);
+                });
+            }
+            else {
+                res.send({ message });
+            }
+        }).catch(e => {
+            console.log(e.errorInfo.message);
+            res.send({ error: e.errorInfo.message });
+        });
 }
 
 const storeMessage = async (params, userType) => {
@@ -87,5 +123,6 @@ const storeMessage = async (params, userType) => {
 
 module.exports = {
     storeMessage,
-    respond
+    storeChat,
+    fetchChatMessages
 };

@@ -1,17 +1,33 @@
+//const { formatDate } = require('../misc/helperFunctions');
+//const formattedDate = formatDate(new Date());
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const schema = new Schema({
-    sender_id: { type: String, required: true },
-    receiver_id: { type: String, required: true },
-    message :   {type:String, required:true },
-    seen :   {type:String, default:"false" },
-    type :   {type:String, default:"text"},
-    createdDate: { type: Date, default: Date.now }
+const chatsSchema = new Schema({
+  date: {
+    type: String,
+    //default: formattedDate
+  },
+  sender: {
+    type: String,
+    required: "Please provide sender"
+  }, 
+  recipient: {
+    type: String,
+    required: "Please provide recipient"
+  }, 
+  message: {
+    type: String,
+    required: "Please provide message"
+  }, 
+  time: {
+    type: Date,
+    default: Date.now()
+  }, 
+  read: {
+    type: Boolean,
+    default: false
+  }
 });
 
-schema.set('toJSON', { virtuals: true });
-module.exports = mongoose.model('Chat', schema);
-
-
-
+module.exports = mongoose.model('chats', chatsSchema);
