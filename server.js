@@ -158,7 +158,7 @@ if (!isListened) {
         chatService.storeChat({userType, sender: senderId, message: textMessage, recipient: receiverId, time, date}).then(response => {
           console.log(response);
         });
-        socket.to(receipientSocketId).emit('chat-message', messageObject);
+        socket.to(receipientSocketId).emit('chat-message', {message: textMessage, recipient: receiverId, sender: senderId});
       }
       else {
         /** start for deletion */
