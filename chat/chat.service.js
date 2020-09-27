@@ -15,8 +15,6 @@ const storeChat = async chatObject => {
         else {
             newChats = new chats(chatObject);
             newChats.save((err, details) => {
-                console.log('err', err)
-                console.log('dits', details)
                 if (err) return err;
                 else return ({ saved: true, details });
             });

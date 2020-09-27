@@ -142,36 +142,26 @@ if (!isListened) {
     });
 
     this.sentMessage = () => socket.on('sent-message', data => {
-      const { textMessage, senderId, receiverId, userType } = Object.assign({}, data);
-      const time = moment().unix();
-      const date = new Date().getDate() + "/" + (new Date().getMonth() + 1) + "/" + new Date().getFullYear();
+      const { textMessage, senderId, receiverId, userType, time, date } = Object.assign({}, data);
       messages[receiverId] = { sender: senderId, message: textMessage };
       // -- make sure to save message to the db
       if (users[receiverId]) {
         const receipientSocketId = users[receiverId].socketId;
-        /** start for deletion */
         let messageObject = Object.assign({}, data);
-        messageObject.time = time;
-        messageObject.date = date;
         storeMessage(messageObject, data.userType);
-        /** end of for deleton */
         chatService.storeChat({userType, sender: senderId, message: textMessage, recipient: receiverId, time, date}).then(response => {
           console.log(response);
         });
-        socket.to(receipientSocketId).emit('chat-message', {message: textMessage, recipient: receiverId, sender: senderId});
+        socket.to(receipientSocketId).emit('chat-message', {message: textMessage, recipient: receiverId, sender: senderId, time, date});
       }
       else {
-        /** start for deletion */
         // just save the massages for when user available
         let messageObject = Object.assign({}, data);
-        messageObject.time = time;
-        messageObject.date = date;
         storeMessage(messageObject, data.userType);
-        /** end for deletion */
         chatService.storeChat({userType, sender: senderId, message: textMessage, recipient: receiverId, time, date}).then(response => {
           console.log(response);
         });
-        console.log('messaged user offline');
+        console.log('messaged user is offline');
       }
     });
 
