@@ -8,7 +8,7 @@ const Notification = db.Notification
 const SendMail = require('../_helpers/SendMail')
 
 async function authenticate(param) {
-    var avgRating
+  var avgRating
   const user = await User.findOne({ email: param.email })
 
   if (!user) {
@@ -33,10 +33,10 @@ async function authenticate(param) {
     const { hash, userWithoutHash } = user.toObject()
     const token = jwt.sign({ sub: user.id }, config.secret)
     if (typeof param.fcm_id !== 'undefined') {
-        if (user._id)
-            await employeeRatingsDataRequest(user._id).then(res => {
-                avgRating = res.rating;
-            });
+      if (user._id)
+        await employeeRatingsDataRequest(user._id).then(res => {
+          avgRating = res.rating;
+        });
       var fcm = { fcm_id: param.fcm_id, avgRating }
 
       Object.assign(user, fcm);
@@ -91,15 +91,24 @@ async function getById(id, param) {
   var avgRating = 0;
   if ((output = await User.findById(id).select('-hash'))) {
     if (typeof param.fcm_id !== 'undefined') {
-        if (output._id)
+      if (output._id)
         await employeeRatingsDataRequest(output._id).then(res => {
-            avgRating = res.rating;
+          avgRating = res.rating;
         });
       var fcm = { fcm_id: param.fcm_id, avgRating }
       Object.assign(output, fcm)
       await output.save()
     }
     return { result: true, message: 'Customer Found', data: output }
+  } else {
+    return { result: false, message: 'Customer Not Found' }
+  }
+}
+
+const findUserById = async id => {
+  const output = await User.findById(id)
+  if (output) {
+    return { result: true, message: 'Customer verified successfully' }
   } else {
     return { result: false, message: 'Customer Not Found' }
   }
@@ -311,6 +320,7 @@ module.exports = {
   getById,
   create,
   update,
+  findUserById,
   CheckMobile,
   ForgotPassword,
   uploadImage,

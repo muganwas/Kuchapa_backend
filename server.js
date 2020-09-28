@@ -117,7 +117,7 @@ if (!isListened) {
     this.authentication = () => socket.on('authentication', async data => {
       const { id, userType } = data;
       if (id) {
-        let Verification = userType === 'client' ? userService.Verification : employeeService.Verification;
+        let Verification = userType === 'client' ? userService.findUserById : employeeService.findUserById;
         Verification(id).then(verification => {
           const { result, message } = verification;
           if (result) {

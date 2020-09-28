@@ -27,7 +27,8 @@ const storeChat = async chatObject => {
 
 const fetchChatMessages = async (req, res) => {
     const { sender, userType } = req;
-    let Verification = userType === 'client' ? userService.Verification : employeeService.Verification;
+    console.log('usertype', userType)
+    let Verification = userType === 'client' ? userService.findUserById : employeeService.findUserById;
     // either or condition
     await Verification(sender).then(verification => {
             const { result, message } = verification;
@@ -41,7 +42,7 @@ const fetchChatMessages = async (req, res) => {
                 res.send({ message });
             }
         }).catch(e => {
-            console.log(e.errorInfo.message);
+            console.log('verification error', e.errorInfo.message);
             res.send({ error: e.errorInfo.message });
         });
 }

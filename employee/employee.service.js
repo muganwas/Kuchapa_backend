@@ -18,8 +18,8 @@ const Notification = db.Notification
 const SendMail = require('../_helpers/SendMail')
 
 async function authenticate(param) {
-    console.log('authenitcating')
-    var avgRating = 0;
+  console.log('authenitcating')
+  var avgRating = 0;
   if (typeof param.email === 'undefined') {
     return {
       result: false,
@@ -43,11 +43,11 @@ async function authenticate(param) {
     }*/
 
   if (typeof param.fcm_id !== 'undefined') {
-      //if id exists update average rating
+    //if id exists update average rating
     if (user._id)
-        await employeeRatingsDataRequest(user._id).then(res => {
-            avgRating = res.rating;
-        });
+      await employeeRatingsDataRequest(user._id).then(res => {
+        avgRating = res.rating;
+      });
     var fcm = { fcm_id: param.fcm_id, avgRating }
     Object.assign(user, fcm)
     await user.save()
@@ -84,7 +84,7 @@ async function authenticate(param) {
 }
 
 async function getAll() {
-    console.log('getting all')
+  console.log('getting all')
   var output = await Employee.find()
 
   for (var i = 0; i < output.length; i++) {
@@ -137,7 +137,7 @@ async function PushNotif(param) {
 
   let output = ''
 
-  return new Promise(function(resolve, reject) {
+  return new Promise(function (resolve, reject) {
     sender.sendNoRetry(message, [param.fcm_id], (err, response) => {
       if (err) {
         reject({ result: true, message: err })
@@ -146,6 +146,15 @@ async function PushNotif(param) {
       }
     })
   })
+}
+
+const findUserById = async id => {
+  const output = await Employee.findById(id)
+  if (output) {
+    return { result: true, message: 'Service provicer verified successfully' }
+  } else {
+    return { result: false, message: 'Service provicer Not Found' }
+  }
 }
 
 async function Verification(id) {
@@ -163,8 +172,8 @@ async function Verification(id) {
 }
 
 async function getById(id, param) {
-    console.log('getting by id')
-    var avgRating = 0;
+  console.log('getting by id')
+  var avgRating = 0;
   if (typeof id === 'undefined') {
     return { result: false, message: 'id is required' }
   }
@@ -173,7 +182,7 @@ async function getById(id, param) {
   var arr = [];
   if ((output = await Employee.findById(id).select('-hash'))) {
     await employeeRatingsDataRequest(output._id).then(res => {
-        avgRating = res.rating;
+      avgRating = res.rating;
     });
     if (typeof param.fcm_id !== 'undefined') {
       var fcm = { fcm_id: param.fcm_id, avgRating }
@@ -321,49 +330,49 @@ async function create(params) {
       }
     }
     else {
-        const emp = new Employee(userParam)
-        await emp.save().then(async output => {
-          if (output) {
+      const emp = new Employee(userParam)
+      await emp.save().then(async output => {
+        if (output) {
 
-            const message = `Please <a href="${config.URL}employee/verification/${output.id}">Click Here </a> To verify your Email`
-            /*var mail = await SendMailFunction.SendMail(userParam.email,"Verification Request By Harfa", message);*/
-      
-            if (userParam.email_verification === 0) SendMail(userParam.email, 'Email Address Verification', message)
-      
-            const notification = new Notification({
-              type: 'New User',
-              order_id: '',
-              message: output.username + ' register as Customer',
-              notification_for: 'Admin',
-              notification_link: '/employee/' + output._id,
-              user_id: output._id,
-              employee_id: output._id,
-              title: 'New Provider'
-            })
-      
-            await notification.save().then(notification => {
-              if (notification) console.log('notification saved')
-            })
-      
-            var mystr = output.services
-            var arr = mystr.split(',')
-            let ser_arr = new Array()
-      
-            for (var i = 0; i < arr.length; i++) {
-              var service = await Service.find({ _id: arr[i] })
-              if (service.length) {
-                ser_arr.push(service[0])
-              }
+          const message = `Please <a href="${config.URL}employee/verification/${output.id}">Click Here </a> To verify your Email`
+          /*var mail = await SendMailFunction.SendMail(userParam.email,"Verification Request By Harfa", message);*/
+
+          if (userParam.email_verification === 0) SendMail(userParam.email, 'Email Address Verification', message)
+
+          const notification = new Notification({
+            type: 'New User',
+            order_id: '',
+            message: output.username + ' register as Customer',
+            notification_for: 'Admin',
+            notification_link: '/employee/' + output._id,
+            user_id: output._id,
+            employee_id: output._id,
+            title: 'New Provider'
+          })
+
+          await notification.save().then(notification => {
+            if (notification) console.log('notification saved')
+          })
+
+          var mystr = output.services
+          var arr = mystr.split(',')
+          let ser_arr = new Array()
+
+          for (var i = 0; i < arr.length; i++) {
+            var service = await Service.find({ _id: arr[i] })
+            if (service.length) {
+              ser_arr.push(service[0])
             }
-            output.services = JSON.stringify(ser_arr)
-            if (output.img_status == '1') {
-              output.image = config.URL + 'api/uploads/employee/' + output.image
-            }
-            data = output
-          } else {
-            return { result: false, message: 'Registeration failed try again later' }
           }
-        })
+          output.services = JSON.stringify(ser_arr)
+          if (output.img_status == '1') {
+            output.image = config.URL + 'api/uploads/employee/' + output.image
+          }
+          data = output
+        } else {
+          return { result: false, message: 'Registeration failed try again later' }
+        }
+      })
     }
   });
   return data
@@ -386,8 +395,8 @@ async function ForgotPassword(param) {
     text: `Hello ${user.username}, \r\n Your password is ${user.password}` // Plain text body
   }
 
-  return new Promise(function(resolve, reject) {
-    transport.sendMail(message, function(err, info) {
+  return new Promise(function (resolve, reject) {
+    transport.sendMail(message, function (err, info) {
       if (err) {
         reject({ result: false, message: 'Something went wrong', error: err })
       } else {
@@ -458,6 +467,7 @@ module.exports = {
   getById,
   Verification,
   create,
+  findUserById,
   update,
   CheckMobile,
   ForgotPassword,
