@@ -58,7 +58,7 @@ async function AddJobRequest(param) {
         typeof param.service_id === 'undefined') {
         return { result: false, message: 'user_id,employee_id,notification(for push notification),delivery_address , delivery_lat(o), delivery_lang(o) and service_id is required' };
     }
-    var search = { user_id: param.user_id, employee_id: param.employee_id, status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "sendeted"] } };
+    var search = { user_id: param.user_id, employee_id: param.employee_id, status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] } };
     var request = await JobRequest.find(search);
 
     if (request.length > 0) {
@@ -310,7 +310,7 @@ async function Addrating(param) {
     }
 }
 
-async function UpdateJobRequest(param) {
+const UpdateJobRequest =  async param => {
     const notificationData = param.notification && param.notification.data ? param.notification.data : {};
     if (typeof param.main_id === 'undefined') {
         return { result: false, message: 'main_id ,chat_status(o),notification(o) and status(o) is required' };
