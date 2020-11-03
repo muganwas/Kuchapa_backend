@@ -36,11 +36,6 @@ async function authenticate(param) {
   if (user.status == '0') {
     return { result: false, message: 'Your account is deactivated by admin' }
   }
-  /*    if(user.email_verification == 0){
-         var message  = `Please <a href="${config.URL}#/customer_verification/${user.id}">Click Here </a> To verify your Email`;
-         var mail = await SendMailFunction.SendMail(user.email,"Verification Request By Harfa", message);
-               return {result:false,message:"Your email is not verified.Verify link sent"};
-    }*/
 
   if (typeof param.fcm_id !== 'undefined') {
     //if id exists update average rating
@@ -335,7 +330,6 @@ async function create(params) {
         if (output) {
 
           const message = `Please <a href="${config.URL}employee/verification/${output.id}">Click Here </a> To verify your Email`
-          /*var mail = await SendMailFunction.SendMail(userParam.email,"Verification Request By Harfa", message);*/
 
           if (userParam.email_verification === 0) SendMail(userParam.email, 'Email Address Verification', message)
 
@@ -389,7 +383,7 @@ async function ForgotPassword(param) {
   }
 
   const message = {
-    from: 'team.harfa@gmail.com', // Sender address
+    from: 'team.kuchapamobileapp@gmail.com', // Sender address
     to: param.email, // List of recipients
     subject: 'Password Recovery Mail', // Subject line
     text: `Hello ${user.username}, \r\n Your password is ${user.password}` // Plain text body

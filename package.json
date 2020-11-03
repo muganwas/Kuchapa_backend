@@ -1,7 +1,7 @@
 {
-  "name": "harfa-backend",
+  "name": "kuchapa-backend",
   "version": "1.0.0",
-  "description": "NodeJS + MongoDB API for harfa",
+  "description": "NodeJS + MongoDB API for kuchapa",
   "license": "MIT",
   "repository": {
     "type": "git"

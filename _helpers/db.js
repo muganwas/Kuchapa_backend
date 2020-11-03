@@ -1,11 +1,5 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-/*const config = require('../config');
-const MONGO_USERNAME = 'harfa';
-const MONGO_PASSWORD = 'harfa';
-const MONGO_HOSTNAME = '127.0.0.1';
-const MONGO_PORT = '27017';
-const MONGO_DB = 'harfa';*/
 
 mongoose.connect(process.env.CONNECTION_STRING, { useCreateIndex: true, useNewUrlParser: true }, function (err, db) {
    

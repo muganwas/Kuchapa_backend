@@ -45,7 +45,7 @@ function dashboard(req, res, next) {
 
 
 function register(req, res, next) {
-    adminService.create({name:"admin",email:"harfa@gmail.com",mobile:"1234567890",address:"indore",password:"admin"})
+    adminService.create({name:"admin",email:"kuchapamobileapp@gmail.com",mobile:"750941137",address:"Buwate",password:"admin"})
         .then(() => res.json({}))
         .catch(err => next(err));
 }

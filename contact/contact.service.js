@@ -17,22 +17,20 @@ const SendMailFunction = require("../_helpers/SendMail");
 module.exports = {
 
     create,
-   _delete
+    _delete
 };
 
 
 
 async function create(userParam) {
-       const user = new Contact(userParam);
-       
-     var data = '';
-     if(data = await user.save()){
-            var message  = userParam.message;
-            //var mail = await SendMailFunction.SendMail(userParam.email,"Verification Request By Harfa", message);
-            return {result:true , message:'Mail Sent Successfully'};
-     }else{
-        return {result:false , message:'Something went wrong'};
-    }  
+    const user = new Contact(userParam);
+    var data = '';
+    if (data = await user.save()) {
+        var message = userParam.message;
+        return { result: true, message: 'Mail Sent Successfully' };
+    } else {
+        return { result: false, message: 'Something went wrong' };
+    }
 }
 
 

@@ -1,6 +1,3 @@
-//  run permanently :- node /public_html/harfa/api/server.js > stdout.txt 2> stderr.txt &
-
-
 // stop permanently run node app :- killall node 
 
 
