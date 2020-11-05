@@ -310,8 +310,8 @@ async function create(params) {
           username: userParam.username,
           image: userParam.image
         })
-        if (emp_data.img_status == '1') {
-          emp_data.image = config.URL + 'api/uploads/employee/' + emp_data.image
+        if (emp_data.image != undefined && emp_data.image != '') {
+          emp_data.img_status = '1'
         }
         if (emp_data.status == '0') {
           return {

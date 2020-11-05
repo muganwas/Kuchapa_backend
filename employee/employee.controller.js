@@ -39,7 +39,6 @@ function authenticate(req, res, next) {
 }
 
 function register(req, res, next) {
-    
    employeeService.create(req.body)
         .then((user) => res.json(user))
         .catch(err => next(err));
