@@ -8,9 +8,9 @@ const schema = new Schema({
     title: { type: String, required: true },
     message: { type: String, default:'' },
     type: { type: String, default:'' },
-    notification_by: { type: String, default:'Customer' },
+    notification_by: { type: String },
     status: { type: String, default:'0' },
-    notification_for: { type: String, default:'User'},
+    notification_for: { type: String },
     notification_link: { type: String, default:''},
     createdDate: { type: Date, default: Date.now }
 });

@@ -76,15 +76,14 @@ async function GetEmployeeNotifications(id) {
     return { result: false, message: 'id is required' };
   }
 
+  //, notification_for: 'Employee' 
+
   var notif = await Notification.aggregate([
     { $match: { employee_id: id } },
     {
       "$project": {
         "employee_id": {
           "$toObjectId": "$employee_id"
-        },
-        "user_id": {
-          "$toString": "$user_id"
         },
         "order_id": {
           "$toString": "$order_id"
@@ -156,9 +155,6 @@ async function GetCustomerNotification(id) {
     { $match: { user_id: id } },
     {
       "$project": {
-        "employee_id": {
-          "$toObjectId": "$employee_id"
-        },
         "user_id": {
           "$toString": "$user_id"
         },

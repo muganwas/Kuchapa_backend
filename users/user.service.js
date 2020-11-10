@@ -199,7 +199,6 @@ async function create(params) {
       await user
         .save()
         .then(async res => {
-          console.log('user data saved')
           data = res
           if (data) {
             const message = `Please <a href="${config.URL}users/verification/${data.id}">Click Here </a> To verify your Email`
@@ -209,11 +208,11 @@ async function create(params) {
             const notification = new Notification({
               type: 'New User',
               order_id: '',
-              message: userParam.username + ' register as Customer',
+              message: userParam.username + ' registered as a Customer',
               notification_for: 'Admin',
+              notification_by: 'User',
               notification_link: '/user/' + data._id,
               user_id: data._id,
-              employee_id: data._id,
               title: 'New Customer'
             })
             await notification

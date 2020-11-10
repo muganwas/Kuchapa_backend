@@ -336,10 +336,10 @@ async function create(params) {
           const notification = new Notification({
             type: 'New User',
             order_id: '',
-            message: output.username + ' register as Customer',
+            message: output.username + ' registered as a service provider',
             notification_for: 'Admin',
+            notification_by: 'Employee',
             notification_link: '/employee/' + output._id,
-            user_id: output._id,
             employee_id: output._id,
             title: 'New Provider'
           })
