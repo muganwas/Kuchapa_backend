@@ -273,6 +273,7 @@ async function update(id, userParam) {
 }
 
 async function uploadImage(id, image) {
+  console.log('id', id, 'image', image)
   if (typeof id === 'undefined' || image == false) {
     return { result: false, message: 'id and image is required' }
   }

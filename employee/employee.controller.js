@@ -3,19 +3,6 @@ const router = express.Router();
 const path = require('path');
 const employeeService = require('./employee.service');
 
-var multer  = require('../node_modules/multer');
-// console.log(multer);
-var Storage = multer.diskStorage({
-destination: function (req, file, callback) {
-    callback(null, "uploads/employee/");
-},
-    filename: function (req, file, callback) {
-        callback(null, file.fieldname + "_" + Date.now() + "_" + file.originalname);
-    }
-});
-
-var upload = multer({ storage: Storage }); 
-
 // routes
 router.post('/authenticate', authenticate);
 router.post('/register', register);
@@ -26,7 +13,7 @@ router.get('/verification/:id', Verification);
 router.post('/:id', update);
 router.post('/check/email', CheckMobile);
 router.post('/push/notification', PushNotif);
-router.post('/upload/:id',upload.single('image'), uploadImage);
+router.post('/upload/:id', uploadImage);
 router.post('/delete/:id', _delete);
 router.post('/forgot_password/email', ForgotPassword);
 
@@ -96,9 +83,8 @@ function update(req, res, next) {
 }
 
 function uploadImage(req, res, next) {
- 
-    if(req.file.filename){
-     var  image = req.file.filename;    
+    if(req.body && req.body.uri){
+     var  image = req.body.uri;    
     }else{
      var image = false;    
     }

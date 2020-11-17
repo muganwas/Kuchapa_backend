@@ -79,9 +79,7 @@ async function authenticate(param) {
 }
 
 async function getAll() {
-  console.log('getting all')
   var output = await Employee.find()
-
   for (var i = 0; i < output.length; i++) {
     var mystr = output[i].services
     arr = mystr.split(',')
@@ -196,9 +194,6 @@ async function getById(id, param) {
       }
     }
     output.services = JSON.stringify(ser_arr)
-    if (output.img_status == 1) {
-      output.image = config.URL + 'api/uploads/employee/' + output.image
-    }
     return { result: true, message: 'employee found', data: output }
   } else {
     return { result: false, message: 'employee not found' }
@@ -444,7 +439,6 @@ async function uploadImage(id, image) {
   Object.assign(user, { image: image, img_status: 1 })
   var output = ''
   if ((output = await user.save())) {
-    output.image = config.URL + 'api/uploads/employee/' + output.image
     return { result: true, message: 'Image Update successfull', data: output }
   } else {
     return { result: false, message: 'Something went wrong' }

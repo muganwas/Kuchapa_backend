@@ -2,29 +2,9 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 const userService = require('./user.service');
-var multer  = require('../node_modules/multer');
-// console.log(multer);
 
-var Storage = multer.diskStorage({
-destination: function (req, file, callback) {
-callback(null, "uploads/users/");
-},
-filename: function (req, file, callback) {
-  var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-   var charactersLength = characters.length;
-   var result='';
-   for ( var i = 0; i < 10; i++ ) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-         
-   }
-return true;
-callback(null, file.fieldname + "_" + Date.now() + "_" + result + "_" + file.originalname);
-}
-});
-var upload = multer({ storage: Storage });
-// routes
 router.post('/authenticate', authenticate);
-router.post('/register/create', upload.single('image'), register);
+router.post('/register/create', register);
 router.get('/', getAll);
 router.post('/get_search', get_search);
 router.get('/verification/:id', Verification);
@@ -33,7 +13,7 @@ router.get('/:id', getById);
 router.post('/:id', update);
 router.post('/check/mobile', CheckMobile);
 router.post('/forgot_password/email', ForgotPassword);
-router.post('/upload/:id',upload.single('image'), uploadImage);
+router.post('/upload/:id', uploadImage);
 router.delete('/:id', _delete);
 
 module.exports = router;
@@ -115,18 +95,15 @@ function update(req, res, next) {
 }
 
 function uploadImage(req, res, next) {
-    if(req.file.filename){
-     var  image = req.file.filename;    
+    if(req.body && req.body.uri){
+     var  image = req.body.uri;    
     }else{
      var image = false;    
     }
     userService.uploadImage(req.params.id, image)
         .then((data) => data ? res.json(data) : res.sendStatus(404))
         .catch(err => next(err));
-
 }
-
-
 
 function _delete(req, res, next) {
     userService.delete(req.params.id)
