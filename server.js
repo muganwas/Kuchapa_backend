@@ -122,15 +122,16 @@ if (!isListened) {
           const { result, message } = verification;
           if (result) {
             users[id] = { status: '1', socketId: socket.id};
+            connectedUsers[id] = { status: '1', socketId: socket.id};
             socket.uid = id;
             socket.emit('authorized', { message });
+            io.emit('user-joined', users);
           }
           else {
             console.log(`Socket ${socket.id} unauthorized.`);
             socket.emit('unauthorized', { message: 'UNAUTHORIZED', detail: message })
           }
         }).catch(error => {
-          const code = error.code;
           console.log(`Socket ${socket.id} unauthorized. Error: ${error}`);
           socket.emit('unauthorized', { message: 'UNAUTHORIZED', detail: error.message })
         });
@@ -181,7 +182,8 @@ if (!isListened) {
       //console.log(`Socket: ${socket.id} has disconnected.`);
       if (socket.uid) {
         delete connectedUsers[socket.uid];
-        io.emit('user-disconnected', connectedUsers);
+        users[socket.uid].status = "0";
+        io.emit('user-disconnected', users);
       }
     })
   });
