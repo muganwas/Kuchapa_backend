@@ -67,7 +67,7 @@ async function GetEmployeeNotifications(id) {
   //, notification_for: 'Employee' 
 
   var notif = await Notification.aggregate([
-    { $match: { employee_id: id } },
+    { $match: { employee_id: new mongoose.Types.ObjectId(id) } },
     {
       "$project": {
         "employee_id": {
@@ -102,7 +102,7 @@ async function GetEmployeeNotifications(id) {
       {
         from: "users",
         localField: "user_id",
-        foreignField: "_id",
+        foreignField: "id",
         as: "customer_details"
       }
     }
@@ -140,7 +140,7 @@ async function GetCustomerNotification(id) {
   }
 
   var notif = await Notification.aggregate([
-    { $match: { user_id: id } },
+    { $match: { user_id: new mongoose.Types.ObjectId(id) } },
     {
       "$project": {
         "user_id": {
@@ -175,7 +175,7 @@ async function GetCustomerNotification(id) {
       {
         from: "employees",
         localField: "employee_id",
-        foreignField: "_id",
+        foreignField: "id",
         as: "employee_details"
       }
     }

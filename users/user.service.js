@@ -210,7 +210,7 @@ async function create(params) {
               order_id: '',
               message: userParam.username + ' registered as a Customer',
               notification_for: 'Admin',
-              notification_by: 'User',
+              notification_by: 'Customer',
               notification_link: '/user/' + data._id,
               user_id: data._id,
               title: 'New Customer'

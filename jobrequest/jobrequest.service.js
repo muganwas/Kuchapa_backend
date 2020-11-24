@@ -819,6 +819,7 @@ async function PushNotif(param) {
     }
 
     if (save_notification) {
+        console.log('booking request notification', param)
         let save = {};
         save['user_id'] = param.user_id;
         save['employee_id'] = param.employee_id;
