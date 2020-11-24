@@ -1,16 +1,14 @@
 const config = require('../config');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const db = require('_helpers/db');
 const Job = db.Job;
 const Notification = db.Notification;
 const JobRequest = db.JobRequest;
 const Employee = db.Employee;
+const admin = require("firebase-admin");
 const monthNames = ["January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
 ];
 const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
-const gcm = require("node-gcm");
 
 async function serviceprovider(id, job) {
 
@@ -52,7 +50,6 @@ async function serviceprovider(id, job) {
 }
 
 async function AddJobRequest(param) {
-
     if (typeof param.user_id === 'undefined' ||
         typeof param.employee_id === 'undefined' ||
         typeof param.service_id === 'undefined') {
@@ -87,10 +84,8 @@ async function AddJobRequest(param) {
                 order_id = order_id.substr(order_id.length - 5);
 
                 param.notification.data['order_id'] = 'HRF-' + order_id.toUpperCase();
-                notif = await PushNotif(param.notification)
-
+                notif = await PushNotif(param.notification);
             }
-
             return { result: true, 'message': 'Add request successfull', 'notification': notif, data: output };
         } else {
 
@@ -641,7 +636,6 @@ async function EmployeeDataRequest(id) {
 
             var new_date = JSon[i].createdDate;
             var d = new Date(new_date);
-            // console.log(new_date);
             new_date = ("0" + d.getDate()).slice(-2) + '-' + monthNames[d.getMonth()] + '-' + d.getFullYear();
             new_data['createdDate'] = new_date;
 
@@ -812,38 +806,33 @@ async function Usergroupby(id) {
 }
 
 async function PushNotif(param) {
-    /*  console.log(param);*/
+
     if (typeof param.fcm_id === 'undefined' || typeof param.title === 'undefined' || typeof param.body == 'undefined') {
         return { result: false, message: 'fcm_id,title,data(o) and body is required' }
     }
 
-    let sender = new gcm.Sender(config.SERVER_KEY);
-    var newdata = {};
+    let newdata;
     if (param.data !== 'undefined') {
-        newdata = param.data;
+        newdata = Object.assign({}, param.data);
+        newdata.title = param.title;
+        newdata.body = param.body;
     }
-    let message = new gcm.Message({
-        notification: {
-            title: param.title,
-            subtitle: "ssdid",
-            icon: "your_icon_name",
-            body: param.body,
-        },
+    const message = {
         data: newdata,
-    });
-
-    let output = '';
+        token: param.fcm_id
+    }
 
     return new Promise((resolve, reject) => {
-        sender.sendNoRetry(message, [param.fcm_id], (err, response) => {
-            if (err) {
-                console.log(err);
-                reject({ result: true, message: err });
-            }
-            else {
+        admin.messaging().send(message)
+            .then((response) => {
+                // Response is a message ID string.
                 resolve({ result: true, message: response });
-            }
-        });
+                console.log('Successfully sent message:', response);
+            })
+            .catch((error) => {
+                console.log('Error sending message:', error);
+                reject({ result: true, message: error });
+            });
     });
 }
 

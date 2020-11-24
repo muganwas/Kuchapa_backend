@@ -1,24 +1,11 @@
 const config = require('../config');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const db = require('_helpers/db');
 var mongoose = require('mongoose');
 const Job = db.Job;
 const JobRequest = db.JobRequest;
 const Notification = db.Notification;
 const Employee = db.Employee;
-const gcm = require("node-gcm");
-
-
 const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
-
-module.exports = {
-  AddReviewRequest,
-  GetCustomerNotification,
-  GetEmployeeNotifications,
-  GetAdminNotification,
-  PushNotif
-};
 
 async function AddReviewRequest(param) {
   if (typeof param.user_id === 'undefined' ||
@@ -223,30 +210,23 @@ async function GetAdminNotification() {
 }
 
 async function PushNotif(param) {
-  /*  console.log(param);*/
   const { save_notification } = param;
   if (typeof param.fcm_id === 'undefined' || typeof param.title === 'undefined' || typeof param.body == 'undefined') {
     return { result: false, message: 'fcm_id,title,data(o) and body is required' }
   }
 
-  let sender = new gcm.Sender(config.SERVER_KEY);
-  var newdata = {};
-
+  let newdata;
   if (param.data !== 'undefined') {
-    newdata = param.data;
+    newdata = Object.assign({}, param.data);
+    newdata.title = param.title;
+    newdata.body = param.body;
   }
-  let message = new gcm.Message({
-    notification: {
-      title: param.title,
-      subtitle: "ssdid",
-      icon: "your_icon_name",
-      body: param.body,
-    },
+  let message = {
     data: newdata,
-  });
+    token: param.fcm_id
+  }
 
-  if (save_notification) { 
-    console.log('we gonna save')
+  if (save_notification) {
     let save = {};
     save['user_id'] = param.user_id;
     save['employee_id'] = param.employee_id;
@@ -260,15 +240,24 @@ async function PushNotif(param) {
     notif_save.save();
   }
 
-  let output = '';
   return new Promise(function (resolve, reject) {
-    sender.sendNoRetry(message, [param.fcm_id], (err, response) => {
-      if (err) {
-        reject({ result: true, message: err });
-      }
-      else {
+    admin.messaging().send(message)
+      .then((response) => {
+        // Response is a message ID string.
         resolve({ result: true, message: response });
-      }
-    });
+        console.log('Successfully sent message:', response);
+      })
+      .catch((error) => {
+        console.log('Error sending message:', error);
+        reject({ result: true, message: error });
+      });
   });
 }
+
+module.exports = {
+  AddReviewRequest,
+  GetCustomerNotification,
+  GetEmployeeNotifications,
+  GetAdminNotification,
+  PushNotif
+};
