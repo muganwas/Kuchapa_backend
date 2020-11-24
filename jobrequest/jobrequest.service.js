@@ -806,7 +806,7 @@ async function Usergroupby(id) {
 }
 
 async function PushNotif(param) {
-
+    const { save_notification } = param;
     if (typeof param.fcm_id === 'undefined' || typeof param.title === 'undefined' || typeof param.body == 'undefined') {
         return { result: false, message: 'fcm_id,title,data(o) and body is required' }
     }
@@ -816,6 +816,20 @@ async function PushNotif(param) {
         newdata = Object.assign({}, param.data);
         newdata.title = param.title;
         newdata.body = param.body;
+    }
+
+    if (save_notification) {
+        let save = {};
+        save['user_id'] = param.user_id;
+        save['employee_id'] = param.employee_id;
+        save['order_id'] = param.order_Id;
+        save['title'] = param.title;
+        save['message'] = param.body;
+        save['type'] = param.type;
+        save['notification_by'] = param.notification_by
+
+        const notif_save = new Notification(save);
+        notif_save.save();
     }
     const message = {
         data: newdata,

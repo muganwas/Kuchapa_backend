@@ -1,6 +1,7 @@
 const config = require('../config');
 const db = require('_helpers/db');
 var mongoose = require('mongoose');
+const admin = require('firebase-admin');
 const Job = db.Job;
 const JobRequest = db.JobRequest;
 const Notification = db.Notification;
@@ -221,6 +222,7 @@ async function PushNotif(param) {
     newdata.title = param.title;
     newdata.body = param.body;
   }
+  
   let message = {
     data: newdata,
     token: param.fcm_id

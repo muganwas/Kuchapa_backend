@@ -7,8 +7,7 @@ const { ObjectId } = require('mongodb')
 
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
-const gcm = require('node-gcm')
-
+const admin = require('firebase-admin');
 const db = require('_helpers/db')
 
 const Employee = db.Employee
@@ -101,6 +100,7 @@ async function getAll() {
 }
 
 async function PushNotif(param) {
+  const { save_notification } = param;
   if (
     typeof param.fcm_id === 'undefined' ||
     typeof param.title === 'undefined' ||
@@ -112,32 +112,42 @@ async function PushNotif(param) {
     }
   }
 
-  let sender = new gcm.Sender(config.SERVER_KEY)
   var newdata = {}
 
   if (param.data !== 'undefined') {
     newdata = param.data
   }
-  let message = new gcm.Message({
-    notification: {
-      title: param.title,
-      subtitle: 'ssdid',
-      icon: 'your_icon_name',
-      body: param.body
-    },
-    data: newdata
-  })
 
-  let output = ''
+  if (save_notification) {
+    let save = {};
+    save['user_id'] = param.user_id;
+    save['employee_id'] = param.employee_id;
+    save['order_id'] = param.order_Id;
+    save['title'] = param.title;
+    save['message'] = param.body;
+    save['type'] = param.type;
+    save['notification_by'] = param.notification_by
+
+    const notif_save = new Notification(save);
+    notif_save.save();
+  }
+
+  let message = {
+    data: newdata,
+    token: param.fcm_id
+  }
 
   return new Promise(function (resolve, reject) {
-    sender.sendNoRetry(message, [param.fcm_id], (err, response) => {
-      if (err) {
-        reject({ result: true, message: err })
-      } else {
-        resolve({ result: true, message: response })
-      }
-    })
+    admin.messaging().send(message)
+      .then((response) => {
+        // Response is a message ID string.
+        resolve({ result: true, message: response });
+        console.log('Successfully sent message:', response);
+      })
+      .catch((error) => {
+        console.log('Error sending message:', error);
+        reject({ result: true, message: error });
+      });
   })
 }
 

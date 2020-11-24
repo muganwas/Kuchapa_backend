@@ -8,7 +8,7 @@ const { PushNotif } = require("../notification/notification.service");
 const database = firebase.database;
 
 const storeChat = async chatObject => {
-    const { sender, recipient, time } = chatObject;
+    const { sender, recipient, time, fcm_id, userType, orderId, senderName } = chatObject;
     await chats.findOne({ sender, recipient, time }, (err, data) => {
         if (err) return err;
         else if (data) return "chat stored already";
@@ -18,6 +18,18 @@ const storeChat = async chatObject => {
                 if (err) return err;
                 else return ({ saved: true, details });
             });
+            const notification = JSON.stringify({
+                "fcm_id": fcm_id,
+                "type": "Message",
+                "user_id": userType.toLowerCase() === 'client' ? sender : recipient,
+                "employee_id": userType.toLowerCase() === 'client' ? recipient : sender,
+                "order_id": orderId,
+                "notification_by": userType.toLowerCase() === 'client' ? "Client" : "Employee",
+                "save_notification": true,
+                "title": "Message Recieved",
+                "body": senderName + "has sent you a message!",
+            });
+            PushNotif(notification);
         }
     }).catch(e => {
         return e;
@@ -31,20 +43,20 @@ const fetchChatMessages = async (req, res) => {
     let Verification = userType === 'client' ? userService.findUserById : employeeService.findUserById;
     // either or condition
     await Verification(sender).then(verification => {
-            const { result, message } = verification;
-            if (result) {
-                chats.find({ $or: [{ sender }, { recipient: sender }] }, (err, result) => {
-                    if (err) res.send(err);
-                    res.json(result);
-                });
-            }
-            else {
-                res.send({ message });
-            }
-        }).catch(e => {
-            console.log('verification error', e.errorInfo.message);
-            res.send({ error: e.errorInfo.message });
-        });
+        const { result, message } = verification;
+        if (result) {
+            chats.find({ $or: [{ sender }, { recipient: sender }] }, (err, result) => {
+                if (err) res.send(err);
+                res.json(result);
+            });
+        }
+        else {
+            res.send({ message });
+        }
+    }).catch(e => {
+        console.log('verification error', e.errorInfo.message);
+        res.send({ error: e.errorInfo.message });
+    });
 }
 
 const storeMessage = async (params, userType) => {
@@ -108,7 +120,7 @@ const storeMessage = async (params, userType) => {
             "employee_id": userType === 'client' ? receiverId : senderId,
             "order_id": orderId,
             "notification_by": userType === 'client' ? "Client" : "Employee",
-            "save_notification": "true",
+            "save_notification": true,
             "title": "Message Recieved",
             "body": senderName + "has sent you a message!",
         });
