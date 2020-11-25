@@ -47,10 +47,24 @@ const SendNotification = (req, res, next) => {
         .catch(err => next(err));
 }
 
+const ReadNotification = (req, res, next) => {
+    Notification.ReadNotification(req.params.id)
+        .then(resp => res.json(resp))
+        .catch(err => next(err));
+}
+
+const DeleteNotification = (req, res, next) => {
+    Notification.DeleteNotification(req.params.id)
+        .then(resp => res.json(resp))
+        .catch(err => next(err));
+}
+
 router.post('/addreviewrequest', AddReviewRequest);
 router.get('/get-customer-notification/:id', GetCustomerNotification);
 router.get('/get-admin-notification', GetAdminNotification);
 router.post('/sendNotification', SendNotification);
 router.get('/get-employee-notification/:id', GetEmployeeNotifications);
+router.post('/read-notification/:id', ReadNotification);
+router.post('/delete-notification/:id', DeleteNotification);
 
 module.exports = router;

@@ -34,7 +34,6 @@ async function AddReviewRequest(param) {
     update_customer_review['customer_review'] = 'Requested';
     Object.assign(customer_review, update_customer_review);
 
-
     var customer_review_output = await customer_review.save();
     //   console.log(customer_review_output);
   } else {
@@ -56,6 +55,35 @@ async function AddReviewRequest(param) {
     return { result: false, message: 'Something went wrong while request for review' };
   }
 
+}
+
+async function ReadNotification(id) {
+  if (typeof id === 'undefined') {
+    return { result: false, message: 'id is required' };
+  }
+  const output = await Notification.findById(id);
+  if (output) {
+    let notif = {}
+    notif['status'] = '1';
+    Object.assign(output, notif);
+    await output.save();
+    return { result: true, message: 'Customer verified successfully', data: output }
+  } else {
+    return { result: false, message: 'notification not found' };
+  }
+}
+
+async function DeleteNotification(id) {
+  if (typeof id === 'undefined') {
+    return { result: false, message: 'id is required' };
+  }
+  const output = await Notification.findById(id);
+  if (output) {
+    await Notification.findByIdAndDelete(id);
+    return { result: true, message: 'Notification deleted successfully', data: output };
+  } else {
+    return { result: false, message: 'notification not found' };
+  }
 }
 
 async function GetEmployeeNotifications(id) {
@@ -81,6 +109,9 @@ async function GetEmployeeNotifications(id) {
         },
         "title": {
           "$toString": "$title"
+        },
+        "status": {
+          "$toString": "$status"
         },
         "message": {
           "$toString": "$message"
@@ -154,6 +185,9 @@ async function GetCustomerNotification(id) {
         },
         "title": {
           "$toString": "$title"
+        },
+        "status": {
+          "$toString": "$status"
         },
         "message": {
           "$toString": "$message"
@@ -261,5 +295,7 @@ module.exports = {
   GetCustomerNotification,
   GetEmployeeNotifications,
   GetAdminNotification,
-  PushNotif
+  PushNotif,
+  ReadNotification,
+  DeleteNotification
 };
