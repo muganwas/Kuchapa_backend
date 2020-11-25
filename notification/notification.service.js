@@ -67,7 +67,7 @@ async function ReadNotification(id) {
     notif['status'] = '1';
     Object.assign(output, notif);
     await output.save();
-    return { result: true, message: 'Customer verified successfully', data: output }
+    return { result: true, message: 'Notification read successfully', data: output }
   } else {
     return { result: false, message: 'notification not found' };
   }
