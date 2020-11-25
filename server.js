@@ -96,12 +96,6 @@ app.use('/thirdpartyapi', require('./thirdpartyapi/thirdpartyapi.controller'));
 // global error handler
 app.use(errorHandler);
 
-const cron_request = require('./cron/cron.service.js');
-
-cron.schedule('* * * * *', function () {
-  cron_request.ChnageReqStatus();
-});
-
 // start server
 const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : (process.env.PORT || 8080);
 
