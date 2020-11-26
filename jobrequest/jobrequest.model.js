@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const schema = new Schema({
-    user_id: { type: String, required: true },
-    employee_id: { type: String, default:'' },
+    user_id: { type: Schema.Types.ObjectId, required: true },
+    employee_id: { type: Schema.Types.ObjectId, required: true },
     service_id: { type: String, required:true },
     chat_status: { type: String, default:'0' },
     status: { type: String, default:'Pending' },

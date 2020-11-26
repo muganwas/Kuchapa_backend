@@ -1,6 +1,6 @@
 const config = require('../config');
 const db = require('_helpers/db');
-const Job = db.Job;
+const mongoose = require('mongoose');
 const Notification = db.Notification;
 const JobRequest = db.JobRequest;
 const Employee = db.Employee;
@@ -50,12 +50,13 @@ async function serviceprovider(id, job) {
 }
 
 async function AddJobRequest(param) {
+    console.log('request params', param)
     if (typeof param.user_id === 'undefined' ||
         typeof param.employee_id === 'undefined' ||
         typeof param.service_id === 'undefined') {
         return { result: false, message: 'user_id,employee_id,notification(for push notification),delivery_address , delivery_lat(o), delivery_lang(o) and service_id is required' };
     }
-    var search = { user_id: param.user_id, employee_id: param.employee_id, status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "sendeted"] } };
+    var search = { user_id: new mongoose.Types.ObjectId(param.user_id), employee_id: new mongoose.Types.ObjectId(param.employee_id), status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "sendeted"] } };
     var request = await JobRequest.find(search);
 
     if (request.length > 0) {
@@ -76,7 +77,7 @@ async function AddJobRequest(param) {
         if (output = await jobrequest.save()) {
             var notif = {};
             if (param.notification !== 'undefined') {
-                var order_id = output.id;
+                let order_id = output.id;
                 order_id = order_id.toString();
                 /*  console.log(param.notification); */
 
@@ -84,11 +85,12 @@ async function AddJobRequest(param) {
                 order_id = order_id.substr(order_id.length - 5);
 
                 param.notification.data['order_id'] = 'HRF-' + order_id.toUpperCase();
-                notif = await PushNotif(param.notification);
+                PushNotif(param.notification).then(notification => notif = notification).catch(e => {
+                    console.log('notification error', e)
+                });
             }
             return { result: true, 'message': 'Add request successfull', 'notification': notif, data: output };
         } else {
-
             return { result: false, message: 'Something went wrong while request is added' };
         }
     }
@@ -102,12 +104,12 @@ async function Userstatuscheck(id) {
 
     var param = {};
     param['user_id'] = id;
-    var search = { user_id: param.user_id, status: ['Pending', 'Accepted'] };
+    var search = { user_id: new mongoose.Types.ObjectId(param.user_id), status: ['Pending', 'Accepted'] };
     var output = {};
     output = await JobRequest.find(search);
     if (output != 0) {
         var JSon = await JobRequest.aggregate([
-            { $match: { user_id: id, status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] } } },
+            { $match: { user_id: new mongoose.Types.ObjectId(id), status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] } } },
             {
                 "$project": {
                     "employee_id": {
@@ -195,12 +197,12 @@ async function Customerstatuscheck(id) {
     var param = {};
     param['employee_id'] = id;
     /*param['status']='Pending';*/
-    var search = { employee_id: param.employee_id, status: ['Pending', 'Accepted'] };
+    var search = { employee_id: new mongoose.Types.ObjectId(param.employee_id), status: ['Pending', 'Accepted'] };
     var output = {};
     var output = await JobRequest.find(search);
     if (output != 0) {
         var JSon = await JobRequest.aggregate([
-            { $match: { employee_id: id, status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] } } },
+            { $match: { employee_id: new mongoose.Types.ObjectId(id), status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] } } },
             {
                 "$project": {
                     "user_id": {
@@ -295,7 +297,9 @@ async function Addrating(param) {
             param.notification.data['main_id'] = order_id;
             order_id = order_id.substr(order_id.length - 5);
             param.notification.data['order_id'] = 'HRF-' + order_id.toUpperCase();
-            notif = await PushNotif(param.notification)
+            PushNotif(param.notification).then(notification => notif = notification).catch(e => {
+                console.log('notification error', e)
+            });
         }
 
         return { result: true, 'message': 'Add request successfull', 'notification': notif, 'data': output };
@@ -306,12 +310,11 @@ async function Addrating(param) {
 }
 
 async function UpdateJobRequest(param) {
-    const notificationData = param.notification && param.notification.data ? param.notification.data : {};
     if (typeof param.main_id === 'undefined') {
         return { result: false, message: 'main_id ,chat_status(o),notification(o) and status(o) is required' };
     }
-    var id = param.main_id;
-    var request = await JobRequest.findById(id);
+    let id = param.main_id;
+    let request = await JobRequest.findById(id);
     if (!request) {
         return { result: false, message: 'main_id not found' };
     }
@@ -325,27 +328,29 @@ async function UpdateJobRequest(param) {
         save_['status'] = param.status;
     }
 
-    Object.assign(request, save_);
-
+    request = Object.assign(request, save_);
     let output = await request.save();
     let save = {};
-    save['user_id'] = notificationData.user_id;
-    save['employee_id'] = notificationData.providerId;
-    save['order_id'] = notificationData.orderId;
+    save['user_id'] = param.notification.user_id;
+    save['employee_id'] = param.notification.employee_id;
+    save['order_id'] = param.notification.order_id || param.notification.data.order_id;
     save['title'] = param.notification.title;
     save['message'] = param.notification.body;
     save['type'] = param.notification.type;
     save['notification_by'] = param.notification.notification_by
 
     const notif_save = new Notification(save);
-
     if (output) {
         var notif = {};
-        if (param.notification !== 'undefined' && notif_save.save()) {
+        if (param.notification !== undefined && await notif_save.save()) {
             console.log('notification saved')
-            notif = await PushNotif(param.notification);
+            PushNotif(param.notification).then(notification => notif = notification).catch(e => {
+                console.log('notification error', e)
+            });
         }
-        else console.log('notification not saved')
+        else {
+            console.log('notification not saved');
+        }
         return { result: true, message: 'Update successfull', data: output, notification: notif };
     }
     else {
@@ -406,13 +411,13 @@ async function CustomerJobRequest(id) {
     }
 
     var param = {};
-    param['user_id'] = id;
+    param['user_id'] = new mongoose.Types.ObjectId(id);
 
     var output = await JobRequest.find(param);
 
     var JSon = await JobRequest.aggregate([
 
-        { $match: { user_id: id } },
+        { $match: { user_id: new mongoose.Types.ObjectId(id) } },
         {
             "$project": {
                 "employee_id": {
@@ -527,7 +532,7 @@ const employeeRatingsDataRequest = async id => {
         return { result: false, 'message': 'id is required' };
     }
     else {
-        param['employee_id'] = id;
+        param['employee_id'] = new mongoose.Types.ObjectId(id);
         const output = await JobRequest.find(param);
         if (output.length > 0) {
             await output.map(obj => {
@@ -554,14 +559,14 @@ async function EmployeeDataRequest(id) {
     }
 
     var param = {};
-    param['employee_id'] = id;
+    param['employee_id'] = new mongoose.Types.ObjectId(id);
 
     var output = await JobRequest.find(param);
 
 
     var JSon = await JobRequest.aggregate([
 
-        { $match: { employee_id: id } },
+        { $match: { employee_id: new mongoose.Types.ObjectId(id) } },
         {
             "$project": {
                 "user_id": {
@@ -624,9 +629,7 @@ async function EmployeeDataRequest(id) {
                 as: "service_details"
             }
         }
-    ])
-
-
+    ]);
 
     if (JSon.length) {
         var new_arr = []
@@ -675,12 +678,10 @@ async function Usergroupby(id) {
     }
 
     var param = {};
-    param['employee_id'] = id;
-
-    var output = await JobRequest.find(param);
-
+    param['employee_id'] = new mongoose.Types.ObjectId(id);
+    await JobRequest.find(param);
     var JSon = await JobRequest.aggregate([
-        { $match: { employee_id: id } },
+        { $match: { employee_id: new mongoose.Types.ObjectId(id) } },
         {
             $group: {
                 _id: '$user_id',
@@ -819,16 +820,14 @@ async function PushNotif(param) {
     }
 
     if (save_notification) {
-        console.log('booking request notification', param)
         let save = {};
-        save['user_id'] = param.user_id;
-        save['employee_id'] = param.employee_id;
-        save['order_id'] = param.order_Id;
+        save['user_id'] = new mongoose.Types.ObjectId(param.user_id);
+        save['employee_id'] = new mongoose.Types.ObjectId(param.employee_id);
+        save['order_id'] = param.order_id;
         save['title'] = param.title;
         save['message'] = param.body;
         save['type'] = param.type;
-        save['notification_by'] = param.notification_by
-
+        save['notification_by'] = param.notification_by;
         const notif_save = new Notification(save);
         notif_save.save();
     }

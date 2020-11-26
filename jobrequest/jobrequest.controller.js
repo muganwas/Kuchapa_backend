@@ -22,7 +22,10 @@ function AddJobRequest(req, res, next) {
 
 function UpdateJobRequest(req, res, next) {
     JobRequest.UpdateJobRequest(req.body)
-        .then(users => res.json(users))
+        .then(resp => {
+            console.log('resp...', resp)
+            res.json(resp)
+        })
         .catch(err => next(err));
 }
 function Ratingreview(req, res, next) {

@@ -174,6 +174,7 @@ if (!isListened) {
     socket.on('disconnect', () => {
       //console.log(`Socket: ${socket.id} has disconnected.`);
       if (socket.uid) {
+        console.log('user disconnected...')
         delete connectedUsers[socket.uid];
         users[socket.uid].status = "0";
         io.emit('user-disconnected', users);

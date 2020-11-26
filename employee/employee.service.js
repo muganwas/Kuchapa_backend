@@ -2,9 +2,7 @@ const config = require('../config')
 //const express = require('express')
 const { employeeRatingsDataRequest } = require('../jobrequest/jobrequest.service');
 const { ObjectId } = require('mongodb')
-
-//const app = express();
-
+const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const admin = require('firebase-admin');
@@ -120,8 +118,8 @@ async function PushNotif(param) {
 
   if (save_notification) {
     let save = {};
-    save['user_id'] = param.user_id;
-    save['employee_id'] = param.employee_id;
+    save['user_id'] = new mongoose.Types.ObjectId(param.user_id);
+    save['employee_id'] = new mongoose.Types.ObjectId(param.employee_id);
     save['order_id'] = param.order_Id;
     save['title'] = param.title;
     save['message'] = param.body;

@@ -264,9 +264,10 @@ async function PushNotif(param) {
 
   if (save_notification) {
     let save = {};
-    save['user_id'] = param.user_id;
-    save['employee_id'] = param.employee_id;
-    save['order_id'] = param.order_Id;
+    console.log('notification param', param)
+    save['user_id'] = new mongoose.Types.ObjectId(param.user_id);
+    save['employee_id'] = new mongoose.Types.ObjectId(param.employee_id);
+    save['order_id'] = param.order_id;
     save['title'] = param.title;
     save['message'] = param.body;
     save['type'] = param.type;
