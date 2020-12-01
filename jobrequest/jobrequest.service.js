@@ -11,18 +11,15 @@ const monthNames = ["January", "February", "March", "April", "May", "June",
 const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
 
 async function serviceprovider(id, job) {
-
     if (typeof job.lat === 'undefined' ||
         typeof job.lang === 'undefined') {
         return { result: false, message: 'lat and lang is required' };
     }
 
     var emp = await Employee.find();
-
     var data = new Array();
 
     for (var i = 0; i < emp.length; i++) {
-
         var emp_services = emp[i].services.split(',');
         var a = emp_services.indexOf(id);
 
@@ -37,7 +34,6 @@ async function serviceprovider(id, job) {
             }
             new_a.hash = round_distance;
             data.push(new_a);
-
         }
     }
 
