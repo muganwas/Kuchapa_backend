@@ -127,7 +127,7 @@ async function GetEmployeeNotifications(id) {
         },
       }
     },
-
+    { '$sort': { 'createdDate': -1 }},
     {
       $lookup:
       {
@@ -203,7 +203,7 @@ async function GetCustomerNotification(id) {
         },
       }
     },
-
+    { '$sort': { 'createdDate': -1 }},
     {
       $lookup:
       {
@@ -227,7 +227,6 @@ async function GetCustomerNotification(id) {
       if (notif[i].notification_by == 'Employee') {
         var d = new Date(notif[i].createdDate);
         notif[i].createdDate = ("0" + d.getDate()).slice(-2) + '-' + shortMonths[d.getMonth()] + '-' + d.getFullYear();
-
         notif[i].employee_details = notif[i].employee_details[0];
         output.push(notif[i]);
 
@@ -264,7 +263,6 @@ async function PushNotif(param) {
 
   if (save_notification) {
     let save = {};
-    console.log('notification param', param)
     save['user_id'] = new mongoose.Types.ObjectId(param.user_id);
     save['employee_id'] = new mongoose.Types.ObjectId(param.employee_id);
     save['order_id'] = param.order_id;
