@@ -46,13 +46,12 @@ async function serviceprovider(id, job) {
 }
 
 async function AddJobRequest(param) {
-    console.log('request params', param)
     if (typeof param.user_id === 'undefined' ||
         typeof param.employee_id === 'undefined' ||
         typeof param.service_id === 'undefined') {
         return { result: false, message: 'user_id,employee_id,notification(for push notification),delivery_address , delivery_lat(o), delivery_lang(o) and service_id is required' };
     }
-    var search = { user_id: new mongoose.Types.ObjectId(param.user_id), employee_id: new mongoose.Types.ObjectId(param.employee_id), status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "sendeted"] } };
+    var search = { user_id: new mongoose.Types.ObjectId(param.user_id), employee_id: new mongoose.Types.ObjectId(param.employee_id), status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] } };
     var request = await JobRequest.find(search);
 
     if (request.length > 0) {
@@ -94,6 +93,7 @@ async function AddJobRequest(param) {
 }
 
 async function Userstatuscheck(id) {
+    console.log('cheing status...')
     if (typeof id === 'undefined') {
         return { result: false, 'message': 'id is required' };
     }
