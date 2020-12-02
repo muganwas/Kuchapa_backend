@@ -93,7 +93,6 @@ async function AddJobRequest(param) {
 }
 
 async function Userstatuscheck(id) {
-    console.log('cheing status...')
     if (typeof id === 'undefined') {
         return { result: false, 'message': 'id is required' };
     }
@@ -339,7 +338,6 @@ async function UpdateJobRequest(param) {
     if (output) {
         var notif = {};
         if (param.notification !== undefined && await notif_save.save()) {
-            console.log('notification saved')
             PushNotif(param.notification).then(notification => notif = notification).catch(e => {
                 console.log('notification error', e)
             });
