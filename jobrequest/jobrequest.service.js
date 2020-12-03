@@ -314,7 +314,7 @@ async function UpdateJobRequest(param) {
         return { result: false, message: 'main_id not found' };
     }
 
-    var save_ = {};
+    let save_ = {};
 
     if (typeof param.chat_status !== 'undefined') {
         save_['chat_status'] = param.chat_status;
@@ -324,20 +324,10 @@ async function UpdateJobRequest(param) {
     }
 
     request = Object.assign(request, save_);
-    let output = await request.save();
-    let save = {};
-    save['user_id'] = param.notification.user_id;
-    save['employee_id'] = param.notification.employee_id;
-    save['order_id'] = param.notification.order_id || param.notification.data.order_id;
-    save['title'] = param.notification.title;
-    save['message'] = param.notification.body;
-    save['type'] = param.notification.type;
-    save['notification_by'] = param.notification.notification_by
-
-    const notif_save = new Notification(save);
+    const output = await request.save();
     if (output) {
         var notif = {};
-        if (param.notification !== undefined && await notif_save.save()) {
+        if (param.notification !== undefined) {
             PushNotif(param.notification).then(notification => notif = notification).catch(e => {
                 console.log('notification error', e)
             });
@@ -345,7 +335,7 @@ async function UpdateJobRequest(param) {
         else {
             console.log('notification not saved');
         }
-        return { result: true, message: 'Update successfull', data: output, notification: notif };
+        return { result: true, message: 'Update successfull', data: output };
     }
     else {
         return { result: false, message: 'Something went wrong' };
@@ -823,7 +813,7 @@ async function PushNotif(param) {
         save['type'] = param.type;
         save['notification_by'] = param.notification_by;
         const notif_save = new Notification(save);
-        notif_save.save();
+        await notif_save.save();
     }
     const message = {
         data: newdata,
