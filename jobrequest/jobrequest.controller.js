@@ -45,13 +45,13 @@ function Usergroupby(req, res, next) {
         .then(users => res.json(users))
         .catch(err => next(err));
 }
-function Userstatuscheck(req, res, next) {
-    JobRequest.Userstatuscheck(req.params.id)
+function Providerstatuscheck(req, res, next) {
+    JobRequest.Providerstatuscheck(req.params.id, req.params.type)
         .then(users => res.json(users))
         .catch(err => next(err));
 }
 function Customerstatuscheck(req, res, next) {
-    JobRequest.Customerstatuscheck(req.params.id)
+    JobRequest.Customerstatuscheck(req.params.id, req.params.type)
         .then(users => res.json(users))
         .catch(err => next(err));
 }
@@ -71,7 +71,7 @@ router.get('/employeeReviews/:id', getEmpReviews);
 router.get('/employee_request/:id', EmployeeDataRequest);
 router.get('/usergroupby/:id', Usergroupby);
 router.get('/addrating/:id/:rating/:review', Addrating);
-router.get('/user_status_check/:id', Userstatuscheck);
-router.get('/customer_status_check/:id', Customerstatuscheck);
+router.get('/provider_status_check/:id/:type', Providerstatuscheck);
+router.get('/customer_status_check/:id/:type', Customerstatuscheck);
 
 module.exports = router;

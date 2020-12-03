@@ -92,19 +92,19 @@ async function AddJobRequest(param) {
 
 }
 
-async function Userstatuscheck(id) {
+async function Customerstatuscheck(id, type) {
     if (typeof id === 'undefined') {
         return { result: false, 'message': 'id is required' };
     }
-
     var param = {};
     param['user_id'] = id;
-    var search = { user_id: new mongoose.Types.ObjectId(param.user_id), status: ['Pending', 'Accepted'] };
+    var search = { user_id: new mongoose.Types.ObjectId(param.user_id) };
     var output = {};
     output = await JobRequest.find(search);
-    if (output != 0) {
+    if (output !== 0) {
+        const status = type !== 'pending' ? { $nin: ["Pending"]} : { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] };
         var JSon = await JobRequest.aggregate([
-            { $match: { user_id: new mongoose.Types.ObjectId(id), status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] } } },
+            { $match: { user_id: new mongoose.Types.ObjectId(id), status } },
             {
                 "$project": {
                     "employee_id": {
@@ -153,9 +153,8 @@ async function Userstatuscheck(id) {
                 }
             }
         ]);
-
+        var new_arr = [];
         if (JSon) {
-            var new_arr = [];
             for (var i = 0; i < JSon.length; i++) {
                 var new_data = {};
                 new_data = JSon[i];
@@ -184,7 +183,7 @@ async function Userstatuscheck(id) {
 
 }
 
-async function Customerstatuscheck(id) {
+async function Providerstatuscheck(id, type) {
     if (typeof id === 'undefined') {
         return { result: false, 'message': 'id is required' };
     }
@@ -192,12 +191,13 @@ async function Customerstatuscheck(id) {
     var param = {};
     param['employee_id'] = id;
     /*param['status']='Pending';*/
-    var search = { employee_id: new mongoose.Types.ObjectId(param.employee_id), status: ['Pending', 'Accepted'] };
+    var search = { employee_id: new mongoose.Types.ObjectId(param.employee_id) };
     var output = {};
     var output = await JobRequest.find(search);
-    if (output != 0) {
+    if (output !== 0) {
+        const status = type !== 'pending' ? { $nin: ["Pending"]} : { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] };
         var JSon = await JobRequest.aggregate([
-            { $match: { employee_id: new mongoose.Types.ObjectId(id), status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] } } },
+            { $match: { employee_id: new mongoose.Types.ObjectId(id), status } },
             {
                 "$project": {
                     "user_id": {
@@ -246,10 +246,8 @@ async function Customerstatuscheck(id) {
                 }
             }
         ]);
-
+        var new_arr = [];
         if (JSon) {
-            var new_arr = [];
-
             for (var i = 0; i < JSon.length; i++) {
                 var new_data = {};
                 new_data = JSon[i];
@@ -269,12 +267,11 @@ async function Customerstatuscheck(id) {
                 new_arr.push(new_data);
             }
         }
-        return { result: true, 'message': 'Already exist', data: new_arr };
+        return { result: true, 'message': 'exists', data: new_arr };
     }
     else {
         return { result: false, message: 'data not found' };
     }
-
 }
 
 async function Addrating(param) {
@@ -864,7 +861,7 @@ module.exports = {
     CustomerJobRequest,
     EmployeeDataRequest,
     Addrating,
-    Userstatuscheck,
+    Providerstatuscheck,
     Customerstatuscheck,
     Ratingreview,
     Usergroupby,
