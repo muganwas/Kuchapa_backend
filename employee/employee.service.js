@@ -15,7 +15,6 @@ const Notification = db.Notification
 const SendMail = require('../_helpers/SendMail')
 
 async function authenticate(param) {
-  console.log('authenitcating')
   var avgRating = 0;
   if (typeof param.email === 'undefined') {
     return {
@@ -131,23 +130,25 @@ async function PushNotif(param) {
   }
 
   let message = {
-    data: newdata,
+    data: { data: JSON.stringify(newdata) },
     token: param.fcm_id
   }
-
-  return new Promise(function (resolve, reject) {
-    admin.messaging().send(message)
-      .then((response) => {
-        // Response is a message ID string.
-        resolve({ result: true, message: response });
-        console.log('Successfully sent message:', response);
-      })
-      .catch((error) => {
-        console.log('Error sending message:', error);
-        reject({ result: true, message: error });
-      });
-  })
+  if (newdata) {
+    return new Promise(function (resolve, reject) {
+      admin.messaging().send(message)
+        .then((response) => {
+          // Response is a message ID string.
+          resolve({ result: true, message: response });
+          console.log('Successfully sent message:', response);
+        })
+        .catch((error) => {
+          console.log('Error sending message:', error);
+          reject({ result: true, message: error });
+        });
+    });
+  }
 }
+
 
 const findUserById = async id => {
   const output = await Employee.findById(id)
@@ -173,7 +174,6 @@ async function Verification(id) {
 }
 
 async function getById(id, param) {
-  console.log('getting by id')
   var avgRating = 0;
   if (typeof id === 'undefined') {
     return { result: false, message: 'id is required' }

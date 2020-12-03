@@ -102,7 +102,7 @@ async function Customerstatuscheck(id, type) {
     var output = {};
     output = await JobRequest.find(search);
     if (output !== 0) {
-        const status = type !== 'pending' ? { $nin: ["Pending"]} : { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] };
+        const status = type !== 'pending' ? { $nin: ["Pending"] } : { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] };
         var JSon = await JobRequest.aggregate([
             { $match: { user_id: new mongoose.Types.ObjectId(id), status } },
             {
@@ -195,7 +195,7 @@ async function Providerstatuscheck(id, type) {
     var output = {};
     var output = await JobRequest.find(search);
     if (output !== 0) {
-        const status = type !== 'pending' ? { $nin: ["Pending"]} : { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] };
+        const status = type !== 'pending' ? { $nin: ["Pending"] } : { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] };
         var JSon = await JobRequest.aggregate([
             { $match: { employee_id: new mongoose.Types.ObjectId(id), status } },
             {
@@ -793,7 +793,7 @@ async function PushNotif(param) {
         return { result: false, message: 'fcm_id,title,data(o) and body is required' }
     }
 
-    let newdata;
+    let newdata = {};
     if (param.data !== 'undefined') {
         newdata = Object.assign({}, param.data);
         newdata.title = param.title;
@@ -813,22 +813,24 @@ async function PushNotif(param) {
         await notif_save.save();
     }
     const message = {
-        data: newdata,
+        data: { data: JSON.stringify(newdata) },
         token: param.fcm_id
     }
+    if (newdata) {
+        return new Promise((resolve, reject) => {
+            admin.messaging().send(message)
+                .then((response) => {
+                    // Response is a message ID string.
+                    resolve({ result: true, message: response });
+                    console.log('Successfully sent message:', response);
+                })
+                .catch((error) => {
+                    console.log('Error sending message:', error);
+                    reject({ result: true, message: error });
+                });
+        });
+    }
 
-    return new Promise((resolve, reject) => {
-        admin.messaging().send(message)
-            .then((response) => {
-                // Response is a message ID string.
-                resolve({ result: true, message: response });
-                console.log('Successfully sent message:', response);
-            })
-            .catch((error) => {
-                console.log('Error sending message:', error);
-                reject({ result: true, message: error });
-            });
-    });
 }
 
 

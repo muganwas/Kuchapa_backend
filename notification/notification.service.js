@@ -127,7 +127,7 @@ async function GetEmployeeNotifications(id) {
         },
       }
     },
-    { '$sort': { 'createdDate': -1 }},
+    { '$sort': { 'createdDate': -1 } },
     {
       $lookup:
       {
@@ -203,7 +203,7 @@ async function GetCustomerNotification(id) {
         },
       }
     },
-    { '$sort': { 'createdDate': -1 }},
+    { '$sort': { 'createdDate': -1 } },
     {
       $lookup:
       {
@@ -249,15 +249,15 @@ async function PushNotif(param) {
     return { result: false, message: 'fcm_id,title,data(o) and body is required' }
   }
 
-  let newdata;
+  let newdata = {};
   if (param.data !== 'undefined') {
     newdata = Object.assign({}, param.data);
     newdata.title = param.title;
     newdata.body = param.body;
   }
-  
+
   let message = {
-    data: newdata,
+    data: { data: JSON.stringify(newdata) },
     token: param.fcm_id
   }
 
@@ -274,19 +274,20 @@ async function PushNotif(param) {
     const notif_save = new Notification(save);
     notif_save.save();
   }
-
-  return new Promise(function (resolve, reject) {
-    admin.messaging().send(message)
-      .then((response) => {
-        // Response is a message ID string.
-        resolve({ result: true, message: response });
-        console.log('Successfully sent message:', response);
-      })
-      .catch((error) => {
-        console.log('Error sending message:', error);
-        reject({ result: true, message: error });
-      });
-  });
+  if (newdata) {
+    return new Promise(function (resolve, reject) {
+      admin.messaging().send(message)
+        .then((response) => {
+          // Response is a message ID string.
+          resolve({ result: true, message: response });
+          console.log('Successfully sent message:', response);
+        })
+        .catch((error) => {
+          console.log('Error sending message:', error);
+          reject({ result: true, message: error });
+        });
+    });
+  }
 }
 
 module.exports = {
