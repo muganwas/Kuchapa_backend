@@ -30,13 +30,13 @@ function Ratingreview(req, res, next) {
         .then(users => res.json(users))
         .catch(err => next(err));
 }
-function CustomerJobRequest(req, res, next) {
-    JobRequest.CustomerJobRequest(req.params.id)
+function CustomerDataRequest(req, res, next) {
+    JobRequest.CustomerDataRequest(req.params.id, req.params.type)
         .then(users => res.json(users))
         .catch(err => next(err));
 }
 function EmployeeDataRequest(req, res, next) {
-    JobRequest.EmployeeDataRequest(req.params.id)
+    JobRequest.EmployeeDataRequest(req.params.id, req.params.type)
         .then(users => res.json(users))
         .catch(err => next(err));
 }
@@ -66,9 +66,9 @@ router.post('/serviceprovider/:id', serviceprovider);
 router.post('/addjobrequest', AddJobRequest);
 router.post('/updatejobrequest', UpdateJobRequest);
 router.post('/ratingreview', Ratingreview);
-router.get('/customer_request/:id', CustomerJobRequest);
+router.get('/customer_request/:id/:type', CustomerDataRequest);
 router.get('/employeeReviews/:id', getEmpReviews);
-router.get('/employee_request/:id', EmployeeDataRequest);
+router.get('/employee_request/:id/:type', EmployeeDataRequest);
 router.get('/usergroupby/:id', Usergroupby);
 router.get('/addrating/:id/:rating/:review', Addrating);
 router.get('/provider_status_check/:id/:type', Providerstatuscheck);

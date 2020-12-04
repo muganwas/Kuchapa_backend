@@ -385,121 +385,118 @@ async function Ratingreview(param) {
     }
 }
 
-async function CustomerJobRequest(id) {
+async function CustomerDataRequest(id, type) {
 
     if (typeof id === 'undefined') {
         return { result: false, 'message': 'id is required' };
     }
 
-    var param = {};
+    let param = {};
     param['user_id'] = new mongoose.Types.ObjectId(id);
 
-    var output = await JobRequest.find(param);
+    const output = await JobRequest.find(param);
+    if (output !== 0) {
+        const status =  type && type === 'bookings' ? { $nin: ["Pending", "Failed", "Canceled", "No Response"] } : { $nin: ["Pending"] };
+        const JSon = await JobRequest.aggregate([
+            { $match: { user_id: new mongoose.Types.ObjectId(id), status } },
+            {
+                "$project": {
+                    "employee_id": {
+                        "$toObjectId": "$employee_id"
+                    },
+                    "service_id": {
+                        "$toObjectId": "$service_id"
+                    },
+                    "status": {
+                        "$toString": "$status"
+                    },
+                    "chat_status": {
+                        "$toString": "$chat_status"
+                    },
+                    "delivery_address": {
+                        "$toString": "$delivery_address"
+                    },
+                    "delivery_lat": {
+                        "$toString": "$delivery_lat"
+                    },
+                    "delivery_lang": {
+                        "$toString": "$delivery_lang"
+                    },
+                    "customer_rating": {
+                        "$toString": "$customer_rating"
+                    },
+                    "customer_review": {
+                        "$toString": "$customer_review"
+                    },
+                    "employee_rating": {
+                        "$toString": "$employee_rating"
+                    },
+                    "employee_review": {
+                        "$toString": "$employee_review"
+                    },
+                    "createdDate": {
+                        "$toString": "$createdDate"
+                    }
+                }
+            },
 
-    var JSon = await JobRequest.aggregate([
-
-        { $match: { user_id: new mongoose.Types.ObjectId(id) } },
-        {
-            "$project": {
-                "employee_id": {
-                    "$toObjectId": "$employee_id"
-                },
-                "service_id": {
-                    "$toObjectId": "$service_id"
-                },
-                "status": {
-                    "$toString": "$status"
-                },
-                "chat_status": {
-                    "$toString": "$chat_status"
-                },
-                "delivery_address": {
-                    "$toString": "$delivery_address"
-                },
-                "delivery_lat": {
-                    "$toString": "$delivery_lat"
-                },
-                "delivery_lang": {
-                    "$toString": "$delivery_lang"
-                },
-                "customer_rating": {
-                    "$toString": "$customer_rating"
-                },
-                "customer_review": {
-                    "$toString": "$customer_review"
-                },
-                "employee_rating": {
-                    "$toString": "$employee_rating"
-                },
-                "employee_review": {
-                    "$toString": "$employee_review"
-                },
-                "createdDate": {
-                    "$toString": "$createdDate"
+            {
+                $lookup:
+                {
+                    from: "employees",
+                    localField: "employee_id",
+                    foreignField: "_id",
+                    as: "employee_details"
+                }
+            },
+            {
+                $lookup:
+                {
+                    from: "services",
+                    localField: "service_id",
+                    foreignField: "_id",
+                    as: "service_details"
                 }
             }
-        },
+        ])
+        if (JSon) {
+            var new_arr = []
+            for (var i = 0; i < JSon.length; i++) {
+                var new_data = {};
+                new_data = JSon[i];
 
-        {
-            $lookup:
-            {
-                from: "employees",
-                localField: "employee_id",
-                foreignField: "_id",
-                as: "employee_details"
+                var new_date = JSon[i].createdDate;
+                var d = new Date(new_date);
+                // console.log(new_date);
+                new_date = ("0" + d.getDate()).slice(-2) + '-' + monthNames[d.getMonth()] + '-' + d.getFullYear();
+                new_data['createdDate'] = new_date;
+
+
+                var order_id_str = new_data._id;
+                order_id_str = order_id_str.toString();
+                var lang_take = parseInt(order_id_str.length) - 5;
+
+                order_id_str = order_id_str.substr(parseInt(lang_take));
+                order_id_str = 'HRF-' + order_id_str.toUpperCase();
+
+                new_data['order_id'] = order_id_str;
+                var new_emp = JSon[i].employee_details[0];
+
+                new_data['employee_details'] = new_emp;
+
+                var new_ser = JSon[i].service_details[0];
+
+                new_data['service_details'] = new_ser;
+
+                new_arr.push(new_data);
             }
-        },
-        {
-            $lookup:
-            {
-                from: "services",
-                localField: "service_id",
-                foreignField: "_id",
-                as: "service_details"
-            }
+
+            return { result: true, 'message': 'data found', data: new_arr };
+        } else {
+            return { result: false, 'message': 'data not found' };
         }
-    ])
-
-
-
-    if (JSon) {
-        var new_arr = []
-
-        for (var i = 0; i < JSon.length; i++) {
-            var new_data = {};
-            new_data = JSon[i];
-
-            var new_date = JSon[i].createdDate;
-            var d = new Date(new_date);
-            // console.log(new_date);
-            new_date = ("0" + d.getDate()).slice(-2) + '-' + monthNames[d.getMonth()] + '-' + d.getFullYear();
-            new_data['createdDate'] = new_date;
-
-
-            var order_id_str = new_data._id;
-            order_id_str = order_id_str.toString();
-            var lang_take = parseInt(order_id_str.length) - 5;
-
-            order_id_str = order_id_str.substr(parseInt(lang_take));
-            order_id_str = 'HRF-' + order_id_str.toUpperCase();
-
-            new_data['order_id'] = order_id_str;
-            var new_emp = JSon[i].employee_details[0];
-
-            new_data['employee_details'] = new_emp;
-
-            var new_ser = JSon[i].service_details[0];
-
-            new_data['service_details'] = new_ser;
-
-            new_arr.push(new_data);
-        }
-
-        return { result: true, 'message': 'data found', data: new_arr };
-
     }
     else {
-
         return { result: false, 'message': 'data not found' };
     }
 
@@ -533,120 +530,118 @@ const employeeRatingsDataRequest = async id => {
     return { result: true, 'message': 'rating returned', rating: avg };
 }
 
-async function EmployeeDataRequest(id) {
-
+async function EmployeeDataRequest(id, type) {
     if (typeof id === 'undefined') {
         return { result: false, 'message': 'id is required' };
     }
 
-    var param = {};
+    let param = {};
     param['employee_id'] = new mongoose.Types.ObjectId(id);
+    const output = await JobRequest.find(param);
+    console.log('id', id, 'type', type)
+    if (output !== 0) {
+        //const status = type === 'bookings' ? { $nin: ["Pending", "Failed", "Canceled", "No Response"] } : { $nin: ["Pending"] };
+        const JSon = await JobRequest.aggregate([
+            { $match: { employee_id: new mongoose.Types.ObjectId(id) } },
+            {
+                "$project": {
+                    "user_id": {
+                        "$toObjectId": "$user_id"
+                    },
+                    "employee_id": {
+                        "$toObjectId": "$employee_id"
+                    },
+                    "service_id": {
+                        "$toObjectId": "$service_id"
+                    },
+                    "status": {
+                        "$toString": "$status"
+                    },
+                    "chat_status": {
+                        "$toString": "$chat_status"
+                    },
+                    "delivery_address": {
+                        "$toString": "$delivery_address"
+                    },
+                    "delivery_lat": {
+                        "$toString": "$delivery_lat"
+                    },
+                    "delivery_lang": {
+                        "$toString": "$delivery_lang"
+                    },
+                    "customer_rating": {
+                        "$toString": "$customer_rating"
+                    },
+                    "customer_review": {
+                        "$toString": "$customer_review"
+                    },
+                    "employee_rating": {
+                        "$toString": "$employee_rating"
+                    },
+                    "employee_review": {
+                        "$toString": "$employee_review"
+                    },
+                    "createdDate": {
+                        "$toString": "$createdDate"
+                    }
+                }
+            },
 
-    var output = await JobRequest.find(param);
-
-
-    var JSon = await JobRequest.aggregate([
-
-        { $match: { employee_id: new mongoose.Types.ObjectId(id) } },
-        {
-            "$project": {
-                "user_id": {
-                    "$toObjectId": "$user_id"
-                },
-                "employee_id": {
-                    "$toObjectId": "$employee_id"
-                },
-                "service_id": {
-                    "$toObjectId": "$service_id"
-                },
-                "status": {
-                    "$toString": "$status"
-                },
-                "chat_status": {
-                    "$toString": "$chat_status"
-                },
-                "delivery_address": {
-                    "$toString": "$delivery_address"
-                },
-                "delivery_lat": {
-                    "$toString": "$delivery_lat"
-                },
-                "delivery_lang": {
-                    "$toString": "$delivery_lang"
-                },
-                "customer_rating": {
-                    "$toString": "$customer_rating"
-                },
-                "customer_review": {
-                    "$toString": "$customer_review"
-                },
-                "employee_rating": {
-                    "$toString": "$employee_rating"
-                },
-                "employee_review": {
-                    "$toString": "$employee_review"
-                },
-                "createdDate": {
-                    "$toString": "$createdDate"
+            {
+                $lookup:
+                {
+                    from: "users",
+                    localField: "user_id",
+                    foreignField: "_id",
+                    as: "user_details"
+                }
+            },
+            {
+                $lookup:
+                {
+                    from: "services",
+                    localField: "service_id",
+                    foreignField: "_id",
+                    as: "service_details"
                 }
             }
-        },
+        ]);
 
-        {
-            $lookup:
-            {
-                from: "users",
-                localField: "user_id",
-                foreignField: "_id",
-                as: "user_details"
+        if (JSon.length) {
+            var new_arr = []
+            for (var i = 0; i < JSon.length; i++) {
+                var new_data = {};
+                new_data = JSon[i];
+
+                var new_date = JSon[i].createdDate;
+                var d = new Date(new_date);
+                new_date = ("0" + d.getDate()).slice(-2) + '-' + monthNames[d.getMonth()] + '-' + d.getFullYear();
+                new_data['createdDate'] = new_date;
+
+
+                var order_id_str = new_data._id;
+                order_id_str = order_id_str.toString();
+                var lang_take = parseInt(order_id_str.length) - 5;
+
+                order_id_str = order_id_str.substr(parseInt(lang_take));
+                order_id_str = 'HRF-' + order_id_str.toUpperCase();
+
+                new_data['order_id'] = order_id_str;
+                var new_emp = JSon[i].user_details[0];
+                new_data['user_details'] = new_emp;
+
+                var new_ser = JSon[i].service_details[0];
+
+                new_data['service_details'] = new_ser;
+
+                new_arr.push(new_data);
+
             }
-        },
-        {
-            $lookup:
-            {
-                from: "services",
-                localField: "service_id",
-                foreignField: "_id",
-                as: "service_details"
-            }
+            return { result: true, 'message': 'data found', data: new_arr };
+        } else {
+            return { result: false, 'message': 'data not found' };
         }
-    ]);
-
-    if (JSon.length) {
-        var new_arr = []
-        for (var i = 0; i < JSon.length; i++) {
-            var new_data = {};
-            new_data = JSon[i];
-
-            var new_date = JSon[i].createdDate;
-            var d = new Date(new_date);
-            new_date = ("0" + d.getDate()).slice(-2) + '-' + monthNames[d.getMonth()] + '-' + d.getFullYear();
-            new_data['createdDate'] = new_date;
-
-
-            var order_id_str = new_data._id;
-            order_id_str = order_id_str.toString();
-            var lang_take = parseInt(order_id_str.length) - 5;
-
-            order_id_str = order_id_str.substr(parseInt(lang_take));
-            order_id_str = 'HRF-' + order_id_str.toUpperCase();
-
-            new_data['order_id'] = order_id_str;
-            var new_emp = JSon[i].user_details[0];
-            new_data['user_details'] = new_emp;
-
-            var new_ser = JSon[i].service_details[0];
-
-            new_data['service_details'] = new_ser;
-
-            new_arr.push(new_data);
-
-        }
-
-        return { result: true, 'message': 'data found', data: new_arr };
-
     } else {
-
         return { result: false, 'message': 'data not found' };
     }
 
@@ -860,7 +855,7 @@ module.exports = {
     serviceprovider,
     AddJobRequest,
     UpdateJobRequest,
-    CustomerJobRequest,
+    CustomerDataRequest,
     EmployeeDataRequest,
     Addrating,
     Providerstatuscheck,
