@@ -47,7 +47,6 @@ const SendNotification = (req, res, next) => {
 }
 
 const ReadNotification = (req, res, next) => {
-    console.log('req --', req)
     Notification.ReadNotification(req.params.id)
         .then(resp => res.json(resp))
         .catch(err => next(err));

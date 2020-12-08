@@ -58,7 +58,6 @@ async function AddReviewRequest(param) {
 }
 
 async function ReadNotification(id) {
-  console.log('notif id', id)
   if (typeof id === 'undefined') {
     return { result: false, message: 'id is required' };
   }
@@ -70,7 +69,6 @@ async function ReadNotification(id) {
     await output.save();
     return { result: true, message: 'Notification read successfully', data: output }
   } else {
-    console.log('notification not found ..')
     return { result: false, message: 'notification not found' };
   }
 }
