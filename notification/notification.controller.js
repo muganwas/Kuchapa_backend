@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const JobRequest = require('../jobrequest/jobrequest.service');
 const Notification = require('./notification.service');
 
 
@@ -48,6 +47,7 @@ const SendNotification = (req, res, next) => {
 }
 
 const ReadNotification = (req, res, next) => {
+    console.log('req --', req)
     Notification.ReadNotification(req.params.id)
         .then(resp => res.json(resp))
         .catch(err => next(err));
