@@ -534,11 +534,9 @@ async function EmployeeDataRequest(id, type) {
     if (typeof id === 'undefined') {
         return { result: false, 'message': 'id is required' };
     }
-
     let param = {};
     param['employee_id'] = new mongoose.Types.ObjectId(id);
     const output = await JobRequest.find(param);
-    console.log('id', id, 'type', type)
     if (output !== 0) {
         //const status = type === 'bookings' ? { $nin: ["Pending", "Failed", "Canceled", "No Response"] } : { $nin: ["Pending"] };
         const JSon = await JobRequest.aggregate([

@@ -163,7 +163,7 @@ async function create(params) {
         'username,email,password,dob, acc_type(Individual,Company) and image  is required'
     }
   }
-  if (userParam.type == 'normal') {
+  if (userParam.type === 'normal') {
     if (image != undefined && image != '') {
       userParam.img_status = 1
     }
@@ -241,7 +241,9 @@ async function create(params) {
           }
         })
     }
-  })
+  }).catch(e => {
+    return { result: false, message: e.message }
+  });
   return data
 }
 
@@ -273,7 +275,6 @@ async function update(id, userParam) {
 }
 
 async function uploadImage(id, image) {
-  console.log('id', id, 'image', image)
   if (typeof id === 'undefined' || image == false) {
     return { result: false, message: 'id and image is required' }
   }

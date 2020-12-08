@@ -250,7 +250,6 @@ async function checkEmail(param) {
 }
 
 async function create(params) {
-  console.log('params --', params)
   const userParam = JSON.parse(params.data)
   let data
   if (
@@ -264,9 +263,8 @@ async function create(params) {
         'username,surname,mobile,address,invoice,services,description,lat(o),lang(o),fcm_id(o)'
     }
   }
-  if (userParam.type == 'normal') {
-    userParam.image = 'no-image.jpg'
-    userParam.img_status = 1
+  if (userParam.type === 'normal') {
+    userParam.img_status = userParam.image ? 1 : 0
   }
 
   if (userParam.type == 'google' || userParam.type == 'facebook') {
@@ -279,7 +277,7 @@ async function create(params) {
   }
   /**look for user in database */
   await Employee.findOne({ email: userParam.email }).then(async user => {
-    let emp_data
+    let emp_data;
     if (user) {
       if (userParam.type == 'google' || userParam.type == 'facebook') {
         emp_data = Object.assign(user, {
@@ -304,9 +302,7 @@ async function create(params) {
       const emp = new Employee(userParam)
       await emp.save().then(async output => {
         if (output) {
-
           const message = `Please <a href="${config.URL}employee/verification/${output.id}">Click Here </a> To verify your Email`
-
           if (userParam.email_verification === 0) SendMail(userParam.email, 'Email Address Verification', message)
 
           const notification = new Notification({
@@ -342,8 +338,13 @@ async function create(params) {
         } else {
           return { result: false, message: 'Registeration failed try again later' }
         }
+      }).catch(e => {
+        console.log('new user error --', e)
+        return { result: false, message: e.message }
       })
     }
+  }).catch(e => {
+    return { result: false, message: e.message }
   });
   return data
 }
