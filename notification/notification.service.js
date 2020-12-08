@@ -46,7 +46,8 @@ async function AddReviewRequest(param) {
   if (output = await notif_save.save()) {
     var notif = {};
     if (param.notification !== 'undefined') {
-      notif = await PushNotif(param.notification);
+      let notification = Object.assign(param.notification, {save_notification: true});
+      notif = await PushNotif(notification);
     }
 
     return { result: true, 'message': 'Add request successfull', 'notification': notif, data: output };
