@@ -152,7 +152,7 @@ async function CheckMobile(param) {
 async function create(params) {
   const userParam = JSON.parse(params.data)
   const image = userParam.image
-  var data
+  let data
   if (
     typeof userParam.username === 'undefined' ||
     typeof userParam.email === 'undefined'
@@ -178,7 +178,7 @@ async function create(params) {
 
   await User.findOne({ email: userParam.email }).then(async user => {
     if (user) {
-      if (userParam.type == 'google' || userParam.type === 'facebook') {
+      if (userParam.type === 'google' || userParam.type === 'facebook') {
         var output = Object.assign(user, {
           username: userParam,
           image: userParam.image,

@@ -6,18 +6,25 @@ const employeeService = require('./employee.service');
 // routes
 router.post('/authenticate', authenticate);
 router.post('/register', register);
+router.post('/register/create', create);
 router.get('/', getAll);
 router.get('/current', getCurrent);
 router.get('/:id', getById);
 router.get('/verification/:id', Verification);
 router.post('/:id', update);
-router.post('/check/email', CheckMobile);
+router.post('/check/email', checkEmail);
 router.post('/push/notification', PushNotif);
 router.post('/upload/:id', uploadImage);
 router.post('/delete/:id', _delete);
 router.post('/forgot_password/email', ForgotPassword);
 
 module.exports = router;
+
+function create(req, res, next) {
+    employeeService.create(req.body)
+        .then(user => res.json(user))
+        .catch(err => next(err));
+}
 
 function authenticate(req, res, next) {
     employeeService.authenticate(req.body)
@@ -43,9 +50,8 @@ function Verification(req, res, next) {
         .catch(err => next(err));
 }
 
-function CheckMobile(req, res, next) {
-   
-    employeeService.CheckMobile(req.body)
+function checkEmail(req, res, next) {
+    employeeService.checkEmail(req.body)
         .then((user) => res.json(user))
         .catch(err => next(err));
 }

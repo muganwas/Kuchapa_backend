@@ -208,78 +208,51 @@ async function getById(id, param) {
   }
 }
 
-async function CheckMobile(param) {
+async function checkEmail(param) {
   if (typeof param.email === 'undefined') {
     return { result: false, message: 'Email is required' }
   }
 
-  var emp_data = ''
+  let emp_data = null;
   const user1 = await Employee.findOne({ email: param.email })
   if (user1) {
     emp_data = Object.assign(user1, {
       username: param.username,
       image: param.image,
-      img_status: 0
+      img_status: param.image ? 1 : 0
     })
 
     if (typeof param.fcm_id !== 'undefined') {
-      var fcm = { fcm_id: param.fcm_id }
+      let fcm = { fcm_id: param.fcm_id }
       Object.assign(emp_data, fcm)
-      var emp_data = await emp_data.save()
+      emp_data = await emp_data.save();
     }
-    if (emp_data.img_status == 1) {
-      emp_data.image = config.URL + 'api/uploads/employee/' + emp_data.image
-    }
+    if (emp_data) {
+      let mystr = emp_data.services
+      let arr = mystr.split(',')
+      let ser_arr = new Array()
 
-    var mystr = emp_data.services
-    var arr = mystr.split(',')
-    let ser_arr = new Array()
-
-    for (var i = 0; i < arr.length; i++) {
-      var service = await Service.find({ _id: arr[i] })
-      if (service.length) {
-        ser_arr.push(service[0])
+      for (let i = 0; i < arr.length; i++) {
+        let service = await Service.find({ _id: arr[i] })
+        if (service.length) {
+          ser_arr.push(service[0]);
+        }
       }
+      emp_data.services = JSON.stringify(ser_arr)
+      return { result: true, message: 'Email already Exists', data: emp_data }
     }
-    emp_data.services = JSON.stringify(ser_arr)
-    return { result: true, message: 'Email already Exists', data: emp_data }
+    else {
+      return { result: false, message: 'Something went wrong' }
+    }
   } else {
-    /*    var output = '';
-     if (output = await Employee.findOne({ email: param.email })) {
-         
-    if(typeof param.fcm_id !== 'undefined'){
-            var fcm ={'fcm_id':param.fcm_id};  
-            Object.assign(output,fcm);
-            var output = await output.save();
-            }
-            if(output.img_status ==1 )
-            {
-             output.image = config.URL+'api/uploads/employee/'+output.image;
-            }
-                var mystr = output.services;
-                   var arr = mystr.split(",");
-                   let ser_arr = new Array();
-                
-                  for (var i = 0; i < arr.length ; i++){
-                     var service =   await Service.find({_id:arr[i]});
-                     if(service.length){
-                     ser_arr.push(service[0]);     
-                     }
-                }
-             output.services = JSON.stringify(ser_arr);
-             
-       
-     
-    
-        return {result:true,message:'Email is exist',data:output};
-    }*/
     return { result: false, message: 'Email not found' }
   }
 }
 
 async function create(params) {
+  console.log('params --', params)
   const userParam = JSON.parse(params.data)
-  var data
+  let data
   if (
     typeof userParam.username === 'undefined' ||
     typeof userParam.email === 'undefined' ||
@@ -296,7 +269,7 @@ async function create(params) {
     userParam.img_status = 1
   }
 
-  if (userParam.type == 'google') {
+  if (userParam.type == 'google' || userParam.type == 'facebook') {
     userParam.password = ''
     userParam.email_verification = 1
     userParam.hash = ''
@@ -308,7 +281,7 @@ async function create(params) {
   await Employee.findOne({ email: userParam.email }).then(async user => {
     let emp_data
     if (user) {
-      if (userParam.type == 'google') {
+      if (userParam.type == 'google' || userParam.type == 'facebook') {
         emp_data = Object.assign(user, {
           username: userParam.username,
           image: userParam.image
@@ -465,7 +438,7 @@ module.exports = {
   create,
   findUserById,
   update,
-  CheckMobile,
+  checkEmail,
   ForgotPassword,
   PushNotif,
   uploadImage,

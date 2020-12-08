@@ -25,20 +25,9 @@ function authenticate(req, res, next) {
 }
 
 function register(req, res, next) {
-    if (req.body.type == 'normal')
-    {
-        if (req.file.filename) {
-            var  image = req.file.filename;    
-        }
-        else {
-            var image = '';    
-        }
-    }
-  
     userService.create(req.body)
         .then(user => res.json(user))
         .catch(err => next(err));
-
 }
 
 function CheckMobile(req, res, next) {
@@ -88,7 +77,6 @@ function getById(req, res, next) {
 }
 
 function update(req, res, next) {
-  
     userService.update(req.params.id, req.body)
         .then((rslt) => rslt ? res.json(rslt) : res.sendStatus(404))
         .catch(err => next(err));
