@@ -191,11 +191,11 @@ async function getById(id, param) {
       output = await output.save();
     }
 
-    var mystr = output.services
+    let mystr = output.services
     arr = mystr.split(',')
     let ser_arr = []
 
-    for (var i = 0; i < arr.length; i++) {
+    for (let i = 0; i < arr.length; i++) {
       var service = await Service.find({ _id: arr[i] })
       if (service.length) {
         ser_arr.push(service[0])
@@ -278,12 +278,24 @@ async function create(params) {
   /**look for user in database */
   await Employee.findOne({ email: userParam.email }).then(async user => {
     let emp_data;
+    let arr;
     if (user) {
       if (userParam.type == 'google' || userParam.type == 'facebook') {
         emp_data = Object.assign(user, {
           username: userParam.username,
           image: userParam.image
-        })
+        });
+        let mystr = emp_data.services
+        arr = mystr.split(',')
+        let ser_arr = []
+
+        for (let i = 0; i < arr.length; i++) {
+          let service = await Service.find({ _id: arr[i] })
+          if (service.length) {
+            ser_arr.push(service[0])
+          }
+        }
+        emp_data.services = JSON.stringify(ser_arr)
         if (emp_data.image != undefined && emp_data.image != '') {
           emp_data.img_status = '1'
         }
