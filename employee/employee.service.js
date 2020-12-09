@@ -251,7 +251,7 @@ async function checkEmail(param) {
 
 async function create(params) {
   const userParam = JSON.parse(params.data)
-  let data
+  let data;
   if (
     typeof userParam.username === 'undefined' ||
     typeof userParam.email === 'undefined' ||
@@ -280,26 +280,27 @@ async function create(params) {
     let emp_data;
     let arr;
     if (user) {
-      if (userParam.type == 'google' || userParam.type == 'facebook') {
+      if (userParam.type === 'google' || userParam.type === 'facebook') {
         emp_data = Object.assign(user, {
           username: userParam.username,
           image: userParam.image
         });
-        let mystr = emp_data.services
-        arr = mystr.split(',')
-        let ser_arr = []
-
+        let mystr = emp_data.services;
+        arr = mystr.split(',');
+        let ser_arr = [];
         for (let i = 0; i < arr.length; i++) {
-          let service = await Service.find({ _id: arr[i] })
-          if (service.length) {
-            ser_arr.push(service[0])
+          if (arr[i].length > 0) {
+            let service = await Service.find({ _id: arr[i] });
+            if (service.length) {
+              ser_arr.push(service[0])
+            }
           }
         }
-        emp_data.services = JSON.stringify(ser_arr)
+        emp_data.services = JSON.stringify(ser_arr);
         if (emp_data.image != undefined && emp_data.image != '') {
           emp_data.img_status = '1'
         }
-        if (emp_data.status == '0') {
+        if (emp_data.status === '0') {
           return {
             result: false,
             message: 'Your account is deactivated by admin'
@@ -314,6 +315,7 @@ async function create(params) {
       const emp = new Employee(userParam)
       await emp.save().then(async output => {
         if (output) {
+          console.log('creation from fb output', output)
           const message = `Please <a href="${config.URL}employee/verification/${output.id}">Click Here </a> To verify your Email`
           if (userParam.email_verification === 0) SendMail(userParam.email, 'Email Address Verification', message)
 
@@ -358,6 +360,8 @@ async function create(params) {
   }).catch(e => {
     return { result: false, message: e.message }
   });
+
+  console.log('data', data)
   return data
 }
 
