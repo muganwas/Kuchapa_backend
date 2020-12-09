@@ -15,7 +15,7 @@ const Notification = db.Notification
 const SendMail = require('../_helpers/SendMail')
 
 async function authenticate(param) {
-  var avgRating = 0;
+  let avgRating = 0;
   if (typeof param.email === 'undefined') {
     return {
       result: false,
@@ -39,26 +39,28 @@ async function authenticate(param) {
       await employeeRatingsDataRequest(user._id).then(res => {
         avgRating = res.rating;
       });
-    var fcm = { fcm_id: param.fcm_id, avgRating }
+    let fcm = { fcm_id: param.fcm_id, avgRating }
     Object.assign(user, fcm)
     await user.save()
   }
 
   if (user && bcrypt.compareSync(param.password, user.hash)) {
-    const { hash, userWithoutHash } = user.toObject()
+    //const { hash, userWithoutHash } = user.toObject();
     const token = jwt.sign({ sub: user.id }, config.secret)
     if (user.img_status == '1') {
       user.image = config.URL + 'api/uploads/employee/' + user.image
     }
 
-    var mystr = user.services
+    let mystr = user.services
     arr = mystr.split(',')
     let ser_arr = []
 
-    for (var i = 0; i < arr.length; i++) {
-      var service = await Service.find({ _id: arr[i] })
-      if (service.length) {
-        ser_arr.push(service[0])
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i].length > 0) {
+        let service = await Service.find({ _id: arr[i] })
+        if (service.length) {
+          ser_arr.push(service[0])
+        }
       }
     }
     user.services = JSON.stringify(ser_arr);
@@ -75,16 +77,18 @@ async function authenticate(param) {
 }
 
 async function getAll() {
-  var output = await Employee.find()
-  for (var i = 0; i < output.length; i++) {
-    var mystr = output[i].services
+  let output = await Employee.find()
+  for (let i = 0; i < output.length; i++) {
+    let mystr = output[i].services
     arr = mystr.split(',')
     let ser_arr = []
 
-    for (var j = 0; j < arr.length; j++) {
-      var service = await Service.find(ObjectId(arr[j]))
-      if (service) {
-        ser_arr.push(service[0].service_name)
+    for (let j = 0; j < arr.length; j++) {
+      if (arr[j].length > 0) {
+        let service = await Service.find(ObjectId(arr[j]))
+        if (service) {
+          ser_arr.push(service[0].service_name)
+        }
       }
     }
     output[i].services = ser_arr.toString()
@@ -109,7 +113,7 @@ async function PushNotif(param) {
     }
   }
 
-  var newdata = {}
+  let newdata = {}
 
   if (param.data !== 'undefined') {
     newdata = param.data
@@ -162,10 +166,10 @@ const findUserById = async id => {
 async function Verification(id) {
   const output = await Employee.findById(id)
   if (output) {
-    var userParam = {}
+    let userParam = {}
     userParam['email_verification'] = 1
     Object.assign(output, userParam)
-    var v = await output.save()
+    let v = await output.save()
 
     return { result: true, message: 'Provider verified successfully' }
   } else {
@@ -174,19 +178,19 @@ async function Verification(id) {
 }
 
 async function getById(id, param) {
-  var avgRating = 0;
+  let avgRating = 0;
   if (typeof id === 'undefined') {
     return { result: false, message: 'id is required' }
   }
 
-  var output = ''
-  var arr = [];
+  let output = ''
+  let arr = [];
   if ((output = await Employee.findById(id).select('-hash'))) {
     await employeeRatingsDataRequest(output._id).then(res => {
       avgRating = res.rating;
     });
     if (typeof param.fcm_id !== 'undefined') {
-      var fcm = { fcm_id: param.fcm_id, avgRating }
+      let fcm = { fcm_id: param.fcm_id, avgRating }
       Object.assign(output, fcm)
       output = await output.save();
     }
@@ -196,9 +200,11 @@ async function getById(id, param) {
     let ser_arr = []
 
     for (let i = 0; i < arr.length; i++) {
-      var service = await Service.find({ _id: arr[i] })
-      if (service.length) {
-        ser_arr.push(service[0])
+      if (arr[i].length > 0) {
+        let service = await Service.find({ _id: arr[i] })
+        if (service.length) {
+          ser_arr.push(service[0])
+        }
       }
     }
     output.services = JSON.stringify(ser_arr)
@@ -231,12 +237,14 @@ async function checkEmail(param) {
       let mystr = emp_data.services
       let arr = mystr.split(',')
       let ser_arr = new Array()
-
       for (let i = 0; i < arr.length; i++) {
-        let service = await Service.find({ _id: arr[i] })
-        if (service.length) {
-          ser_arr.push(service[0]);
+        if (arr[i].length > 0) {
+          let service = await Service.find({ _id: arr[i] })
+          if (service.length) {
+            ser_arr.push(service[0]);
+          }
         }
+
       }
       emp_data.services = JSON.stringify(ser_arr)
       return { result: true, message: 'Email already Exists', data: emp_data }
@@ -334,14 +342,16 @@ async function create(params) {
             if (notification) console.log('notification saved')
           })
 
-          var mystr = output.services
-          var arr = mystr.split(',')
+          let mystr = output.services
+          let arr = mystr.split(',')
           let ser_arr = new Array()
 
-          for (var i = 0; i < arr.length; i++) {
-            var service = await Service.find({ _id: arr[i] })
-            if (service.length) {
-              ser_arr.push(service[0])
+          for (let i = 0; i < arr.length; i++) {
+            if (arr[i].length > 0) {
+              let service = await Service.find({ _id: arr[i] })
+              if (service.length) {
+                ser_arr.push(service[0])
+              }
             }
           }
           output.services = JSON.stringify(ser_arr)
@@ -415,7 +425,7 @@ async function update(id, userParam) {
 
   // copy userParam properties to user
   Object.assign(user, userParam)
-  var output = await user.save()
+  let output = await user.save()
 
   if (output) {
     return { result: true, message: 'Update successfull', data: output }
@@ -435,7 +445,7 @@ async function uploadImage(id, image) {
   }
 
   Object.assign(user, { image: image, img_status: 1 })
-  var output = ''
+  let output = ''
   if ((output = await user.save())) {
     return { result: true, message: 'Image Update successfull', data: output }
   } else {
