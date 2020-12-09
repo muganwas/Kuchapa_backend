@@ -16,11 +16,6 @@ callback(null, file.fieldname + "_" + Date.now() + "_" + file.originalname);
 
 var upload = multer({ storage: Storage }); 
 
-
-
-//routes
-// router.get('/', getAll);
-
 router.post('/serviceprovider/:id', serviceprovider);
 
 module.exports = router;
@@ -30,7 +25,7 @@ module.exports = router;
 
 
 function serviceprovider(req, res, next) {
-    Job.serviceprovider(req.params.id,req.body)
+    Job.serviceprovider(req.params.id, req.body)
         .then(users => res.json(users))
         .catch(err => next(err));
 }

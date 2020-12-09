@@ -33,19 +33,15 @@ async function getAll() {
     if (data = await User.find().select('-hash')) {
         var tempdata = [];
         for (var i = 0; i < data.length; i++) {
-
             var main_c = '';
             var sub_c = '';
             main_c = await Main_Category.find({ _id: data[i].main_category });
             sub_c = await Sub_Category.find({ _id: data[i].sub_category });
-
             if (main_c.length > 0 && sub_c.length > 0) {
                 data[i].main_category = main_c[0].main_category;
                 data[i].sub_category = sub_c[0].sub_category;
                 tempdata.push(data[i]);
             }
-
-
         }
         return { result: true, message: 'Service Found', data: tempdata };
     } else {
