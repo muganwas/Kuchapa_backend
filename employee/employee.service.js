@@ -320,10 +320,10 @@ async function create(params) {
       }
     }
     else {
+      console.log('user param', userParam)
       const emp = new Employee(userParam)
       await emp.save().then(async output => {
         if (output) {
-          console.log('creation from fb output', output)
           const message = `Please <a href="${config.URL}employee/verification/${output.id}">Click Here </a> To verify your Email`
           if (userParam.email_verification === 0) SendMail(userParam.email, 'Email Address Verification', message)
 
