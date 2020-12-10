@@ -396,9 +396,9 @@ async function CustomerDataRequest(id, type) {
 
     const output = await JobRequest.find(param);
     if (output !== 0) {
-        const status =  type && type === 'bookings' ? { $nin: ["Pending", "Failed", "Canceled", "No Response"] } : { $nin: ["Pending"] };
+        //const status =  type && type === 'bookings' ? { $nin: ["Pending", "Failed", "Canceled", "No Response"] } : { $nin: ["Pending"] };
         const JSon = await JobRequest.aggregate([
-            { $match: { user_id: new mongoose.Types.ObjectId(id), status } },
+            { $match: { user_id: new mongoose.Types.ObjectId(id) } },
             {
                 "$project": {
                     "employee_id": {
