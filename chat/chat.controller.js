@@ -7,6 +7,12 @@ const fetchChats = (req, res, next) => {
         .catch(err => next(err));
 }
 
+const generateZoomSignature = (req, res, next) => {
+    Chat.generateSignature(req.body, res, next).catch(err => next(err))
+}
+
 // routes
 router.get('/fetchChats', fetchChats);
+router.post('/fetchZoomSignature', generateZoomSignature)
+
 module.exports = router;

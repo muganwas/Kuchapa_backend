@@ -1,5 +1,6 @@
 ﻿const db = require('_helpers/db');
 const chats = db.Chat;
+const crypto = require('crypto');
 const firebase = require('firebase');
 const userService = require('../users/user.service');
 const employeeService = require('../employee/employee.service');
@@ -53,9 +54,31 @@ const fetchChatMessages = async (req, res) => {
             res.send({ message });
         }
     }).catch(e => {
-        console.log('verification error', e.errorInfo.message);
+        
         res.send({ error: e.errorInfo.message });
     });
+}
+
+const generateSignature = (req, res) => {
+    const { apiKey, apiSecret, meetingNumber, role } = req;
+    try {
+        // Prevent time sync issue between client signature generation and zoom
+        const timestamp = new Date().getTime() - 30000
+        const msg = Buffer.from(apiKey + meetingNumber + timestamp + role).toString(
+            'base64'
+        )
+        const hash = crypto
+            .createHmac('sha256', apiSecret)
+            .update(msg)
+            .digest('base64')
+        const signature = Buffer.from(
+            `${apiKey}.${meetingNumber}.${timestamp}.${role}.${hash}`
+        ).toString('base64')
+        res.send({ signature })
+    } catch(e){
+        console.log('signature generaton error', e.errorInfo.message);
+        res.send({ error: e.errorInfo.message })
+    }
 }
 
 const storeMessage = async (params, userType) => {
@@ -132,5 +155,6 @@ const storeMessage = async (params, userType) => {
 module.exports = {
     storeMessage,
     storeChat,
-    fetchChatMessages
+    fetchChatMessages,
+    generateSignature
 };
