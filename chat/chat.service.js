@@ -1,4 +1,5 @@
-﻿const db = require('_helpers/db');
+﻿require('dotenv')
+const db = require('_helpers/db');
 const chats = db.Chat;
 const crypto = require('crypto');
 const firebase = require('firebase');
@@ -7,6 +8,10 @@ const employeeService = require('../employee/employee.service');
 const { PushNotif } = require("../notification/notification.service");
 
 const database = firebase.database;
+const zoomEndpoint = process.env.ZOOM_END_POINT
+const zoomAPIkey = process.env.ZOOM_JWT_API_KEY
+const zoomSecret = process.env.ZOOM_JWT_SECRET
+const zoomAuthAccessToken = process.env.ZOOM_AUTH_ACCESS_TOKE
 
 const storeChat = async chatObject => {
     const { sender, recipient, time, fcm_id, userType, orderId, senderName } = chatObject;
@@ -54,9 +59,83 @@ const fetchChatMessages = async (req, res) => {
             res.send({ message });
         }
     }).catch(e => {
-        
+
         res.send({ error: e.errorInfo.message });
     });
+}
+
+const listZoomRooms = async (req, res) => {
+    const { } = req;
+    const listRoomsEndpoint = zoomEndpoint + "rooms/zrlist?page_size=30&unassigned_rooms=false";
+    try {
+        await fetch(listRoomsEndpoint,
+            {
+                method: 'POST',
+                headers: {
+                    "Authorization": `Bearer ${zoomAuthAccessToken}`,
+                    "Content-Type": "application/json",
+                    "Connection": "keep-alive"
+                },
+                body: JSON.stringify({
+                    method: "list"
+                })
+            }).then(response => response.json()).then(response => {
+                res.send(response)
+            }).catch(e => {
+                res.send({ error: e.message });
+            })
+    } catch (e) {
+       res.send({ error: e.message });
+    }
+}
+
+const listRoomLocations = async (req, res) => {
+    const {} = req;
+    const listRoomLocationsEndpoint = zoomEndpoint + "rooms/locations?page_size=30";
+    try {
+        await fetch(listRoomLocationsEndpoint,
+            {
+                method: 'GET',
+                headers: {
+                    "Authorization": `Bearer ${zoomAuthAccessToken}`,
+                    "Content-Type": "application/json",
+                    "Connection": "keep-alive"
+                }
+            }).then(response => response.json()).then(response => {
+                res.send(response.locations);
+            }).catch(e => {
+                res.send({ error: e.message });
+            })
+    } catch (e) {
+        res.send({ error: e.message });
+    }
+}
+
+const createZoomRoom = async (req, res) => {
+    const { name } = req;
+    const createRoomEndpoint = zoomEndpoint + "rooms";
+    try {
+        await fetch(createRoomEndpoint,
+            {
+                method: 'POST',
+                headers: {
+                    "Authorization": `Bearer ${zoomAuthAccessToken}`,
+                    "Content-Type": "application/json",
+                    "Connection": "keep-alive"
+                },
+                body: JSON.stringify({
+                    "name": name,
+                    "type": "ZoomRoom",
+                    "location_id": null
+                })
+            }).then(response => response.json()).then(response => {
+                res.send(response)
+            }).catch(e => {
+                res.send({ error: e.message })
+            })
+    } catch (e) {
+        res.send({ error: e.message })
+    }
 }
 
 const generateSignature = (req, res) => {
@@ -75,7 +154,7 @@ const generateSignature = (req, res) => {
             `${apiKey}.${meetingNumber}.${timestamp}.${role}.${hash}`
         ).toString('base64')
         res.send({ signature })
-    } catch(e){
+    } catch (e) {
         console.log('signature generaton error', e.errorInfo.message);
         res.send({ error: e.errorInfo.message })
     }
@@ -156,5 +235,8 @@ module.exports = {
     storeMessage,
     storeChat,
     fetchChatMessages,
-    generateSignature
+    generateSignature,
+    listZoomRooms,
+    createZoomRoom,
+    listRoomLocations
 };
