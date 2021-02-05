@@ -23,11 +23,26 @@ const listZoomRoomLocations = (req, res, next) => {
     Chat.listRoomLocations(req.body, res, next).catch(err => next(err))
 }
 
+const createZoomUser = (req, res, next) => {
+    Chat.createZoomUser(req.body, res, next).catch(err => next(err))
+}
+
+const setupZoomMeeting = (req, res, next) => {
+    Chat.setupZoomMeeting(req.body, res, next).catch(err => next(err))
+}
+
+const updateZoomUserStatus = (req, res, next) => {
+    Chat.updateZoomUserStatus(req.body, res, next).catch(err => next(err))
+}
+
 // routes
 router.get('/fetchChats', fetchChats);
 router.post('/fetchZoomSignature', generateZoomSignature)
 router.post('/zoomRooms', listZoomRooms)
 router.post('/createZoomRoom', createZoomRoom)
 router.post('/zoomRoomLocations', listZoomRoomLocations)
+router.post('/createZoomUser', createZoomUser)
+router.post('/setupZoomMeeting', setupZoomMeeting)
+router.post('/updateZoomUserStatus', updateZoomUserStatus)
 
 module.exports = router;

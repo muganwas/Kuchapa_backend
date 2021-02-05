@@ -2,10 +2,13 @@
 const db = require('_helpers/db');
 const chats = db.Chat;
 const crypto = require('crypto');
+const _ = require('lodash');
 const firebase = require('firebase');
+const { generatePassword } = require('../misc/helperFunctions')
 const userService = require('../users/user.service');
 const employeeService = require('../employee/employee.service');
 const { PushNotif } = require("../notification/notification.service");
+const { random } = require('lodash');
 
 const database = firebase.database;
 const zoomEndpoint = process.env.ZOOM_END_POINT
@@ -85,12 +88,12 @@ const listZoomRooms = async (req, res) => {
                 res.send({ error: e.message });
             })
     } catch (e) {
-       res.send({ error: e.message });
+        res.send({ error: e.message });
     }
 }
 
 const listRoomLocations = async (req, res) => {
-    const {} = req;
+    const { } = req;
     const listRoomLocationsEndpoint = zoomEndpoint + "rooms/locations?page_size=30";
     try {
         await fetch(listRoomLocationsEndpoint,
@@ -134,6 +137,96 @@ const createZoomRoom = async (req, res) => {
                 res.send({ error: e.message })
             })
     } catch (e) {
+        res.send({ error: e.message })
+    }
+}
+
+const createZoomUser = async (req, res) => {
+    const { email, first_name, last_name } = req;
+    const createRoomEndpoint = zoomEndpoint + "users";
+    try {
+        await fetch(createRoomEndpoint,
+            {
+                method: 'POST',
+                headers: {
+                    "Authorization": `Bearer ${zoomAuthAccessToken}`,
+                    "Content-Type": "application/json",
+                    "Connection": "keep-alive"
+                },
+                body: JSON.stringify({
+                    "action": "create",
+                    "user_info": {
+                        "email": email,
+                        "type": 1,
+                        "first_name": first_name,
+                        "last_name": last_name
+                    }
+                })
+            }).then(response => response.json()).then(response => {
+
+                res.send(response)
+            }).catch(e => {
+                res.send({ error: e.message })
+            })
+    } catch (e) {
+        res.send({ error: e.message })
+    }
+}
+
+const updateZoomUserStatus = async (req, res) => {
+    const { action, userId } = req;
+    const updateStatusEndpoint = `${zoomEndpoint}users/${userId}/status`
+    try {
+        await fetch(updateStatusEndpoint,
+            {
+                method: 'PUT',
+                headers: {
+                    "Authorization": `Bearer ${zoomAuthAccessToken}`,
+                    "Content-Type": "application/json",
+                    "Connection": "keep-alive"
+                },
+                body: JSON.stringify({
+                    "action": action
+                })
+            }).then(response => response.json()).then(response => {
+                res.send(response)
+            }).catch(e => {
+                res.send({ error: e.message })
+            })
+    } catch (e) {
+        res.send({ error: e.message })
+    }
+
+}
+
+const setupZoomMeeting = async (req, res) => {
+    const { userId } = req;
+    const createMeetingEndpoint = `${zoomEndpoint}users/${userId}/meetings`;
+    try {
+        await fetch(createMeetingEndpoint,
+            {
+                method: 'POST',
+                headers: {
+                    "Authorization": `Bearer ${zoomAuthAccessToken}`,
+                    "Content-Type": "application/json",
+                    "Connection": "keep-alive"
+                },
+                body: JSON.stringify({
+                    "type": "1",
+                    "duration": "120",
+                    "password": "",
+                })
+            }).then(response => {
+                console.log('initial response ', response)
+                return response.json()
+            }).then(response => {
+                res.send(response)
+            }).catch(e => {
+                console.log('new meeting error', e)
+                res.send({ error: e.message })
+            })
+    } catch (e) {
+        console.log('new meeting error', e)
         res.send({ error: e.message })
     }
 }
@@ -238,5 +331,8 @@ module.exports = {
     generateSignature,
     listZoomRooms,
     createZoomRoom,
-    listRoomLocations
+    listRoomLocations,
+    createZoomUser,
+    setupZoomMeeting,
+    updateZoomUserStatus
 };
