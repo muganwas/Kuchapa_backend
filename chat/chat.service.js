@@ -163,7 +163,6 @@ const createZoomUser = async (req, res) => {
                     }
                 })
             }).then(response => response.json()).then(response => {
-
                 res.send(response)
             }).catch(e => {
                 res.send({ error: e.message })
