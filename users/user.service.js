@@ -179,8 +179,9 @@ async function create(params) {
   if (userParam.password) {
     userParam.hash = bcrypt.hashSync(userParam.password, 10)
   }
-  /** mobile based user search */
+  
   if ((typeof mobile !== 'undefined' && mobile.length > 0) && (typeof email === 'undefined' || email && email.length === 0)) {
+    /** mobile based user search */
     await User.findOne({ mobile }).then(async user => {
       if (user) {
         if (userParam.type === 'google' || userParam.type === 'facebook' || userParam.type === 'phone') {

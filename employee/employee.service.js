@@ -259,11 +259,16 @@ async function checkEmail(param) {
 
 async function create(params) {
   const userParam = JSON.parse(params.data)
+  const mobile = userParam.mobile
+  const email = userParam.email
+  const image = userParam.image
+  const username = userParam.username
   let data;
   if (
-    typeof userParam.username === 'undefined' ||
-    typeof userParam.email === 'undefined' ||
-    typeof userParam.image === 'undefined'
+    (typeof mobile === 'undefined' || mobile && mobile.length === 0) &&
+    ((typeof username === 'undefined' || username && username.length === 0) ||
+      (typeof email === 'undefined' || email && email.length === 0) ||
+      (typeof image === 'undefined' || image && image.length === 0))
   ) {
     return {
       result: false,
@@ -275,7 +280,7 @@ async function create(params) {
     userParam.img_status = userParam.image ? 1 : 0
   }
 
-  if (userParam.type == 'google' || userParam.type == 'facebook') {
+  if (userParam.type == 'google' || userParam.type == 'facebook' || userParam.type === 'phone') {
     userParam.password = ''
     userParam.email_verification = 1
     userParam.hash = ''
@@ -283,95 +288,182 @@ async function create(params) {
   if (userParam.password) {
     userParam.hash = bcrypt.hashSync(userParam.password, 10)
   }
-  /**look for user in database */
-  await Employee.findOne({ email: userParam.email }).then(async user => {
-    let emp_data;
-    let arr;
-    if (user) {
-      if (userParam.type === 'google' || userParam.type === 'facebook') {
-        emp_data = Object.assign(user, {
-          username: userParam.username,
-          image: userParam.image
-        });
-        let mystr = emp_data.services;
-        arr = mystr.split(',');
-        let ser_arr = [];
-        for (let i = 0; i < arr.length; i++) {
-          if (arr[i].length > 0) {
-            let service = await Service.find({ _id: arr[i] });
-            if (service.length) {
-              ser_arr.push(service[0])
-            }
-          }
-        }
-        emp_data.services = JSON.stringify(ser_arr);
-        if (emp_data.image != undefined && emp_data.image != '') {
-          emp_data.img_status = '1'
-        }
-        if (emp_data.status === '0') {
-          return {
-            result: false,
-            message: 'Your account is deactivated by admin'
-          }
-        }
-        data = emp_data
-      } else {
-        return { result: false, message: 'Email is already Exist' }
-      }
-    }
-    else {
-      console.log('user param', userParam)
-      const emp = new Employee(userParam)
-      await emp.save().then(async output => {
-        if (output) {
-          const message = `Please <a href="${config.URL}employee/verification/${output.id}">Click Here </a> To verify your Email`
-          if (userParam.email_verification === 0) SendMail(userParam.email, 'Email Address Verification', message)
 
-          const notification = new Notification({
-            type: 'New User',
-            order_id: '',
-            message: output.username + ' registered as a service provider',
-            notification_for: 'Admin',
-            notification_by: 'Employee',
-            notification_link: '/employee/' + output._id,
-            employee_id: output._id,
-            title: 'New Provider'
-          })
-
-          await notification.save().then(notification => {
-            if (notification) console.log('notification saved')
-          })
-
-          let mystr = output.services
-          let arr = mystr.split(',')
-          let ser_arr = new Array()
-
+  if ((typeof mobile !== 'undefined' && mobile.length > 0) && (typeof email === 'undefined' || email && email.length === 0)) {
+    /** mobile based user search */
+    await Employee.findOne({ mobile }).then(async user => {
+      let emp_data;
+      let arr;
+      if (user) {
+        if (userParam.type === 'google' || userParam.type === 'facebook' || userParam.type === 'phone') {
+          emp_data = Object.assign(user, {
+            username,
+            image: userParam.image
+          });
+          let mystr = emp_data.services;
+          arr = mystr.split(',');
+          let ser_arr = [];
           for (let i = 0; i < arr.length; i++) {
             if (arr[i].length > 0) {
-              let service = await Service.find({ _id: arr[i] })
+              let service = await Service.find({ _id: arr[i] });
               if (service.length) {
                 ser_arr.push(service[0])
               }
             }
           }
-          output.services = JSON.stringify(ser_arr)
-          if (output.img_status == '1') {
-            output.image = config.URL + 'api/uploads/employee/' + output.image
+          emp_data.services = JSON.stringify(ser_arr);
+          if (emp_data.image != undefined && emp_data.image != '') {
+            emp_data.img_status = '1'
           }
-          data = output
+          if (emp_data.status === '0') {
+            return {
+              result: false,
+              message: 'Your account is deactivated by admin'
+            }
+          }
+          data = emp_data
         } else {
-          return { result: false, message: 'Registeration failed try again later' }
+          return { result: false, message: 'Email is already Exist' }
         }
-      }).catch(e => {
-        console.log('new user error --', e)
-        return { result: false, message: e.message }
-      })
-    }
-  }).catch(e => {
-    return { result: false, message: e.message }
-  });
+      }
+      else {
+        const emp = new Employee(userParam)
+        await emp.save().then(async output => {
+          if (output) {
+            const message = `Please <a href="${config.URL}employee/verification/${output.id}">Click Here </a> To verify your Email`
+            if (userParam.email_verification === 0) SendMail(userParam.email, 'Email Address Verification', message)
 
-  console.log('data', data)
+            const notification = new Notification({
+              type: 'New User',
+              order_id: '',
+              message: output.username + ' registered as a service provider',
+              notification_for: 'Admin',
+              notification_by: 'Employee',
+              notification_link: '/employee/' + output._id,
+              employee_id: output._id,
+              title: 'New Provider'
+            })
+
+            await notification.save().then(notification => {
+              if (notification) console.log('notification saved')
+            })
+
+            let mystr = output.services
+            let arr = mystr.split(',')
+            let ser_arr = new Array()
+
+            for (let i = 0; i < arr.length; i++) {
+              if (arr[i].length > 0) {
+                let service = await Service.find({ _id: arr[i] })
+                if (service.length) {
+                  ser_arr.push(service[0])
+                }
+              }
+            }
+            output.services = JSON.stringify(ser_arr)
+            if (output.img_status == '1') {
+              output.image = config.URL + 'api/uploads/employee/' + output.image
+            }
+            data = output
+          } else {
+            return { result: false, message: 'Registeration failed try again later' }
+          }
+        }).catch(e => {
+          console.log('new user error --', e)
+          return { result: false, message: e.message }
+        })
+      }
+    }).catch(e => {
+      return { result: false, message: e.message }
+    });
+  } else {
+    /** email based user search */
+    await Employee.findOne({ email: userParam.email }).then(async user => {
+      let emp_data;
+      let arr;
+      if (user) {
+        if (userParam.type === 'google' || userParam.type === 'facebook') {
+          emp_data = Object.assign(user, {
+            username: userParam.username,
+            image: userParam.image
+          });
+          let mystr = emp_data.services;
+          arr = mystr.split(',');
+          let ser_arr = [];
+          for (let i = 0; i < arr.length; i++) {
+            if (arr[i].length > 0) {
+              let service = await Service.find({ _id: arr[i] });
+              if (service.length) {
+                ser_arr.push(service[0])
+              }
+            }
+          }
+          emp_data.services = JSON.stringify(ser_arr);
+          if (emp_data.image != undefined && emp_data.image != '') {
+            emp_data.img_status = '1'
+          }
+          if (emp_data.status === '0') {
+            return {
+              result: false,
+              message: 'Your account is deactivated by admin'
+            }
+          }
+          data = emp_data
+        } else {
+          return { result: false, message: 'Email is already Exist' }
+        }
+      }
+      else {
+        const emp = new Employee(userParam)
+        await emp.save().then(async output => {
+          if (output) {
+            const message = `Please <a href="${config.URL}employee/verification/${output.id}">Click Here </a> To verify your Email`
+            if (userParam.email_verification === 0) SendMail(userParam.email, 'Email Address Verification', message)
+
+            const notification = new Notification({
+              type: 'New User',
+              order_id: '',
+              message: output.username + ' registered as a service provider',
+              notification_for: 'Admin',
+              notification_by: 'Employee',
+              notification_link: '/employee/' + output._id,
+              employee_id: output._id,
+              title: 'New Provider'
+            })
+
+            await notification.save().then(notification => {
+              if (notification) console.log('notification saved')
+            })
+
+            let mystr = output.services
+            let arr = mystr.split(',')
+            let ser_arr = new Array()
+
+            for (let i = 0; i < arr.length; i++) {
+              if (arr[i].length > 0) {
+                let service = await Service.find({ _id: arr[i] })
+                if (service.length) {
+                  ser_arr.push(service[0])
+                }
+              }
+            }
+            output.services = JSON.stringify(ser_arr)
+            if (output.img_status == '1') {
+              output.image = config.URL + 'api/uploads/employee/' + output.image
+            }
+            data = output
+          } else {
+            return { result: false, message: 'Registeration failed try again later' }
+          }
+        }).catch(e => {
+          console.log('new user error --', e)
+          return { result: false, message: e.message }
+        })
+      }
+    }).catch(e => {
+      return { result: false, message: e.message }
+    });
+  }
   return data
 }
 
