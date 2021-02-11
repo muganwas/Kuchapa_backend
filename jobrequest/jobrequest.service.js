@@ -530,7 +530,6 @@ const employeeRatingsDataRequest = async id => {
 }
 
 async function EmployeeDataRequest(id, omit) {
-    console.log('omit', omit)
     if (typeof id === 'undefined') {
         return { result: false, 'message': 'id is required' };
     }
