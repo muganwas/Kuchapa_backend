@@ -51,7 +51,7 @@ async function AddJobRequest(param) {
         typeof param.service_id === 'undefined') {
         return { result: false, message: 'user_id,employee_id,notification(for push notification),delivery_address , delivery_lat(o), delivery_lang(o) and service_id is required' };
     }
-    var search = { user_id: new mongoose.Types.ObjectId(param.user_id), employee_id: new mongoose.Types.ObjectId(param.employee_id), status: { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] } };
+    var search = { user_id: new mongoose.Types.ObjectId(param.user_id), employee_id: new mongoose.Types.ObjectId(param.employee_id), status: { $nin: ["Failed", "Cancelled", "Rejected", "No Response", "Completed"] } };
     var request = await JobRequest.find(search);
 
     if (request.length > 0) {
@@ -102,7 +102,7 @@ async function Customerstatuscheck(id, type) {
     var output = {};
     output = await JobRequest.find(search);
     if (output !== 0) {
-        const status = type !== 'pending' ? { $nin: ["Pending"] } : { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] };
+        const status = type !== 'pending' ? { $nin: ["Pending"] } : { $nin: ["Failed", "Cancelled", "Rejected", "No Response", "Completed"] };
         var JSon = await JobRequest.aggregate([
             { $match: { user_id: new mongoose.Types.ObjectId(id), status } },
             {
@@ -195,7 +195,7 @@ async function Providerstatuscheck(id, type) {
     var output = {};
     var output = await JobRequest.find(search);
     if (output !== 0) {
-        const status = type !== 'pending' ? { $nin: ["Pending"] } : { $nin: ["Failed", "Canceled", "Rejected", "No Response", "Completed"] };
+        const status = type !== 'pending' ? { $nin: ["Pending"] } : { $nin: ["Failed", "Cancelled", "Rejected", "No Response", "Completed"] };
         var JSon = await JobRequest.aggregate([
             { $match: { employee_id: new mongoose.Types.ObjectId(id), status } },
             {
@@ -395,7 +395,7 @@ async function CustomerDataRequest(id, omit) {
     param['user_id'] = new mongoose.Types.ObjectId(id);
     const output = await JobRequest.find(param);
     if (output !== 0) {
-        //const status =  type && type === 'bookings' ? { $nin: ["Pending", "Failed", "Canceled", "No Response"] } : { $nin: ["Pending"] };
+        //const status =  type && type === 'bookings' ? { $nin: ["Pending", "Failed", "Cancelled", "No Response"] } : { $nin: ["Pending"] };
         const JSon = await JobRequest.aggregate([
             { $match: { user_id: new mongoose.Types.ObjectId(id), status: omit ? { $nin: [omit] } : { $nin: [] } } },
             {
