@@ -385,7 +385,7 @@ async function Ratingreview(param) {
     }
 }
 
-async function CustomerDataRequest(id, type) {
+async function CustomerDataRequest(id, omit) {
 
     if (typeof id === 'undefined') {
         return { result: false, 'message': 'id is required' };
@@ -393,12 +393,11 @@ async function CustomerDataRequest(id, type) {
 
     let param = {};
     param['user_id'] = new mongoose.Types.ObjectId(id);
-
     const output = await JobRequest.find(param);
     if (output !== 0) {
         //const status =  type && type === 'bookings' ? { $nin: ["Pending", "Failed", "Canceled", "No Response"] } : { $nin: ["Pending"] };
         const JSon = await JobRequest.aggregate([
-            { $match: { user_id: new mongoose.Types.ObjectId(id) } },
+            { $match: { user_id: new mongoose.Types.ObjectId(id), status: omit ? { $nin: [omit] } : { $nin: [] } } },
             {
                 "$project": {
                     "employee_id": {
@@ -530,7 +529,8 @@ const employeeRatingsDataRequest = async id => {
     return { result: true, 'message': 'rating returned', rating: avg };
 }
 
-async function EmployeeDataRequest(id, type) {
+async function EmployeeDataRequest(id, omit) {
+    console.log('omit', omit)
     if (typeof id === 'undefined') {
         return { result: false, 'message': 'id is required' };
     }
@@ -538,9 +538,8 @@ async function EmployeeDataRequest(id, type) {
     param['employee_id'] = new mongoose.Types.ObjectId(id);
     const output = await JobRequest.find(param);
     if (output !== 0) {
-        //const status = type === 'bookings' ? { $nin: ["Pending", "Failed", "Canceled", "No Response"] } : { $nin: ["Pending"] };
         const JSon = await JobRequest.aggregate([
-            { $match: { employee_id: new mongoose.Types.ObjectId(id) } },
+            { $match: { employee_id: new mongoose.Types.ObjectId(id), status: omit ? { $nin: [omit] } : { $nin: [] } } },
             {
                 "$project": {
                     "user_id": {
