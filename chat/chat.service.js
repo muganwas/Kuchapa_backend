@@ -68,7 +68,6 @@ const fetchChatMessages = async (req, res) => {
 }
 
 const listZoomRooms = async (req, res) => {
-    const { } = req;
     const listRoomsEndpoint = zoomEndpoint + "rooms/zrlist?page_size=30&unassigned_rooms=false";
     try {
         await fetch(listRoomsEndpoint,
@@ -93,7 +92,6 @@ const listZoomRooms = async (req, res) => {
 }
 
 const listRoomLocations = async (req, res) => {
-    const { } = req;
     const listRoomLocationsEndpoint = zoomEndpoint + "rooms/locations?page_size=30";
     try {
         await fetch(listRoomLocationsEndpoint,
@@ -225,7 +223,6 @@ const setupZoomMeeting = async (req, res) => {
                 res.send({ error: e.message })
             })
     } catch (e) {
-        console.log('new meeting error', e)
         res.send({ error: e.message })
     }
 }
@@ -247,7 +244,6 @@ const generateSignature = (req, res) => {
         ).toString('base64')
         res.send({ signature })
     } catch (e) {
-        console.log('signature generaton error', e.errorInfo.message);
         res.send({ error: e.errorInfo.message })
     }
 }
