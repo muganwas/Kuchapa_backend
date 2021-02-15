@@ -17,7 +17,7 @@ async function serviceprovider(id, job) {
     }
 
     var emp = await Employee.find();
-    var data = new Array();
+    var data = [];
 
     for (var i = 0; i < emp.length; i++) {
         var emp_services = emp[i].services.split(',');

@@ -11,7 +11,6 @@ module.exports = {
 };
 
 async function serviceprovider(id, job) {
-
     if (typeof job.lat === 'undefined' ||
         typeof job.lang === 'undefined') {
         return { result: false, message: 'lat and lang is required' };
