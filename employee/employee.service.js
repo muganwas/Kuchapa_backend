@@ -143,10 +143,10 @@ async function PushNotif(param) {
         .then((response) => {
           // Response is a message ID string.
           resolve({ result: true, message: response });
-          console.log('Successfully sent message:', response);
+          //console.log('Successfully sent message:', response);
         })
         .catch((error) => {
-          console.log('Error sending message:', error);
+          //console.log('Error sending message:', error);
           reject({ result: true, message: error });
         });
     });
@@ -288,7 +288,6 @@ async function create(params) {
   if (userParam.password) {
     userParam.hash = bcrypt.hashSync(userParam.password, 10)
   }
-
   if ((typeof mobile !== 'undefined' && mobile.length > 0) && (typeof email === 'undefined' || email && email.length === 0)) {
     /** mobile based user search */
     await Employee.findOne({ mobile }).then(async user => {
@@ -345,7 +344,7 @@ async function create(params) {
             })
 
             await notification.save().then(notification => {
-              if (notification) console.log('notification saved')
+              //if (notification) console.log('notification saved')
             })
 
             let mystr = output.services
@@ -369,7 +368,6 @@ async function create(params) {
             return { result: false, message: 'Registeration failed try again later' }
           }
         }).catch(e => {
-          console.log('new user error --', e)
           return { result: false, message: e.message }
         })
       }
@@ -381,12 +379,14 @@ async function create(params) {
     await Employee.findOne({ email: userParam.email }).then(async user => {
       let emp_data;
       let arr;
+      //console.log('found user', user)
       if (user) {
         if (userParam.type === 'google' || userParam.type === 'facebook') {
           emp_data = Object.assign(user, {
             username: userParam.username,
             image: userParam.image
           });
+          
           let mystr = emp_data.services;
           arr = mystr.split(',');
           let ser_arr = [];
@@ -403,14 +403,13 @@ async function create(params) {
             emp_data.img_status = '1'
           }
           if (emp_data.status === '0') {
-            return {
+            data = {
               result: false,
               message: 'Your account is deactivated by admin'
             }
-          }
-          data = emp_data
+          }else {data = emp_data}
         } else {
-          return { result: false, message: 'Email is already Exist' }
+          return { result: false, message: 'Email already Exists' }
         }
       }
       else {
@@ -432,7 +431,7 @@ async function create(params) {
             })
 
             await notification.save().then(notification => {
-              if (notification) console.log('notification saved')
+              //if (notification) console.log('notification saved')
             })
 
             let mystr = output.services
@@ -456,7 +455,7 @@ async function create(params) {
             return { result: false, message: 'Registeration failed try again later' }
           }
         }).catch(e => {
-          console.log('new user error --', e)
+          //console.log('new user error --', e)
           return { result: false, message: e.message }
         })
       }
