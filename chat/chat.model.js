@@ -20,6 +20,10 @@ const chatsSchema = new Schema({
     type: String,
     required: "Please provide message"
   }, 
+  type: {
+    type: String,
+    default: 'text'
+  },
   time: {
     type: Date,
     default: Date.now()
