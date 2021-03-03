@@ -33,8 +33,6 @@ admin.initializeApp({
   databaseURL: process.env.DATABASE_URL
 });
 
-const { storeMessage } = require('./chat/chat.service');
-
 let isListened = false;
 
 //options to avaoid the topology was destroyed error
@@ -142,7 +140,7 @@ if (!isListened) {
       if (users[receiverId]) {
         const receipientSocketId = users[receiverId].socketId;
         let messageObject = Object.assign({}, data);
-        storeMessage(messageObject, data.userType);
+        chatService.storeMessage(messageObject, data.userType);
         chatService.storeChat({userType, type, sender: senderId, message: textMessage, recipient: receiverId, time, date, fcm_id, orderId, senderName}).then(response => {
           console.log(response);
         });
@@ -151,7 +149,7 @@ if (!isListened) {
       else {
         // just save the massages for when user available
         let messageObject = Object.assign({}, data);
-        storeMessage(messageObject, data.userType);
+        chatService.storeMessage(messageObject, data.userType);
         chatService.storeChat({userType, type, sender: senderId, message: textMessage, recipient: receiverId, time, date, fcm_id, orderId, senderName}).then(response => {
           console.log(response);
         });
