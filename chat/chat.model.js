@@ -20,7 +20,7 @@ const chatsSchema = new Schema({
     type: String,
     required: "Please provide message"
   },
-  image: {
+  file: {
     type: Object
   },
   type: {
