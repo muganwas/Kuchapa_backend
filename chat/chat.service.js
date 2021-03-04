@@ -250,13 +250,14 @@ const generateSignature = (req, res) => {
 
 const storeMessage = async (params, userType) => {
     try {
-        const { type, textMessage, senderId, senderName, senderImage, receiverId, receiverImage, fcm_id, receiverName, serviceName, orderId, date, time } = params;
+        const { type, file, textMessage, senderId, senderName, senderImage, receiverId, receiverImage, fcm_id, receiverName, serviceName, orderId, date, time } = params;
         let msgId = database().ref('chatting').child(senderId).child(receiverId).push().key;
         let updates = {};
         let recentUpdates = {};
         let message = {
             textMessage,
             imageMessage: '',
+            file,
             time,
             senderId: senderId,
             senderImage: senderImage,
@@ -272,6 +273,7 @@ const storeMessage = async (params, userType) => {
         let recentMessageReceiver = {
             textMessage,
             imageMessage: '',
+            file,
             time,
             date,
             id: senderId,
@@ -284,6 +286,7 @@ const storeMessage = async (params, userType) => {
         let recentMessageSender = {
             textMessage,
             imageMessage: '',
+            file,
             time,
             date,
             id: receiverId,
