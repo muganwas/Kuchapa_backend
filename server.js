@@ -144,7 +144,7 @@ if (!isListened) {
         chatService.storeChat({userType, type, sender: senderId, file, message: textMessage, recipient: receiverId, time, date, fcm_id, orderId, senderName}).then(response => {
           console.log(response);
         });
-        socket.to(receipientSocketId).emit('chat-message', {message: textMessage, type, file, recipient: receiverId, sender: senderId, time, date});
+        socket.to(receipientSocketId).emit('chat-message', {message: textMessage, type, file, recipient: receiverId, sender: senderId, senderName, time, date});
       }
       else {
         // just save the massages for when user available
