@@ -17,7 +17,7 @@ const zoomSecret = process.env.ZOOM_JWT_SECRET
 const zoomAuthAccessToken = process.env.ZOOM_AUTH_ACCESS_TOKE
 
 const storeChat = async chatObject => {
-    const { sender, recipient, time, fcm_id, userType, orderId, senderName } = chatObject;
+    const { sender, recipient, time } = chatObject;
     await chats.findOne({ sender, recipient, time }, (err, data) => {
         if (err) return err;
         else if (data) return "chat stored already";
@@ -27,23 +27,10 @@ const storeChat = async chatObject => {
                 if (err) return err;
                 else return ({ saved: true, details });
             });
-            const notification = JSON.stringify({
-                "fcm_id": fcm_id,
-                "type": "Message",
-                "user_id": userType.toLowerCase() === 'client' ? sender : recipient,
-                "employee_id": userType.toLowerCase() === 'client' ? recipient : sender,
-                "order_id": orderId,
-                "notification_by": userType.toLowerCase() === 'client' ? "Customer" : "Employee",
-                "save_notification": true,
-                "title": "Message Recieved",
-                "body": senderName + "has sent you a message!",
-            });
-            PushNotif(notification);
         }
     }).catch(e => {
         return e;
     });
-    return 'huh!';
 }
 
 const fetchChatMessages = async (req, res) => {
@@ -216,7 +203,6 @@ const setupZoomMeeting = async (req, res) => {
                     "password": "",
                 })
             }).then(response => {
-                console.log('initial response ', response)
                 return response.json()
             }).then(response => {
                 res.send(response)
@@ -258,7 +244,22 @@ const storeMessage = async (params, userType) => {
         let msgId = database().ref('chatting').child(senderId).child(receiverId).push().key;
         let updates = {};
         let recentUpdates = {};
-        let message = {
+
+        let message = file ? {
+            textMessage,
+            imageMessage: '',
+            time,
+            senderId: senderId,
+            senderImage: senderImage,
+            senderName: senderName,
+            receiverId: receiverId,
+            receiverName: receiverName,
+            receiverImage: receiverImage,
+            serviceName: serviceName,
+            orderId: orderId,
+            type,
+            date,
+        } : {
             textMessage,
             imageMessage: '',
             time,
@@ -273,7 +274,19 @@ const storeMessage = async (params, userType) => {
             type,
             date,
         }
-        let recentMessageReceiver = {
+
+        let recentMessageReceiver = file ? {
+            textMessage,
+            imageMessage: '',
+            time,
+            date,
+            id: senderId,
+            name: senderName,
+            image: senderImage,
+            serviceName: serviceName,
+            orderId: orderId,
+            type,
+        } : {
             textMessage,
             imageMessage: '',
             time,
@@ -285,7 +298,19 @@ const storeMessage = async (params, userType) => {
             orderId: orderId,
             type,
         }
-        let recentMessageSender = {
+
+        let recentMessageSender = file ? {
+            textMessage,
+            imageMessage: '',
+            time,
+            date,
+            id: receiverId,
+            name: receiverName,
+            image: receiverImage,
+            serviceName: serviceName,
+            orderId: orderId,
+            type,
+        } : {
             textMessage,
             imageMessage: '',
             time,
@@ -297,16 +322,17 @@ const storeMessage = async (params, userType) => {
             orderId: orderId,
             type,
         }
+
         updates['chatting/' + senderId + '/' + receiverId + '/' + msgId] = message;
         updates['chatting/' + receiverId + '/' + senderId + '/' + msgId] = message;
-        database().ref().update(updates);
+        database().ref().update(updates)
 
         recentUpdates['recentMessage/' + senderId + '/' + receiverId] = recentMessageSender;
         recentUpdates['recentMessage/' + receiverId + '/' + senderId] = recentMessageReceiver;
 
-        database().ref().update(recentUpdates);
+        database().ref().update(recentUpdates)
 
-        const notification = JSON.stringify({
+        const notification = {
             "fcm_id": fcm_id,
             "type": "Message",
             "user_id": userType === 'client' ? senderId : receiverId,
@@ -315,9 +341,9 @@ const storeMessage = async (params, userType) => {
             "notification_by": userType === 'client' ? "Customer" : "Employee",
             "save_notification": true,
             "title": "Message Recieved",
-            "body": senderName + "has sent you a message!",
-        });
-        PushNotif(notification);
+            "body": senderName + " has sent you a message!",
+        };
+        fcm_id && PushNotif(notification);
     } catch (err) {
         console.log(err)
     }
