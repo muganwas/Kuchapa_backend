@@ -245,6 +245,7 @@ const storeMessage = async (params, userType) => {
             textMessage,
             imageMessage: '',
             time,
+            file,
             senderId: senderId,
             senderImage: senderImage,
             senderName: senderName,
@@ -258,7 +259,6 @@ const storeMessage = async (params, userType) => {
         } : {
             textMessage,
             imageMessage: '',
-            file,
             time,
             senderId: senderId,
             senderImage: senderImage,
@@ -277,6 +277,7 @@ const storeMessage = async (params, userType) => {
             imageMessage: '',
             time,
             date,
+            file,
             id: senderId,
             name: senderName,
             image: senderImage,
@@ -286,7 +287,6 @@ const storeMessage = async (params, userType) => {
         } : {
             textMessage,
             imageMessage: '',
-            file,
             time,
             date,
             id: senderId,
@@ -302,6 +302,7 @@ const storeMessage = async (params, userType) => {
             imageMessage: '',
             time,
             date,
+            file,
             id: receiverId,
             name: receiverName,
             image: receiverImage,
@@ -311,7 +312,6 @@ const storeMessage = async (params, userType) => {
         } : {
             textMessage,
             imageMessage: '',
-            file,
             time,
             date,
             id: receiverId,
