@@ -18,7 +18,7 @@ const schema = new Schema({
     online: { type: String ,default:'1'},
     avgRating: { type: Number , default: 0},
     email_verification: { type: Number, default:0},
-    acc_type: { type: String, default: 'Individual' },
+    account_type: { type: String, default: 'Individual' },
     fcm_id: { type: String, default: '' },
     createdDate: { type: Date, default: Date.now }
 });

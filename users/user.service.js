@@ -164,7 +164,7 @@ async function create(params) {
     return {
       result: false,
       message:
-        'username,email,password,dob, acc_type(Individual,Company) and image  is required'
+        'username,email,password,dob, account_type(Individual,Company) and image  is required'
     }
   }
   if (userParam.type === 'normal') {
