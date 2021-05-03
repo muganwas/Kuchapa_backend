@@ -103,7 +103,11 @@ function uploadImage(req, res, next) {
 
 function ForgotPassword(req, res, next) {
     employeeService.ForgotPassword(req.body)
-        .then((user) => res.json(user))
+        .then((user) => {
+            if (user)
+                res.json(user)
+            res.send({message: 'Nothing was returned'})
+        })
         .catch(err => next(err));
 }
 

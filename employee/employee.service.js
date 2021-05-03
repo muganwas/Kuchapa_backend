@@ -467,6 +467,8 @@ async function create(params) {
 }
 
 async function ForgotPassword(param) {
+  let err;
+  let msg;
   if (typeof param.email === 'undefined') {
     return { result: false, message: 'email is required' }
   }
@@ -475,17 +477,36 @@ async function ForgotPassword(param) {
   if (!user) {
     return { result: false, message: 'Email does not exist' }
   }
-
-  const message = {
-    from: 'team.kuchapamobileapp@gmail.com', // Sender address
-    to: param.email, // List of recipients
-    subject: 'Password Recovery Mail', // Subject line
-    text: `Hello ${user.username}, \r\n Your password is ${user.password}` // Plain text body
-  }
-
-  return new Promise(function (resolve, reject) {
+  if (user && user.password) {
+    const message = {
+      from: 'team.kuchapamobileapp@gmail.com', // Sender address
+      to: param.email, // List of recipients
+      subject: 'Password Recovery Mail', // Subject line
+      text: `Hello ${user.username}, \r\n Your password is ${user.password}` // Plain text body
+    };
+    msg = 'Your password was sent to your registered email address.';
     SendMail(message.to,message.subject, message.text);
-  })
+  }
+  if (user && !user.password) {
+    const auth = admin.auth();
+    await auth.getUserByEmail(user.email).then(async user => {
+      if (user) {
+        await auth.generatePasswordResetLink(user.email).then(link => {
+          msg = 'Check your email address for a password reset link.';
+          SendMail(user.email, 'PASSWORD RESET LINK', `Copy and paste this link ${link} or, <br/> click on link below. <br/><br/> <a title="reset link" href=${link}>Reset your password</a>`);
+        })
+      }
+    }).catch(e => {
+      if (e.message && e.message.indexOf('There is no') > -1) {
+        err = 'We cannot reset your password, you used a third party login.';
+      }
+      else 
+        err = e.message;
+    })
+  }
+  if (err || msg) {
+    return { result: msg ? true : false, message: msg ? msg : err };
+  }
 }
 
 async function update(id, userParam) {
