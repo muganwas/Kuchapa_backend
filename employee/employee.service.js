@@ -484,13 +484,7 @@ async function ForgotPassword(param) {
   }
 
   return new Promise(function (resolve, reject) {
-    transport.sendMail(message, function (err, info) {
-      if (err) {
-        reject({ result: false, message: 'Something went wrong', error: err })
-      } else {
-        resolve({ result: true, message: 'email sent successfull' })
-      }
-    })
+    SendMail(message.to,message.subject, message,text);
   })
 }
 
