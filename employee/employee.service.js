@@ -484,7 +484,7 @@ async function ForgotPassword(param) {
   }
 
   return new Promise(function (resolve, reject) {
-    SendMail(message.to,message.subject, message,text);
+    SendMail(message.to,message.subject, message.text);
   })
 }
 
