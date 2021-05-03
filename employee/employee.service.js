@@ -24,7 +24,6 @@ async function authenticate(param) {
   }
   const user = await Employee.findOne({ email: param.email });
 
-
   if (!user) {
     return { result: false, message: 'email not found' }
   }
@@ -44,7 +43,7 @@ async function authenticate(param) {
     await user.save()
   }
 
-  if (user && bcrypt.compareSync(param.password, user.hash)) {
+  if ((user && bcrypt.compareSync(param.password, user.hash)) || param.loginType === 'Firebase') {
     //const { hash, userWithoutHash } = user.toObject();
     const token = jwt.sign({ sub: user.id }, config.secret)
     if (user.img_status == '1') {
