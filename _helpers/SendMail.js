@@ -36,10 +36,8 @@ module.exports = async (email, subject, message) => {
     text: message, // plain text body
     html: message // html body
   }).then( res => {
-    console.log(res)
     return { result: true, message: 'mail sent' }
   }).catch(e => {
-      console.log(e);
       return  { result: false, message: 'something went wrong', error: e.message }
   });
 }
