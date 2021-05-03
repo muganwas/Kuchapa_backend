@@ -29,7 +29,7 @@ async function authenticate(param) {
     }
   }
 
-  if (user && bcrypt.compareSync(param.password, user.hash)) {
+  if ((user && bcrypt.compareSync(param.password, user.hash)) || param.loginType === 'Firebase') {
     const { hash, userWithoutHash } = user.toObject()
     const token = jwt.sign({ sub: user.id }, config.secret)
     if (typeof param.fcm_id !== 'undefined') {
