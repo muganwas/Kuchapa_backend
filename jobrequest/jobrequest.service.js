@@ -110,6 +110,9 @@ async function Customerstatuscheck(id, type) {
                     "employee_id": {
                         "$toObjectId": "$employee_id"
                     },
+                    "user_id": {
+                        "$toObjectId": "$user_id"
+                    },
                     "service_id": {
                         "$toObjectId": "$service_id"
                     },
@@ -166,8 +169,8 @@ async function Customerstatuscheck(id, type) {
 
                 new_data['order_id'] = order_id_str;
                 var new_emp = JSon[i].employee_details[0];
+                console.log('emp ', new_emp)
                 new_data['employee_details'] = new_emp;
-
                 var new_ser = JSon[i].service_details[0];
 
                 new_data['service_details'] = new_ser;
@@ -202,6 +205,9 @@ async function Providerstatuscheck(id, type) {
                 "$project": {
                     "user_id": {
                         "$toObjectId": "$user_id"
+                    },
+                    "employee_id": {
+                        "$toObjectId": "$employee_id"
                     },
                     "service_id": {
                         "$toObjectId": "$service_id"
@@ -258,8 +264,8 @@ async function Providerstatuscheck(id, type) {
                 order_id_str = order_id_str.substr(parseInt(lang_take));
                 order_id_str = 'HRF-' + order_id_str.toUpperCase();
                 new_data['order_id'] = order_id_str;
-                var new_emp = JSon[i].customer_details[0];
-                new_data['customer_details'] = new_emp;
+                var new_cust = JSon[i].customer_details[0];
+                new_data['customer_details'] = new_cust;
 
                 var new_ser = JSon[i].service_details[0];
 
@@ -466,7 +472,6 @@ async function CustomerDataRequest(id, omit) {
 
                 var new_date = JSon[i].createdDate;
                 var d = new Date(new_date);
-                // console.log(new_date);
                 new_date = ("0" + d.getDate()).slice(-2) + '-' + monthNames[d.getMonth()] + '-' + d.getFullYear();
                 new_data['createdDate'] = new_date;
 
@@ -480,7 +485,6 @@ async function CustomerDataRequest(id, omit) {
 
                 new_data['order_id'] = order_id_str;
                 var new_emp = JSon[i].employee_details[0];
-
                 new_data['employee_details'] = new_emp;
 
                 var new_ser = JSon[i].service_details[0];
