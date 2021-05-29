@@ -5,7 +5,6 @@ const schema = new Schema({
     username: { type: String, required: true },
     email: { type: String, default: '' },
     mobile: { type: String, default: '' },
-    password: { type: String, default: '' },
     dob: { type: String, required: false },
     hash: { type: String, default: '' },
     country: { type: String, default: '' },

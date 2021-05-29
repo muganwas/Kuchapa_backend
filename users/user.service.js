@@ -201,6 +201,7 @@ async function create(params) {
           return { result: false, message: 'Email already Exist' }
         }
       } else {
+        userParam.password && delete userParam.password;
         const user = new User(userParam);
         await user
           .save()
@@ -209,8 +210,7 @@ async function create(params) {
             if (data) {
               const message = `Please <a href="${config.URL}users/verification/${data.id}">Click Here </a> To verify your Email`
               /**send verification email if not verified */
-              if (userParam.email_verification === 0)
-                SendMail(userParam.email, 'Email Address Verification', message)
+              if (userParam.email_verification === 0 || userParam.email_verification === undefined) SendMail(userParam.email, 'Email Address Verification', message)
               const notification = new Notification({
                 type: 'New User',
                 order_id: '',

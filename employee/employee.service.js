@@ -314,14 +314,14 @@ async function create(params) {
             emp_data.img_status = '1'
           }
           if (emp_data.status === '0') {
-            return {
+            data = {
               result: false,
               message: 'Your account is deactivated by admin'
             }
           }
           data = emp_data
         } else {
-          return { result: false, message: 'Email is already Exist' }
+          data = { result: false, message: 'Email is already Exist' }
         }
       }
       else {
@@ -364,28 +364,26 @@ async function create(params) {
             }
             data = output
           } else {
-            return { result: false, message: 'Registeration failed try again later' }
+            data = { result: false, message: 'Registeration failed try again later' }
           }
         }).catch(e => {
-          return { result: false, message: e.message }
+          data = { result: false, message: e.message }
         })
       }
     }).catch(e => {
-      return { result: false, message: e.message }
+      data = { result: false, message: e.message }
     });
   } else {
     /** email based user search */
     await Employee.findOne({ email: userParam.email }).then(async user => {
       let emp_data;
       let arr;
-      //console.log('found user', user)
       if (user) {
         if (userParam.type === 'google' || userParam.type === 'facebook') {
           emp_data = Object.assign(user, {
             username: userParam.username,
             image: userParam.image
           });
-          
           let mystr = emp_data.services;
           arr = mystr.split(',');
           let ser_arr = [];
@@ -398,7 +396,7 @@ async function create(params) {
             }
           }
           emp_data.services = JSON.stringify(ser_arr);
-          if (emp_data.image != undefined && emp_data.image != '') {
+          if (emp_data.image !== undefined && emp_data.image !== '') {
             emp_data.img_status = '1'
           }
           if (emp_data.status === '0') {
@@ -408,15 +406,16 @@ async function create(params) {
             }
           }else {data = emp_data}
         } else {
-          return { result: false, message: 'Email already Exists' }
+          data = { result: false, message: 'Email already Exists' }
         }
       }
       else {
+        userParam.password && delete userParam.passwoard;
         const emp = new Employee(userParam)
         await emp.save().then(async output => {
           if (output) {
             const message = `Please <a href="${config.URL}employee/verification/${output.id}">Click Here </a> To verify your Email`
-            if (userParam.email_verification === 0) SendMail(userParam.email, 'Email Address Verification', message)
+            if (userParam.email_verification === 0 || userParam.email_verification === undefined) SendMail(userParam.email, 'Email Address Verification', message)
 
             const notification = new Notification({
               type: 'New User',
@@ -451,15 +450,15 @@ async function create(params) {
             }
             data = output
           } else {
-            return { result: false, message: 'Registeration failed try again later' }
+            data = { result: false, message: 'Registeration failed try again later' }
           }
         }).catch(e => {
           //console.log('new user error --', e)
-          return { result: false, message: e.message }
+          data = { result: false, message: e.message }
         })
       }
     }).catch(e => {
-      return { result: false, message: e.message }
+      data = { result: false, message: e.message }
     });
   }
   return data
