@@ -46,10 +46,6 @@ async function authenticate(param) {
   if ((user && bcrypt.compareSync(param.password, user.hash)) || param.loginType === 'Firebase') {
     //const { hash, userWithoutHash } = user.toObject();
     const token = jwt.sign({ sub: user.id }, config.secret)
-    if (user.img_status == '1') {
-      user.image = config.URL + 'api/uploads/employee/' + user.image
-    }
-
     let mystr = user.services
     arr = mystr.split(',')
     let ser_arr = []
@@ -359,9 +355,6 @@ async function create(params) {
               }
             }
             output.services = JSON.stringify(ser_arr)
-            if (output.img_status == '1') {
-              output.image = config.URL + 'api/uploads/employee/' + output.image
-            }
             data = output
           } else {
             data = { result: false, message: 'Registeration failed try again later' }
@@ -445,9 +438,6 @@ async function create(params) {
               }
             }
             output.services = JSON.stringify(ser_arr)
-            if (output.img_status == '1') {
-              output.image = config.URL + 'api/uploads/employee/' + output.image
-            }
             data = output
           } else {
             data = { result: false, message: 'Registeration failed try again later' }
