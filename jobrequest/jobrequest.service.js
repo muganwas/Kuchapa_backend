@@ -169,7 +169,6 @@ async function Customerstatuscheck(id, type) {
 
                 new_data['order_id'] = order_id_str;
                 var new_emp = JSon[i].employee_details[0];
-                console.log('emp ', new_emp)
                 new_data['employee_details'] = new_emp;
                 var new_ser = JSon[i].service_details[0];
 
@@ -794,7 +793,6 @@ async function PushNotif(param) {
         newdata.title = param.title;
         newdata.body = param.body;
     }
-
     if (save_notification) {
         let save = {};
         save['user_id'] = new mongoose.Types.ObjectId(param.user_id);
