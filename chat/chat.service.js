@@ -338,7 +338,7 @@ const storeMessage = async (params, userType) => {
             "employee_id": userType === 'client' ? receiverId : senderId,
             "order_id": orderId,
             "notification_by": userType === 'client' ? "Customer" : "Employee",
-            "save_notification": true,
+            "save_notification": false,
             "title": "Message Recieved",
             "body": senderName + " has sent you a message!",
         };
