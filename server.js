@@ -112,8 +112,8 @@ if (!isListened) {
         Verification(id).then(verification => {
           const { result, message } = verification;
           if (result) {
-            users[id] = { status: '1', socketId: socket.id};
-            connectedUsers[id] = { status: '1', socketId: socket.id};
+            users[id] = { status: '1', socketId: socket.id };
+            connectedUsers[id] = { status: '1', socketId: socket.id };
             socket.uid = id;
             socket.emit('authorized', { message });
             io.emit('user-joined', users);
@@ -141,16 +141,16 @@ if (!isListened) {
         const receipientSocketId = users[receiverId].socketId;
         let messageObject = Object.assign({}, data);
         chatService.storeMessage(messageObject, data.userType);
-        chatService.storeChat({userType, type, sender: senderId, file, message: textMessage, recipient: receiverId, time, date, fcm_id, orderId, senderName}).then(response => {
+        chatService.storeChat({ userType, type, sender: senderId, file, message: textMessage, recipient: receiverId, time, date, fcm_id, orderId, senderName }).then(response => {
           console.log(response);
         });
-        socket.to(receipientSocketId).emit('chat-message', {message: textMessage, type, file, recipient: receiverId, sender: senderId, senderName, time, date});
+        socket.to(receipientSocketId).emit('chat-message', { message: textMessage, type, file, recipient: receiverId, sender: senderId, senderName, time, date });
       }
       else {
         // just save the massages for when user available
         let messageObject = Object.assign({}, data);
         chatService.storeMessage(messageObject, data.userType);
-        chatService.storeChat({userType, type, sender: senderId, file, message: textMessage, recipient: receiverId, time, date, fcm_id, orderId, senderName}).then(response => {
+        chatService.storeChat({ userType, type, sender: senderId, file, message: textMessage, recipient: receiverId, time, date, fcm_id, orderId, senderName }).then(response => {
           console.log(response);
         });
         console.log('messaged user is offline');

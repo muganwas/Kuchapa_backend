@@ -57,9 +57,9 @@ async function authenticate(param) {
 async function getAll() {
   var data = await User.find().select('-hash')
   if (data.length) {
-    return { result: true, message: 'User Found', data: data }
+    return { result: true, message: 'Users Found', data: data }
   } else {
-    return { result: false, message: 'User Not Found' }
+    return { result: false, message: 'Users Not Found' }
   }
 }
 
@@ -179,7 +179,7 @@ async function create(params) {
   if (userParam.password) {
     userParam.hash = bcrypt.hashSync(userParam.password, 10)
   }
-  
+
   if ((typeof mobile !== 'undefined' && mobile.length > 0) && (typeof email === 'undefined' || email && email.length === 0)) {
     /** mobile based user search */
     await User.findOne({ mobile }).then(async user => {
