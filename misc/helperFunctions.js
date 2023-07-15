@@ -5,18 +5,18 @@ const mongoose = require('mongoose');
 module.exports.storeChat = async chatObject => {
   const chats = mongoose.model('chats');
   const { sender, recipient, time } = chatObject;
-  await chats.findOne({sender, recipient, time}, (err, data) => {
-      if (err) return err;
-      else if (data) return "chat stored already";
-      else {
-          const newChats = new chats(chatObject);
-          newChats.save((err, details) => {
-              if (err) return err;
-              else return({saved: true, details});
-          });
-      }
+  await chats.findOne({ sender, recipient, time }, (err, data) => {
+    if (err) return err;
+    else if (data) return "chat stored already";
+    else {
+      const newChats = new chats(chatObject);
+      newChats.save((err, details) => {
+        if (err) return err;
+        else return ({ saved: true, details });
+      });
+    }
   }).catch(e => {
-      return e;
+    return e;
   });
   return 'huh!';
 }
@@ -32,7 +32,7 @@ module.exports.generatePassword = (
   let generatedPassword = ''
   let restPassword = ''
 
-  const restLength = passwordLength % 4 
+  const restLength = passwordLength % 4
   const usableLength = passwordLength - restLength
   const generateLength = usableLength / 4
 
@@ -52,15 +52,15 @@ module.exports.generatePassword = (
 
 module.exports.formatDate = (today = new Date()) => {
   var day = today.getDate(),
-  month = today.getMonth(),
-  year = today.getFullYear();
+    month = today.getMonth(),
+    year = today.getFullYear();
 
-  if (day < 10){
+  if (day < 10) {
     day = "0" + day;
   }
-  if( month < 10){
+  if (month < 10) {
     month = "0" + month;
   }
-  const formattedDate = year+ "-"+ month +"-"+ day;
+  const formattedDate = year + "-" + month + "-" + day;
   return formattedDate;
 }

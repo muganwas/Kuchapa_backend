@@ -37,6 +37,7 @@
 		"zoomus": "^0.1.4"
 	},
 	"devDependencies": {
+		"@types/socket.io": "^3.0.2",
 		"nodemon": "^1.19.1"
 	},
 	"engines": {
