@@ -14,9 +14,9 @@ const schema = new Schema({
     image: { type: String, default: 'no-image.jpg' },
     img_status: { type: String, default: '0' },
     status: { type: String, default: '1' },
-    online: { type: String ,default:'1'},
-    avgRating: { type: Number , default: 0},
-    email_verification: { type: Number, default:0},
+    online: { type: String, default: '1' },
+    avgRating: { type: Number, default: 0 },
+    email_verification: { type: Number, default: 0 },
     acc_type: { type: String, default: 'Individual' },
     fcm_id: { type: String, default: '' },
     createdDate: { type: Date, default: Date.now }

@@ -45,7 +45,10 @@ const mongooseOptions = {
 
 mongoose.Promise = global.Promise;
 mongoose.connect(db_connection_url, mongooseOptions, err => {
-  if (err) console.log(err);
+  if (err) {
+    console.log(err);
+    process.exit(1);
+  }
   console.log("connected to db");
 });
 

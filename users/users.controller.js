@@ -2,8 +2,10 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 const userService = require('./user.service');
+const { createSession } = require('../misc/helperFunctions');
 
 router.post('/authenticate', authenticate);
+router.post('/createSession', authCreateSession);
 router.post('/register/create', register);
 router.get('/', getAll);
 router.post('/get_search', get_search);
@@ -22,6 +24,10 @@ function authenticate(req, res, next) {
     userService.authenticate(req.body)
         .then(user => user ? res.json(user) : res.status(400).json({ message: 'Username or password is incorrect' }))
         .catch(err => next(err));
+}
+
+function authCreateSession(req, res, next) {
+    createSession(req.body).then(session => res.json(session)).catch(err => next(err));
 }
 
 function register(req, res, next) {
@@ -63,7 +69,7 @@ function Verification(req, res, next) {
     userService.Verification(req.params.id)
         .then(user => {
             if (user) {
-                if (user.result) res.sendFile(path.join(__dirname,'../public/Successful.html'));
+                if (user.result) res.sendFile(path.join(__dirname, '../public/Successful.html'));
                 else res.json(user);
             }
             else res.sendStatus(404)
@@ -71,7 +77,7 @@ function Verification(req, res, next) {
         .catch(err => next(err));
 }
 function getById(req, res, next) {
-    userService.getById(req.params.id,req.query)
+    userService.getById(req.params.id, req.query)
         .then(user => user ? res.json(user) : res.sendStatus(404))
         .catch(err => next(err));
 }
@@ -83,10 +89,10 @@ function update(req, res, next) {
 }
 
 function uploadImage(req, res, next) {
-    if(req.body && req.body.uri){
-     var  image = req.body.uri;    
-    }else{
-     var image = false;    
+    if (req.body && req.body.uri) {
+        var image = req.body.uri;
+    } else {
+        var image = false;
     }
     userService.uploadImage(req.params.id, image)
         .then((data) => data ? res.json(data) : res.sendStatus(404))

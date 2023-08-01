@@ -21,6 +21,21 @@ module.exports.storeChat = async chatObject => {
   return 'huh!';
 }
 
+module.exports.createSession = async ({ idToken }) => {
+  const expiresIn = 60 * 60 * 24 * 2 * 1000;// Two days
+  admin.auth().createSessionCookie(idToken, { expiresIn })
+    .then(
+      (sessionCookie) => {
+        // Set cookie policy for session cookie.
+        const options = { maxAge: expiresIn, httpOnly: true, secure: true };
+        return ({ message: 'Cookie created', sessionCookie, options });
+      },
+      (error) => {
+        return ({ message: "Error", error });
+      }
+    );
+};
+
 module.exports.generatePassword = (
   passwordLength = 8,
 ) => {

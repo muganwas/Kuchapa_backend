@@ -33,7 +33,7 @@ function authenticate(req, res, next) {
 }
 
 function register(req, res, next) {
-   employeeService.create(req.body)
+    employeeService.create(req.body)
         .then((user) => res.json(user))
         .catch(err => next(err));
 }
@@ -42,7 +42,7 @@ function Verification(req, res, next) {
     employeeService.Verification(req.params.id)
         .then(user => {
             if (user) {
-                if (user.result) res.sendFile(path.join(__dirname,'../public/Successful.html'));
+                if (user.result) res.sendFile(path.join(__dirname, '../public/Successful.html'));
                 else res.json(user);
             }
             else res.sendStatus(404);
@@ -69,30 +69,30 @@ function getCurrent(req, res, next) {
 }
 
 function PushNotif(req, res, next) {
-   employeeService.PushNotif(req.body)
-        .then(user => res.json(user) )
+    employeeService.PushNotif(req.body)
+        .then(user => res.json(user))
         .catch(err => next(err));
 }
 
 function getById(req, res, next) {
-   
-    employeeService.getById(req.params.id,req.query)
+
+    employeeService.getById(req.params.id, req.query)
         .then(user => user ? res.json(user) : res.sendStatus(404))
         .catch(err => next(err));
 }
 
 function update(req, res, next) {
     // employeeService.update(req.params.id, req.body)
-   employeeService.update(req.params.id, req.body)
+    employeeService.update(req.params.id, req.body)
         .then((data) => data ? res.json(data) : res.sendStatus(404))
         .catch(err => next(err));
 }
 
 function uploadImage(req, res, next) {
-    if(req.body && req.body.uri){
-     var  image = req.body.uri;    
-    }else{
-     var image = false;    
+    if (req.body && req.body.uri) {
+        var image = req.body.uri;
+    } else {
+        var image = false;
     }
     employeeService.uploadImage(req.params.id, image)
         .then((data) => data ? res.json(data) : res.sendStatus(404))
@@ -106,7 +106,7 @@ function ForgotPassword(req, res, next) {
         .then((user) => {
             if (user)
                 res.json(user)
-            res.send({message: 'Nothing was returned'})
+            res.send({ message: 'Nothing was returned' })
         })
         .catch(err => next(err));
 }

@@ -3,18 +3,18 @@ const router = express.Router();
 const sub_categoryService = require('./sub_category.service');
 
 
-var multer  = require('../node_modules/multer');
+var multer = require('../node_modules/multer');
 // console.log(multer);
 var Storage = multer.diskStorage({
-destination: function (req, file, callback) {
-callback(null, "./uploads/services/");
-},
-filename: function (req, file, callback) {
-callback(null, file.fieldname + "_" + Date.now() + "_" + file.originalname);
-}
+    destination: function (req, file, callback) {
+        callback(null, "./uploads/services/");
+    },
+    filename: function (req, file, callback) {
+        callback(null, file.fieldname + "_" + Date.now() + "_" + file.originalname);
+    }
 });
 
-var upload = multer({ storage: Storage }); 
+var upload = multer({ storage: Storage });
 // routes
 router.post('/create', create);
 router.get('/', getAll);
@@ -34,7 +34,7 @@ function create(req, res, next) {
 
 function getAll(req, res, next) {
 
-    sub_categoryService.getAll()
+    sub_categoryService.getAll(req.query)
         .then(users => res.json(users))
         .catch(err => next(err));
 }

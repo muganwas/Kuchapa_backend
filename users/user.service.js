@@ -156,6 +156,7 @@ async function create(params) {
   const image = userParam.image
   const username = userParam.username
   let data
+  console.log("user data", params)
   if (
     (typeof mobile === 'undefined' || mobile && mobile.length === 0) &&
     ((typeof username === 'undefined' || username && username.length === 0) ||
@@ -247,8 +248,9 @@ async function create(params) {
             }
           })
       }
-    }).catch(e => {
-      return { result: false, message: e.message }
+    }).catch(error => {
+      console.log({ error })
+      return { result: false, message: error.message }
     });
   }
   else {
@@ -318,8 +320,9 @@ async function create(params) {
             }
           })
       }
-    }).catch(e => {
-      return { result: false, message: e.message }
+    }).catch(error => {
+      console.log({ error })
+      return { result: false, message: error.message }
     });
   }
   return data
