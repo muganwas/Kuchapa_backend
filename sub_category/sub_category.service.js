@@ -33,10 +33,14 @@ async function getAll(query) {
         data = await Sub_Category.find();
     if (data) {
         for (var i = 0; i < data.length; i++) {
-            var m_cat = '';
-            m_cat = await Main_category.find({ id: data[i].main_category });
-            if (m_cat.length) {
-                data[i].main_category = m_cat[0].main_category;
+            try {
+                var m_cat = '';
+                m_cat = await Main_category.findById(data[i].main_category);
+                if (m_cat) {
+                    data[i].main_category = m_cat.main_category;
+                }
+            } catch (e) {
+                console.log(e.message);
             }
         }
         return { result: true, message: 'Service Found', data: data };
@@ -60,10 +64,9 @@ async function getByMId(id) {
 }
 
 async function create(userParam) {
-    // validate
+    if (!userParam.main_category || !userParam.sub_category) return { result: false, message: 'Missing information' };
 
     const cat = new Sub_Category(userParam);
-
 
     var output = '';
     if (output = await cat.save()) {

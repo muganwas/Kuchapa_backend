@@ -51,11 +51,9 @@ async function getById(id) {
 }
 
 async function create(userParam) {
-    // validate
-    console.log(userParam);
+    if (!userParam.main_category) return { result: false, message: 'Missing information' };
 
     const cat = new Main_Category(userParam);
-
 
     var output = '';
     if (output = await cat.save()) {
