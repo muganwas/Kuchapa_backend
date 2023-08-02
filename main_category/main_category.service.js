@@ -28,6 +28,7 @@ async function getAll(query) {
     var data = [];
     var count = 0;
     var totalPages = 1;
+
     if (page != undefined && limit != undefined) {
         count = await Main_Category.countDocuments();
         data = await Main_Category.find({})
@@ -39,11 +40,11 @@ async function getAll(query) {
         totalPages = Math.ceil(count / limit);
     } else
         data = await Main_Category.find();
+
     if (data)
         return { result: true, message: 'Service Found', currentPage: page || 1, totalPages, data };
 
     return { result: false, message: 'Service Not Found' };
-
 }
 
 async function getById(id) {

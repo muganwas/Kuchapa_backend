@@ -2,12 +2,11 @@ const config = require('../config');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const db = require('_helpers/db');
-const User = db.Services;
+const Services = db.Services;
 const Main_Category = db.Main_Category;
 const Sub_Category = db.Sub_Category;
 
 module.exports = {
-    authenticate,
     getAll,
     getAllService,
     getById,
@@ -16,22 +15,25 @@ module.exports = {
     _delete
 };
 
-async function authenticate({ username, password }) {
-    const user = await User.findOne({ username });
-    if (user && bcrypt.compareSync(password, user.hash)) {
-        const { hash, ...userWithoutHash } = user.toObject();
-        const token = jwt.sign({ sub: user.id }, config.secret);
-        return {
-            ...userWithoutHash,
-            token
-        };
-    }
-}
+async function getAll(query) {
+    const { page, limit } = query;
+    var data = [];
+    var count = 0;
+    var totalPages = 1;
 
-async function getAll() {
-    var data = '';
-    if (data = await User.find().select('-hash')) {
-        var tempdata = [];
+    if (page != undefined && limit != undefined) {
+        count = await Services.countDocuments();
+        data = await Services.find({})
+            // We multiply the "limit" variables by one just to make sure we pass a number and not a string
+            .limit(limit * 1)
+            .skip((page - 1) * limit)
+            // We sort the data by the date of their creation in descending order (user 1 instead of -1 to get ascending order)
+            .sort({ createdAt: -1 });
+        totalPages = Math.ceil(count / limit);
+    } else
+        data = await Services.find();
+
+    if (data) {
         for (var i = 0; i < data.length; i++) {
             var main_c = '';
             var sub_c = '';
@@ -40,10 +42,9 @@ async function getAll() {
             if (main_c.length > 0 && sub_c.length > 0) {
                 data[i].main_category = main_c[0].main_category;
                 data[i].sub_category = sub_c[0].sub_category;
-                tempdata.push(data[i]);
             }
         }
-        return { result: true, message: 'Service Found', data: tempdata };
+        return { result: true, message: 'Service Found', data, currentPage: page || 1, totalPages, };
     } else {
         return { result: false, message: 'Service Not Found' };
 
@@ -52,7 +53,7 @@ async function getAll() {
 
 async function getAllService() {
     var data = '';
-    if (data = await User.find().select('-hash')) {
+    if (data = await Services.find().select('-hash')) {
         return { result: true, message: 'Service Found', data: data };
     } else {
         return { result: false, message: 'Service Not Found' };
@@ -61,13 +62,13 @@ async function getAllService() {
 }
 
 async function getById(id) {
-
-    return await User.findById(id);
+    return await Services.findById(id);
 }
 
 async function create(userParam) {
+    if (!userParam.main_category || !userParam.sub_category || !userParam.service_name || !userParam.image) return { result: false, message: 'Missing information' };
     // validate
-    const user = new User(userParam);
+    const user = new Services(userParam);
     var output = '';
     if (output = await user.save()) {
         return { result: true, message: 'Add Service Successfull', data: output };
@@ -77,7 +78,7 @@ async function create(userParam) {
 }
 
 async function update(id, userParam) {
-    const user = await User.findById(id);
+    const user = await Services.findById(id);
 
     if (!user) {
         return { result: false, message: 'Service not found' };
@@ -95,9 +96,9 @@ async function update(id, userParam) {
 }
 
 async function _delete(id) {
-    if (await User.findById(id)) {
+    if (await Services.findById(id)) {
 
-        if (await User.findByIdAndRemove(id)) {
+        if (await Services.findByIdAndRemove(id)) {
             return { result: true, message: "Service deleted Successfull" };
         } else {
 

@@ -20,6 +20,7 @@ async function getAll(query) {
     var data = [];
     var count = 0;
     var totalPages = 1;
+
     if (page != undefined && limit != undefined) {
         count = await Sub_Category.countDocuments();
         data = await Sub_Category.find({})
@@ -31,6 +32,7 @@ async function getAll(query) {
         totalPages = Math.ceil(count / limit);
     } else
         data = await Sub_Category.find();
+
     if (data) {
         for (var i = 0; i < data.length; i++) {
             try {
@@ -43,7 +45,7 @@ async function getAll(query) {
                 console.log(e.message);
             }
         }
-        return { result: true, message: 'Service Found', data: data };
+        return { result: true, message: 'Service Found', data: data, currentPage: page || 1, totalPages, };
     } else {
         return { result: false, message: 'Service Not Found' };
 
