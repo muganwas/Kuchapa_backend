@@ -27,7 +27,6 @@ router.get('/delete/:id', _delete);
 module.exports = router;
 
 function getAll(req, res, next) {
-    console.log("getting all services..")
     userService.getAll(req.query)
         .then(services => res.json(services))
         .catch(err => next(err));

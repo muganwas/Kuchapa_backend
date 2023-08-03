@@ -65,26 +65,23 @@ async function create(userParam) {
     }
 }
 
-async function update(id, userParam) {
-    const user = await Main_Category.findById(id);
+async function update(body) {
+    const { id, updateInfo } = body;
+    var category = await Main_Category.findById(id);
 
     // validate
-    if (!user) {
-        return { result: false, message: "user not found" };
+    if (!category) {
+        return { result: false, message: "category not found" };
     }
-
-
-    // copy userParam properties to user
-    Object.assign(user, userParam);
-    var data = '';
-    if (data = await user.save()) {
-        return { result: true, message: "update Successfull", data: data };
-
-    } else {
-        return { result: false, message: "Something went wrong" };
-
+    console.log({ id, updateInfo });
+    try {
+        var data = await Main_Category.findOneAndUpdate({ _id: id }, updateInfo, {
+            new: true
+        });
+        return { result: true, message: "update Successfull", data };
+    } catch (e) {
+        return { result: false, message: e.message };
     }
-
 }
 
 async function _delete(id) {

@@ -40,7 +40,9 @@ const mongooseOptions = {
   keepAlive: 1,
   connectTimeoutMS: 30000,
   useUnifiedTopology: true,
-  useNewUrlParser: true
+  useNewUrlParser: true,
+  useFindAndModify: false,
+  useCreateIndex: true,
 };
 
 mongoose.Promise = global.Promise;

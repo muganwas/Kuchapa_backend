@@ -19,20 +19,18 @@ var upload = multer({ storage: Storage });
 router.post('/create', create);
 router.get('/', getAll);
 router.get('/:id', getById);
-router.post('/:id', update);
-router.get('/delete/:id', _delete);
+router.put('/', update);
+router.delete('/delete/:id', _delete);
 
 module.exports = router;
 
 function create(req, res, next) {
-
     main_categoryService.create(req.body)
         .then((user) => res.json(user))
         .catch(err => next(err));
 }
 
 function getAll(req, res, next) {
-
     main_categoryService.getAll(req.query)
         .then(users => res.json(users))
         .catch(err => next(err));
@@ -45,14 +43,13 @@ function getCurrent(req, res, next) {
 }
 
 function getById(req, res, next) {
-    // console.log(req.params.id);
     main_categoryService.getById(req.params.id)
         .then(user => user ? res.json(user) : res.sendStatus(404))
         .catch(err => next(err));
 }
 
 function update(req, res, next) {
-    main_categoryService.update(req.params.id, req.body)
+    main_categoryService.update(req.body)
         .then((rslt) => res.json(rslt))
         .catch(err => next(err));
 }
