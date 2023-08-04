@@ -21,8 +21,8 @@ router.get('/', getAll);
 router.get('/getall', getAllService);
 router.get('/current', getCurrent);
 router.get('/:id', getById);
-router.post('/:id', upload.single('image'), update);
-router.get('/delete/:id', _delete);
+router.put('/', update);
+router.delete('/delete/:id', _delete);
 
 module.exports = router;
 
@@ -33,6 +33,9 @@ function getAll(req, res, next) {
 }
 
 function create(req, res, next) {
+    if (req.file) {
+        req.body.image = req.file.filename;
+    }
     userService.create(req.body)
         .then(services => res.json(services))
         .catch(err => next(err));
@@ -60,7 +63,7 @@ function update(req, res, next) {
     if (req.file) {
         req.body.image = req.file.filename;
     }
-    userService.update(req.params.id, req.body)
+    userService.update(req.body)
         .then((rslt) => res.json(rslt))
         .catch(err => next(err));
 }

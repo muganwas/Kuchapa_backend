@@ -77,21 +77,20 @@ async function create(userParam) {
     }
 }
 
-async function update(id, userParam) {
-    const user = await Services.findById(id);
+async function update(body) {
+    const { id, updateInfo } = body;
+    const service = await Services.findById(id);
 
-    if (!user) {
+    if (!service) {
         return { result: false, message: 'Service not found' };
     }
-
-    // copy userParam properties to user
-    Object.assign(user, userParam);
-    var output = '';
-
-    if (output = await user.save()) {
-        return { result: true, message: 'Update Service Successfull', data: output };
-    } else {
-        return { result: false, message: 'Something went wrong' };
+    try {
+        var data = await Services.findOneAndUpdate({ _id: id }, updateInfo, {
+            new: true
+        });
+        return { result: true, message: 'Update Service Successfull', data };
+    } catch (e) {
+        return { result: false, message: e.message };
     }
 }
 

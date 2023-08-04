@@ -65,10 +65,10 @@ async function getByMId(id) {
 
 }
 
-async function create(userParam) {
-    if (!userParam.main_category || !userParam.sub_category) return { result: false, message: 'Missing information' };
+async function create(params) {
+    if (!params.main_category || !params.sub_category) return { result: false, message: 'Missing information' };
 
-    const cat = new Sub_Category(userParam);
+    const cat = new Sub_Category(params);
 
     var output = '';
     if (output = await cat.save()) {
@@ -78,26 +78,22 @@ async function create(userParam) {
     }
 }
 
-async function update(id, userParam) {
-    const user = await Sub_Category.findById(id);
+async function update(body) {
+    const { id, updateInfo } = body;
+    var category = await Sub_Category.findById(id);
 
     // validate
-    if (!user) {
-        return { result: false, message: "user not found" };
+    if (!category) {
+        return { result: false, message: "sub category not found" };
     }
-
-
-    // copy userParam properties to user
-    Object.assign(user, userParam);
-    var data = '';
-    if (data = await user.save()) {
-        return { result: true, message: "update Successfull", data: data };
-
-    } else {
-        return { result: false, message: "Something went wrong" };
-
+    try {
+        var data = await Sub_Category.findOneAndUpdate({ _id: id }, updateInfo, {
+            new: true
+        });
+        return { result: true, message: "update Successfull", data };
+    } catch (e) {
+        return { result: false, message: e.message };
     }
-
 }
 
 async function _delete(id) {

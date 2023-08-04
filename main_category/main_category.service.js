@@ -73,7 +73,6 @@ async function update(body) {
     if (!category) {
         return { result: false, message: "category not found" };
     }
-    console.log({ id, updateInfo });
     try {
         var data = await Main_Category.findOneAndUpdate({ _id: id }, updateInfo, {
             new: true

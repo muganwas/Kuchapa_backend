@@ -19,8 +19,8 @@ var upload = multer({ storage: Storage });
 router.post('/create', create);
 router.get('/', getAll);
 router.get('/:id', getById);
-router.post('/:id', update);
-router.get('/delete/:id', _delete);
+router.put('/', update);
+router.delete('/delete/:id', _delete);
 router.get('/find_by_mcat/:id', getByMId);
 
 module.exports = router;
@@ -58,7 +58,7 @@ function getByMId(req, res, next) {
 }
 
 function update(req, res, next) {
-    sub_categoryService.update(req.params.id, req.body)
+    sub_categoryService.update(req.body)
         .then((rslt) => res.json(rslt))
         .catch(err => next(err));
 }
