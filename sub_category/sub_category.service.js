@@ -28,7 +28,7 @@ async function getAll(query) {
             .limit(limit * 1)
             .skip((page - 1) * limit)
             // We sort the data by the date of their creation in descending order (user 1 instead of -1 to get ascending order)
-            .sort({ createdAt: -1 });
+            .sort({ createdDate: -1 });
         totalPages = Math.ceil(count / limit);
     } else
         data = await Sub_Category.find();
