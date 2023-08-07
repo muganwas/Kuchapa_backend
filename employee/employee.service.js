@@ -397,7 +397,7 @@ async function create(params) {
               result: false,
               message: 'Your account is deactivated by admin'
             }
-          }else {data = emp_data}
+          } else { data = emp_data }
         } else {
           data = { result: false, message: 'Email already Exists' }
         }
@@ -473,7 +473,7 @@ async function ForgotPassword(param) {
       text: `Hello ${user.username}, \r\n Your password is ${user.password}` // Plain text body
     };
     msg = 'Your password was sent to your registered email address.';
-    SendMail(message.to,message.subject, message.text);
+    SendMail(message.to, message.subject, message.text);
   }
   if (user && !user.password) {
     const auth = admin.auth();
@@ -488,7 +488,7 @@ async function ForgotPassword(param) {
       if (e.message && e.message.indexOf('There is no') > -1) {
         err = 'We cannot reset your password, you used a third party login.';
       }
-      else 
+      else
         err = e.message;
     })
   }

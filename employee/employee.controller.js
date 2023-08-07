@@ -6,7 +6,6 @@ const employeeService = require('./employee.service');
 // routes
 router.post('/authenticate', authenticate);
 router.post('/register', register);
-router.post('/register/create', create);
 router.get('/', getAll);
 router.get('/current', getCurrent);
 router.get('/:id', getById);
@@ -19,12 +18,6 @@ router.post('/delete/:id', _delete);
 router.post('/forgot_password/email', ForgotPassword);
 
 module.exports = router;
-
-function create(req, res, next) {
-    employeeService.create(req.body)
-        .then(user => res.json(user))
-        .catch(err => next(err));
-}
 
 function authenticate(req, res, next) {
     employeeService.authenticate(req.body)

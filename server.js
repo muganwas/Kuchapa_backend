@@ -106,11 +106,17 @@ const io = require('socket.io').listen(app.listen(port, function () {
   console.log('Server listening on port ' + port);
 }));
 
+/**
+ * TODO: Re-do sockets to io
+ */
+
 if (!isListened) {
   io.sockets.on("connection", socket => {
+    console.log('new connection')
     if (this.authentication) socket.off('authentication', this.authentication);
     if (this.sentMessage) socket.off('sent-message', this.sentMessage);
     this.authentication = () => socket.on('authentication', async data => {
+      console.log('user authenticated')
       const { id, userType } = data;
       if (id) {
         let Verification = userType === 'client' ? userService.findUserById : employeeService.findUserById;
