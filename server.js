@@ -6,12 +6,14 @@ const express = require('express');
 //var fs = require('fs');
 //var http = require('http');
 const app = express();
+const httpServer = require('http').createServer(app);
 const cors = require('cors');
 const bodyParser = require('body-parser');
 // const jwt = require('_helpers/jwt');
 const errorHandler = require('_helpers/error-handler');
 const cron = require('node-cron');
 const admin = require("firebase-admin");
+const { Server } = require('socket.io');
 const serviceAccount = require("./adminsdk.js").vars;
 const jsonServiceAcount = JSON.parse(JSON.stringify(serviceAccount));
 const mongoose = require('mongoose');
@@ -26,14 +28,13 @@ const config = {
   databaseURL: process.env.DATABASE_URL,
   storageBucket: process.env.STORAGE_BUCKET
 };
+
 /**firebase initialization */
 firebase.initializeApp(config);
 admin.initializeApp({
   credential: admin.credential.cert(jsonServiceAcount),
   databaseURL: process.env.DATABASE_URL
 });
-
-let isListened = false;
 
 //options to avaoid the topology was destroyed error
 const mongooseOptions = {
@@ -102,94 +103,87 @@ app.use(errorHandler);
 // start server
 const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : (process.env.PORT || 8080);
 
-const io = require('socket.io').listen(app.listen(port, function () {
+const io = new Server(httpServer, {});
+
+httpServer.listen(port, function () {
   console.log('Server listening on port ' + port);
-}));
+});
 
-/**
- * TODO: Re-do sockets to io
- */
-
-if (!isListened) {
-  io.sockets.on("connection", socket => {
-    console.log('new connection')
-    if (this.authentication) socket.off('authentication', this.authentication);
-    if (this.sentMessage) socket.off('sent-message', this.sentMessage);
-    this.authentication = () => socket.on('authentication', async data => {
-      console.log('user authenticated')
-      const { id, userType } = data;
-      if (id) {
-        let Verification = userType === 'client' ? userService.findUserById : employeeService.findUserById;
-        Verification(id).then(verification => {
-          const { result, message } = verification;
-          if (result) {
-            users[id] = { status: '1', socketId: socket.id };
-            connectedUsers[id] = { status: '1', socketId: socket.id };
-            socket.uid = id;
-            socket.emit('authorized', { message });
-            io.emit('user-joined', users);
-          }
-          else {
-            console.log(`Socket ${socket.id} unauthorized.`);
-            socket.emit('unauthorized', { message: 'UNAUTHORIZED', detail: message })
-          }
-        }).catch(error => {
-          console.log(`Socket ${socket.id} unauthorized. Error: ${error}`);
-          socket.emit('unauthorized', { message: 'UNAUTHORIZED', detail: error.message })
-        });
-      }
-      else {
-        console.log('user id missing');
-        socket.emit('unauthorized', { message: 'UNAUTHORIZED', code: " uid" });
-      }
-    });
-
-    this.sentMessage = () => socket.on('sent-message', data => {
-      const { fcm_id, orderId, senderName, file, textMessage, senderId, receiverId, userType, type, time, date } = Object.assign({}, data);
-      messages[receiverId] = { sender: senderId, message: textMessage, file };
-      // -- make sure to save message to the db
-      if (users[receiverId]) {
-        const receipientSocketId = users[receiverId].socketId;
-        let messageObject = Object.assign({}, data);
-        chatService.storeMessage(messageObject, data.userType);
-        chatService.storeChat({ userType, type, sender: senderId, file, message: textMessage, recipient: receiverId, time, date, fcm_id, orderId, senderName }).then(response => {
-          console.log(response);
-        });
-        socket.to(receipientSocketId).emit('chat-message', { message: textMessage, type, file, recipient: receiverId, sender: senderId, senderName, time, date });
-      }
-      else {
-        // just save the massages for when user available
-        let messageObject = Object.assign({}, data);
-        chatService.storeMessage(messageObject, data.userType);
-        chatService.storeChat({ userType, type, sender: senderId, file, message: textMessage, recipient: receiverId, time, date, fcm_id, orderId, senderName }).then(response => {
-          console.log(response);
-        });
-        console.log('messaged user is offline');
-      }
-    });
-
-    this.authentication();
-    this.sentMessage();
-
-    // wait for authentication if non disconnect
-    setTimeout(() => {
-      if (!socket.uid) {
-        socket.emit('unauthorized', { message: 'UNAUTHORIZED', code: 'request timed out' });
-        socket.disconnect();
-      }
-      else console.log(`Socket: ${socket.id} is authenticated.`);
-    }, process.env.AUTH_TIMEOUT);
-
-    socket.on('disconnect', () => {
-      //console.log(`Socket: ${socket.id} has disconnected.`);
-      if (socket.uid) {
-        console.log('user disconnected...')
-        delete connectedUsers[socket.uid];
-        users[socket.uid].status = "0";
-        io.emit('user-disconnected', users);
-      }
-    })
+io.on("connection", socket => {
+  if (this.authentication) socket.off('authentication', this.authentication);
+  if (this.sentMessage) socket.off('sent-message', this.sentMessage);
+  this.authentication = () => socket.on('authentication', async data => {
+    console.log('user authenticated')
+    const { id, userType } = data;
+    if (id) {
+      let Verification = userType === 'client' ? userService.findUserById : employeeService.findUserById;
+      Verification(id).then(verification => {
+        const { result, message } = verification;
+        if (result) {
+          users[id] = { status: '1', socketId: socket.id };
+          connectedUsers[id] = { status: '1', socketId: socket.id };
+          socket.uid = id;
+          socket.emit('authorized', { message });
+          io.emit('user-joined', users);
+        }
+        else {
+          console.log(`Socket ${socket.id} unauthorized.`);
+          socket.emit('unauthorized', { message: 'UNAUTHORIZED', detail: message })
+        }
+      }).catch(error => {
+        console.log(`Socket ${socket.id} unauthorized. Error: ${error}`);
+        socket.emit('unauthorized', { message: 'UNAUTHORIZED', detail: error.message })
+      });
+    }
+    else {
+      console.log('user id missing');
+      socket.emit('unauthorized', { message: 'UNAUTHORIZED', code: " uid" });
+    }
   });
-  // already listening to connection
-  isListened = true;
-}
+
+  this.sentMessage = () => socket.on('sent-message', data => {
+    const { fcm_id, orderId, senderName, file, textMessage, senderId, receiverId, userType, type, time, date } = Object.assign({}, data);
+    messages[receiverId] = { sender: senderId, message: textMessage, file };
+    // -- make sure to save message to the db
+    if (users[receiverId]) {
+      const receipientSocketId = users[receiverId].socketId;
+      let messageObject = Object.assign({}, data);
+      chatService.storeMessage(messageObject, data.userType);
+      chatService.storeChat({ userType, type, sender: senderId, file, message: textMessage, recipient: receiverId, time, date, fcm_id, orderId, senderName }).then(response => {
+        console.log(response);
+      });
+      socket.to(receipientSocketId).emit('chat-message', { message: textMessage, type, file, recipient: receiverId, sender: senderId, senderName, time, date });
+    }
+    else {
+      // just save the massages for when user available
+      let messageObject = Object.assign({}, data);
+      chatService.storeMessage(messageObject, data.userType);
+      chatService.storeChat({ userType, type, sender: senderId, file, message: textMessage, recipient: receiverId, time, date, fcm_id, orderId, senderName }).then(response => {
+        console.log(response);
+      });
+      console.log('messaged user is offline');
+    }
+  });
+
+  this.authentication();
+  this.sentMessage();
+
+  // wait for authentication if non disconnect
+  setTimeout(() => {
+    if (!socket.uid) {
+      socket.emit('unauthorized', { message: 'UNAUTHORIZED', code: 'request timed out' });
+      socket.disconnect();
+    }
+    else console.log(`Socket: ${socket.id} is authenticated.`);
+  }, process.env.AUTH_TIMEOUT);
+
+  socket.on('disconnect', () => {
+    //console.log(`Socket: ${socket.id} has disconnected.`);
+    if (socket.uid) {
+      console.log('user disconnected...')
+      delete connectedUsers[socket.uid];
+      users[socket.uid].status = "0";
+      io.emit('user-disconnected', users);
+    }
+  })
+});
