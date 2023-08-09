@@ -155,8 +155,7 @@ async function create(params) {
   const email = userParam.email
   const image = userParam.image
   const username = userParam.username
-  let data
-  console.log("user data", params)
+  let data;
   if (
     (typeof mobile === 'undefined' || mobile && mobile.length === 0) &&
     ((typeof username === 'undefined' || username && username.length === 0) ||

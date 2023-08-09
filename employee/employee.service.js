@@ -150,9 +150,9 @@ async function PushNotif(param) {
 
 
 const findUserById = async id => {
-  const output = await Employee.findById(id)
-  if (output) {
-    return { result: true, message: 'Service provicer verified successfully' }
+  const data = await Employee.findById(id)
+  if (data) {
+    return { result: true, data, message: 'Service provider found' }
   } else {
     return { result: false, message: 'Service provicer Not Found' }
   }
@@ -202,7 +202,7 @@ async function getById(id, param) {
         }
       }
     }
-    output.services = JSON.stringify(ser_arr)
+    output.services = JSON.stringify(ser_arr);
     return { result: true, message: 'employee found', data: output }
   } else {
     return { result: false, message: 'employee not found' }
