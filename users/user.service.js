@@ -8,7 +8,7 @@ const Notification = db.Notification
 const SendMail = require('../_helpers/SendMail')
 
 async function authenticate(param) {
-  var avgRating
+  var avgRating;
   const user = await User.findOne({ email: param.email })
 
   if (!user) {
@@ -18,7 +18,6 @@ async function authenticate(param) {
   if (user.status == '0') {
     return { result: false, message: 'Your account is deactivated by admin' }
   }
-  /* console.log(user);*/
 
   if (user.email_verification == '0') {
     var message = `Please <a href="${config.URL}users/verification/${user.id}">Click Here </a> to verify your Email`
@@ -30,7 +29,6 @@ async function authenticate(param) {
   }
 
   if ((user && bcrypt.compareSync(param.password, user.hash)) || param.loginType === 'Firebase') {
-    const { hash, userWithoutHash } = user.toObject()
     const token = jwt.sign({ sub: user.id }, config.secret)
     if (typeof param.fcm_id !== 'undefined') {
       if (user._id)
@@ -227,7 +225,6 @@ async function create(params) {
                   if (res) console.log('notification saved')
                 })
                 .catch(e => {
-                  console.log(e)
                   return {
                     result: false,
                     message: 'Something went wrong',
@@ -239,7 +236,6 @@ async function create(params) {
             }
           })
           .catch(e => {
-            console.log(e)
             return {
               result: false,
               message: 'Something went wrong',
@@ -248,7 +244,6 @@ async function create(params) {
           })
       }
     }).catch(error => {
-      console.log({ error })
       return { result: false, message: error.message }
     });
   }
@@ -299,7 +294,6 @@ async function create(params) {
                   if (res) console.log('notification saved')
                 })
                 .catch(e => {
-                  console.log(e)
                   return {
                     result: false,
                     message: 'Something went wrong',
@@ -311,7 +305,6 @@ async function create(params) {
             }
           })
           .catch(e => {
-            console.log(e)
             return {
               result: false,
               message: 'Something went wrong',
@@ -320,7 +313,6 @@ async function create(params) {
           })
       }
     }).catch(error => {
-      console.log({ error })
       return { result: false, message: error.message }
     });
   }

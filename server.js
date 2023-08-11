@@ -112,8 +112,9 @@ httpServer.listen(port, function () {
 io.on("connection", socket => {
   if (this.authentication) socket.off('authentication', this.authentication);
   if (this.sentMessage) socket.off('sent-message', this.sentMessage);
+  if (this.onDisconnect) socket.off("disconnect", this.onDisconnect);
   this.authentication = () => socket.on('authentication', async data => {
-    console.log('user authenticated')
+    console.log('user authenticated');
     const { id, userType } = data;
     if (id) {
       let Verification = userType === 'client' ? userService.findUserById : employeeService.findUserById;
@@ -164,10 +165,6 @@ io.on("connection", socket => {
       console.log('messaged user is offline');
     }
   });
-
-  this.authentication();
-  this.sentMessage();
-
   // wait for authentication if non disconnect
   setTimeout(() => {
     if (!socket.uid) {
@@ -177,7 +174,7 @@ io.on("connection", socket => {
     else console.log(`Socket: ${socket.id} is authenticated.`);
   }, process.env.AUTH_TIMEOUT);
 
-  socket.on('disconnect', () => {
+  this.onDisconnect = () => socket.on('disconnect', () => {
     //console.log(`Socket: ${socket.id} has disconnected.`);
     if (socket.uid) {
       console.log('user disconnected...')
@@ -186,4 +183,8 @@ io.on("connection", socket => {
       io.emit('user-disconnected', users);
     }
   })
+
+  this.authentication();
+  this.sentMessage();
+  this.onDisconnect();
 });
