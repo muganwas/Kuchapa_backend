@@ -3,17 +3,13 @@ const db = require('_helpers/db');
 const chats = db.Chat;
 const crypto = require('crypto');
 const _ = require('lodash');
-const firebase = require('firebase');
-const { generatePassword } = require('../misc/helperFunctions')
+const admin = require('firebase-admin');
 const userService = require('../users/user.service');
 const employeeService = require('../employee/employee.service');
 const { PushNotif } = require("../notification/notification.service");
-const { random } = require('lodash');
 
-const database = firebase.database;
+const database = admin.database;
 const zoomEndpoint = process.env.ZOOM_END_POINT
-const zoomAPIkey = process.env.ZOOM_JWT_API_KEY
-const zoomSecret = process.env.ZOOM_JWT_SECRET
 const zoomAuthAccessToken = process.env.ZOOM_AUTH_ACCESS_TOKE
 
 const storeChat = async chatObject => {
@@ -342,9 +338,11 @@ const storeMessage = async (params, userType) => {
             "title": "Message Recieved",
             "body": senderName + " has sent you a message!",
         };
-        fcm_id && PushNotif(notification);
+        if (fcm_id) return PushNotif(notification);
+        return { msgId, message: "Message stored but notification not sent" };
     } catch (err) {
-        console.log(err)
+        console.log(err);
+        return { message: "Error", error: err.message };
     }
 }
 
