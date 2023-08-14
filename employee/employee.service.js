@@ -528,18 +528,19 @@ async function update(id, userParam) {
   }
 }
 
-async function uploadImage(id, image) {
-  if (typeof id === 'undefined' || image == false) {
-    return { result: false, message: 'id and image is required' }
+async function uploadImage(body) {
+  const { userId, uri } = body;
+  if (!id || !uri) {
+    return { result: false, message: 'id and image is required' };
   }
-  const user = await Employee.findById(id)
+  const user = await Employee.findById(userId);
 
   if (!user) {
-    return { result: false, message: 'id not found' }
+    return { result: false, message: 'id not found' };
   }
 
-  Object.assign(user, { image: image, img_status: 1 })
-  let output = ''
+  Object.assign(user, { image: uri, img_status: 1 });
+  let output;
   if ((output = await user.save())) {
     return { result: true, message: 'Image Update successfull', data: output }
   } else {

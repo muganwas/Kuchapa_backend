@@ -346,18 +346,19 @@ async function update(id, userParam) {
   }
 }
 
-async function uploadImage(id, image) {
-  if (typeof id === 'undefined' || image == false) {
+async function uploadImage(body) {
+  const { userId, uri } = body;
+  if (!userId || !uri) {
     return { result: false, message: 'id and image is required' }
   }
-  const user = await User.findById(id)
+  const user = await User.findById(userId)
 
   if (!user) {
     return { result: false, message: 'id not found' }
   }
 
-  Object.assign(user, { image: image, img_status: 1 })
-  var output = ''
+  Object.assign(user, { image: uri, img_status: 1 });
+  var output;
   if ((output = await user.save())) {
     return { result: true, message: 'Image Update successfull', data: output }
   } else {

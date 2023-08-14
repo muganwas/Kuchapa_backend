@@ -13,7 +13,7 @@ router.get('/verification/:id', Verification);
 router.post('/:id', update);
 router.post('/check/email', checkEmail);
 router.post('/push/notification', PushNotif);
-router.post('/upload/:id', uploadImage);
+router.put('/upload', uploadImage);
 router.post('/delete/:id', _delete);
 router.post('/forgot_password/email', ForgotPassword);
 
@@ -82,12 +82,7 @@ function update(req, res, next) {
 }
 
 function uploadImage(req, res, next) {
-    if (req.body && req.body.uri) {
-        var image = req.body.uri;
-    } else {
-        var image = false;
-    }
-    employeeService.uploadImage(req.params.id, image)
+    employeeService.uploadImage(req.body)
         .then((data) => data ? res.json(data) : res.sendStatus(404))
         .catch(err => next(err));
 

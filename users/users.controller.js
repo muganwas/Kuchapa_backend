@@ -15,7 +15,7 @@ router.get('/:id', getById);
 router.post('/:id', update);
 router.post('/check/mobile', CheckMobile);
 router.post('/forgot_password/email', ForgotPassword);
-router.post('/upload/:id', uploadImage);
+router.put('/upload', uploadImage);
 router.delete('/:id', _delete);
 
 module.exports = router;
@@ -89,18 +89,13 @@ function update(req, res, next) {
 }
 
 function uploadImage(req, res, next) {
-    if (req.body && req.body.uri) {
-        var image = req.body.uri;
-    } else {
-        var image = false;
-    }
-    userService.uploadImage(req.params.id, image)
+    userService.uploadImage(req.body)
         .then((data) => data ? res.json(data) : res.sendStatus(404))
         .catch(err => next(err));
 }
 
 function _delete(req, res, next) {
-    userService.delete(req.params.id)
+    userService._delete(req.params.id)
         .then(() => res.json({}))
         .catch(err => next(err));
 }
