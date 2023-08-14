@@ -88,7 +88,6 @@ function uploadImage(req, res, next) {
 
 }
 
-
 function ForgotPassword(req, res, next) {
     employeeService.ForgotPassword(req.body)
         .then((user) => {
