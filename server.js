@@ -1,10 +1,6 @@
 require('dotenv').config();
 require('rootpath')();
 const express = require('express');
-//const MongoClient = require('mongodb').MongoClient;
-//var multer  = require('multer');
-//var fs = require('fs');
-//var http = require('http');
 const app = express();
 const httpServer = require('http').createServer(app);
 const cors = require('cors');
