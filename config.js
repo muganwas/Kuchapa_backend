@@ -7,7 +7,7 @@ const localURL = process.env.LOCAL_URL,
 module.exports = {
     "connectionString": process.env.CONNECTION_STRING,
     "secret": process.env.SECRET,
-    "URL": localURL,
+    "URL": cloudURL,
     "SERVER_KEY": process.env.SERVER_KEY,
     "email_host": process.env.EMAIL_HOST,
     "email_port": process.env.EMAIL_PORT,
