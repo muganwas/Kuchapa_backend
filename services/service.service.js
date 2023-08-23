@@ -1,6 +1,3 @@
-const config = require('../config');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const db = require('_helpers/db');
 const Services = db.Services;
 const Main_Category = db.Main_Category;
@@ -57,17 +54,25 @@ async function getAllService() {
         return { result: true, message: 'Service Found', data: data };
     } else {
         return { result: false, message: 'Service Not Found' };
-
     }
 }
 
 async function getById(id) {
-    return await Services.findById(id);
+    try {
+        const data = await Services.findById(id);
+        if (data)
+            return { result: true, data, message: "Service found" };
+        return { result: false, message: "Service not found" };
+    } catch (e) {
+        return { result: false, message: e.message };
+    }
+
 }
 
 async function create(userParam) {
-    if (!userParam.main_category || !userParam.sub_category || !userParam.service_name || !userParam.image) return { result: false, message: 'Missing information' };
-    // validate
+    if (!userParam.main_category || !userParam.sub_category || !userParam.service_name || !userParam.image)
+        return { result: false, message: 'Missing information' };
+
     const user = new Services(userParam);
     var output = '';
     if (output = await user.save()) {
@@ -96,7 +101,6 @@ async function update(body) {
 
 async function _delete(id) {
     if (await Services.findById(id)) {
-
         if (await Services.findByIdAndRemove(id)) {
             return { result: true, message: "Service deleted Successfull" };
         } else {
@@ -107,5 +111,4 @@ async function _delete(id) {
     } else {
         return { result: false, message: "Service not Found" };
     }
-
 }

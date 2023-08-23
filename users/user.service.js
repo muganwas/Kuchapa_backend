@@ -316,7 +316,9 @@ async function create(params) {
       return { result: false, message: error.message }
     });
   }
-  return data
+  return {
+    result: false, data, message: "Something went wrong."
+  }
 }
 
 async function update(id, userParam) {

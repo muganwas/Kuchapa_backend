@@ -14,7 +14,7 @@ module.exports = async (email, subject, message) => {
 
   // Generate test SMTP service account from ethereal.email
   // Only needed if you don't have a real mail account for testing
-  let testAccount = await nodemailer.createTestAccount()
+  // let testAccount = await nodemailer.createTestAccount()
 
   // create reusable transporter object using the default SMTP transport
   let transporter = nodemailer.createTransport({
@@ -35,9 +35,9 @@ module.exports = async (email, subject, message) => {
     subject: subject, // Subject line
     text: message, // plain text body
     html: message // html body
-  }).then( res => {
+  }).then(res => {
     return { result: true, message: 'mail sent' }
   }).catch(e => {
-      return  { result: false, message: 'something went wrong', error: e.message }
+    return { result: false, message: 'something went wrong', error: e.message }
   });
 }

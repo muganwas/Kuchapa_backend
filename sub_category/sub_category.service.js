@@ -53,7 +53,14 @@ async function getAll(query) {
 }
 
 async function getById(id) {
-    return await Sub_Category.findById(id);
+    try {
+        const data = await Sub_Category.findById(id);
+        if (data)
+            return { result: true, message: 'Sub Category Found', data };
+        return { result: false, message: 'Sub Category not found' };
+    } catch (e) {
+        return { result: false, message: e.message };
+    }
 }
 async function getByMId(id) {
     var data = '';
@@ -66,7 +73,8 @@ async function getByMId(id) {
 }
 
 async function create(params) {
-    if (!params.main_category || !params.sub_category) return { result: false, message: 'Missing information' };
+    if (!params.main_category || !params.sub_category)
+        return { result: false, message: 'Missing information' };
 
     const cat = new Sub_Category(params);
 
@@ -97,19 +105,14 @@ async function update(body) {
 }
 
 async function _delete(id) {
-
     if (await Sub_Category.findById(id)) {
 
         if (await Sub_Category.findByIdAndRemove(id)) {
             return { result: true, message: "Category deleted Successfull" };
         } else {
-
             return { result: false, message: "Something went wrong" };
         }
-
     } else {
         return { result: false, message: "Category not Found" };
     }
 }
-
-

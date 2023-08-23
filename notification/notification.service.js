@@ -1,11 +1,8 @@
-const config = require('../config');
 const db = require('_helpers/db');
 var mongoose = require('mongoose');
 const admin = require('firebase-admin');
-const Job = db.Job;
 const JobRequest = db.JobRequest;
 const Notification = db.Notification;
-const Employee = db.Employee;
 const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
 
 async function AddReviewRequest(param) {
@@ -16,61 +13,62 @@ async function AddReviewRequest(param) {
     typeof param.notification.body === 'undefined') {
     return { result: false, message: 'user_id,employee_id,order_id,notification.title,notification.body and notification(o) is required' };
   }
+  try {
+    var save = {};
+    save['user_id'] = param.user_id;
+    save['employee_id'] = param.employee_id;
+    save['order_id'] = param.order_id;
+    save['title'] = param.notification.title;
+    save['message'] = param.notification.body;
+    save['type'] = "ReviewRequest";
+    save['notification_by'] = "Employee";
 
-  var save = {};
-  save['user_id'] = param.user_id;
-  save['employee_id'] = param.employee_id;
-  save['order_id'] = param.order_id;
-  save['title'] = param.notification.title;
-  save['message'] = param.notification.body;
-  save['type'] = "ReviewRequest";
-  save['notification_by'] = "Employee";
-
-  var order_id = mongoose.Types.ObjectId(param.order_id);
-  //   console.log(order_id);
-  var customer_review = await JobRequest.findById(order_id);
-  if (customer_review) {
-    var update_customer_review = {};
-    update_customer_review['customer_review'] = 'Requested';
-    Object.assign(customer_review, update_customer_review);
-
-    var customer_review_output = await customer_review.save();
-    //   console.log(customer_review_output);
-  } else {
-    return { result: false, message: 'Service not found' };
-  }
-
-  const notif_save = new Notification(save);
-
-  var output = {};
-  if (output = await notif_save.save()) {
-    var notif = {};
-    if (param.notification !== 'undefined') {
-      let notification = Object.assign(param.notification, { save_notification: true });
-      notif = await PushNotif(notification);
+    var order_id = mongoose.Types.ObjectId(param.order_id);
+    var customer_review = await JobRequest.findById(order_id);
+    if (customer_review) {
+      var update_customer_review = {};
+      update_customer_review['customer_review'] = 'Requested';
+      Object.assign(customer_review, update_customer_review);
+      await customer_review.save();
+    } else {
+      return { result: false, message: 'Service not found' };
     }
 
-    return { result: true, 'message': 'Add request successfull', 'notification': notif, data: output };
-  } else {
+    const notif_save = new Notification(save);
 
-    return { result: false, message: 'Something went wrong while request for review' };
+    var output = {};
+    if (output = await notif_save.save()) {
+      var notif = {};
+      if (param.notification !== 'undefined') {
+        let notification = Object.assign(param.notification, { save_notification: true });
+        notif = await PushNotif(notification);
+      }
+      return { result: true, 'message': 'Add request successfull', 'notification': notif, data: output };
+    } else {
+      return { result: false, message: 'Something went wrong while request for review' };
+    }
+  } catch (e) {
+    return { result: false, message: e.message };
   }
-
 }
 
 async function ReadNotification(id) {
   if (typeof id === 'undefined') {
     return { result: false, message: 'id is required' };
   }
-  const output = await Notification.findById(id);
-  if (output) {
-    let notif = {}
-    notif['status'] = '1';
-    Object.assign(output, notif);
-    await output.save();
-    return { result: true, message: 'Notification read successfully', data: output }
-  } else {
-    return { result: false, message: 'notification not found' };
+  try {
+    const output = await Notification.findById(id);
+    if (output) {
+      let notif = {}
+      notif['status'] = '1';
+      Object.assign(output, notif);
+      await output.save();
+      return { result: true, message: 'Notification read successfully', data: output }
+    } else {
+      return { result: false, message: 'notification not found' };
+    }
+  } catch (e) {
+    return { result: false, message: e.message };
   }
 }
 
@@ -88,80 +86,78 @@ async function DeleteNotification(id) {
 }
 
 async function GetEmployeeNotifications(id) {
-
   if (typeof id === 'undefined') {
     return { result: false, message: 'id is required' };
   }
-
-  //, notification_for: 'Employee' 
-
-  var notif = await Notification.aggregate([
-    { $match: { employee_id: new mongoose.Types.ObjectId(id) } },
-    {
-      "$project": {
-        "employee_id": {
-          "$toObjectId": "$employee_id"
-        },
-        "order_id": {
-          "$toString": "$order_id"
-        },
-        "type": {
-          "$toString": "$type"
-        },
-        "title": {
-          "$toString": "$title"
-        },
-        "status": {
-          "$toString": "$status"
-        },
-        "message": {
-          "$toString": "$message"
-        },
-        "notification_by": {
-          "$toString": "$notification_by"
-        },
-        "createdDate": {
-          "$toString": "$createdDate"
-        },
-        "employee_details": {
-          "$toString": "$employee_details"
-        },
-      }
-    },
-    { '$sort': { 'createdDate': -1 } },
-    {
-      $lookup:
+  try {
+    var notif = await Notification.aggregate([
+      { $match: { employee_id: new mongoose.Types.ObjectId(id) } },
       {
-        from: "users",
-        localField: "user_id",
-        foreignField: "id",
-        as: "customer_details"
+        "$project": {
+          "employee_id": {
+            "$toObjectId": "$employee_id"
+          },
+          "order_id": {
+            "$toString": "$order_id"
+          },
+          "type": {
+            "$toString": "$type"
+          },
+          "title": {
+            "$toString": "$title"
+          },
+          "status": {
+            "$toString": "$status"
+          },
+          "message": {
+            "$toString": "$message"
+          },
+          "notification_by": {
+            "$toString": "$notification_by"
+          },
+          "createdDate": {
+            "$toString": "$createdDate"
+          },
+          "employee_details": {
+            "$toString": "$employee_details"
+          },
+        }
+      },
+      { '$sort': { 'createdDate': -1 } },
+      {
+        $lookup:
+        {
+          from: "users",
+          localField: "user_id",
+          foreignField: "id",
+          as: "customer_details"
+        }
       }
+    ]);
+
+    var output = new Array();
+    if (notif.length > 0) {
+
+      for (var i = 0; i < notif.length; i++) {
+
+        if (notif[i].notification_for == 'Admin') {
+          continue;
+        }
+
+        if (notif[i].notification_by == 'Customer') {
+          var d = new Date(notif[i].createdDate);
+          notif[i].createdDate = ("0" + d.getDate()).slice(-2) + '-' + shortMonths[d.getMonth()] + '-' + d.getFullYear();
+
+          notif[i].customer_details = notif[i].customer_details[0];
+          output.push(notif[i]);
+        }
+      }
+      return { result: true, message: 'Data found', data: output };
+    } else {
+      return { result: false, message: 'Data not found' };
     }
-  ]);
-
-  var output = new Array();
-  if (notif.length > 0) {
-
-    for (var i = 0; i < notif.length; i++) {
-
-      if (notif[i].notification_for == 'Admin') {
-        continue;
-      }
-
-      if (notif[i].notification_by == 'Customer') {
-        var d = new Date(notif[i].createdDate);
-        notif[i].createdDate = ("0" + d.getDate()).slice(-2) + '-' + shortMonths[d.getMonth()] + '-' + d.getFullYear();
-
-        notif[i].customer_details = notif[i].customer_details[0];
-        output.push(notif[i]);
-
-      }
-    }
-    // console.log(output);
-    return { result: true, message: 'Data found', data: output };
-  } else {
-    return { result: false, message: 'Data not found' };
+  } catch (e) {
+    return { result: false, message: e.message };
   }
 }
 
@@ -169,78 +165,86 @@ async function GetCustomerNotification(id) {
   if (typeof id === 'undefined') {
     return { result: false, message: 'id is required' };
   }
-
-  var notif = await Notification.aggregate([
-    { $match: { user_id: new mongoose.Types.ObjectId(id) } },
-    {
-      "$project": {
-        "user_id": {
-          "$toString": "$user_id"
-        },
-        "order_id": {
-          "$toString": "$order_id"
-        },
-        "type": {
-          "$toString": "$type"
-        },
-        "title": {
-          "$toString": "$title"
-        },
-        "status": {
-          "$toString": "$status"
-        },
-        "message": {
-          "$toString": "$message"
-        },
-        "notification_by": {
-          "$toString": "$notification_by"
-        },
-        "createdDate": {
-          "$toString": "$createdDate"
-        },
-        "employee_details": {
-          "$toString": "$employee_details"
-        },
-      }
-    },
-    { '$sort': { 'createdDate': -1 } },
-    {
-      $lookup:
+  try {
+    var notif = await Notification.aggregate([
+      { $match: { user_id: new mongoose.Types.ObjectId(id) } },
       {
-        from: "employees",
-        localField: "employee_id",
-        foreignField: "id",
-        as: "employee_details"
+        "$project": {
+          "user_id": {
+            "$toString": "$user_id"
+          },
+          "order_id": {
+            "$toString": "$order_id"
+          },
+          "type": {
+            "$toString": "$type"
+          },
+          "title": {
+            "$toString": "$title"
+          },
+          "status": {
+            "$toString": "$status"
+          },
+          "message": {
+            "$toString": "$message"
+          },
+          "notification_by": {
+            "$toString": "$notification_by"
+          },
+          "createdDate": {
+            "$toString": "$createdDate"
+          },
+          "employee_details": {
+            "$toString": "$employee_details"
+          },
+        }
+      },
+      { '$sort': { 'createdDate': -1 } },
+      {
+        $lookup:
+        {
+          from: "employees",
+          localField: "employee_id",
+          foreignField: "id",
+          as: "employee_details"
+        }
       }
+    ]);
+
+    var output = new Array();
+    if (notif.length > 0) {
+
+      for (var i = 0; i < notif.length; i++) {
+
+        if (notif[i].notification_for == 'Admin') {
+          continue;
+        }
+
+        if (notif[i].notification_by == 'Employee') {
+          var d = new Date(notif[i].createdDate);
+          notif[i].createdDate = ("0" + d.getDate()).slice(-2) + '-' + shortMonths[d.getMonth()] + '-' + d.getFullYear();
+          notif[i].employee_details = notif[i].employee_details[0];
+          output.push(notif[i]);
+
+        }
+      }
+      // console.log(output);
+      return { result: true, message: 'Data found', data: output };
+    } else {
+      return { result: false, message: 'Data not found' };
     }
-  ]);
-
-  var output = new Array();
-  if (notif.length > 0) {
-
-    for (var i = 0; i < notif.length; i++) {
-
-      if (notif[i].notification_for == 'Admin') {
-        continue;
-      }
-
-      if (notif[i].notification_by == 'Employee') {
-        var d = new Date(notif[i].createdDate);
-        notif[i].createdDate = ("0" + d.getDate()).slice(-2) + '-' + shortMonths[d.getMonth()] + '-' + d.getFullYear();
-        notif[i].employee_details = notif[i].employee_details[0];
-        output.push(notif[i]);
-
-      }
-    }
-    // console.log(output);
-    return { result: true, message: 'Data found', data: output };
-  } else {
-    return { result: false, message: 'Data not found' };
+  } catch (e) {
+    return { result: false, message: e.message };
   }
 }
 
 async function GetAdminNotification() {
-  return await Notification.find({ notification_for: "Admin", status: "0" });
+  try {
+    const data = await Notification.find({ notification_for: "Admin", status: "0" });
+    return { result: true, data, message: 'notifications retrieved' };
+  } catch (e) {
+    return { result: true, message: e.message };
+  }
 }
 
 async function PushNotif(param) {
@@ -280,10 +284,8 @@ async function PushNotif(param) {
         .then((response) => {
           // Response is a message ID string.
           resolve({ result: true, message: response });
-          console.log('Successfully sent message:', response);
         })
         .catch((error) => {
-          console.log('Error sending message:', error);
           reject({ result: true, message: error });
         });
     });

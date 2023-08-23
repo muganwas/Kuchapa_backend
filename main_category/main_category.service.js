@@ -1,8 +1,4 @@
-﻿const config = require('../config');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const db = require('_helpers/db');
-
+﻿const db = require('_helpers/db');
 const Main_Category = db.Main_Category;
 
 module.exports = {
@@ -48,7 +44,14 @@ async function getAll(query) {
 }
 
 async function getById(id) {
-    return await Main_Category.findById(id);
+    try {
+        const data = await Main_Category.findById(id);
+        if (data)
+            return { result: true, data, message: 'Category found' };
+        return { result: false, message: 'Category not found' };
+    } catch (e) {
+        return { result: false, message: e.message };
+    }
 }
 
 async function create(userParam) {
@@ -84,10 +87,7 @@ async function update(body) {
 }
 
 async function _delete(id) {
-
-    console.log(id);
     if (await Main_Category.findById(id)) {
-
         if (await Main_Category.findByIdAndRemove(id)) {
             return { result: true, message: "Category deleted Successfull" };
         } else {

@@ -1,4 +1,3 @@
-const config = require('../config');
 const db = require('_helpers/db');
 const mongoose = require('mongoose');
 const Notification = db.Notification;
@@ -511,7 +510,7 @@ const employeeRatingsDataRequest = async id => {
     if (typeof id === 'undefined') {
         return { result: false, 'message': 'id is required' };
     }
-    else {
+    try {
         param['employee_id'] = new mongoose.Types.ObjectId(id);
         const output = await JobRequest.find(param);
         if (output.length > 0) {
@@ -520,16 +519,19 @@ const employeeRatingsDataRequest = async id => {
                 if (employee_rating) ratingArr.push(parseInt(employee_rating));
             });
         }
+
+        if (ratingArr.length > 0) {
+            let combRat = 0;
+            let arrLen = ratingArr.length;
+            ratingArr.map(rat => {
+                combRat = combRat + rat;
+            });
+            avg = combRat / arrLen;
+        }
+        return { result: true, 'message': 'rating returned', rating: avg };
+    } catch (e) {
+        return { result: false, 'message': e.message };
     }
-    if (ratingArr.length > 0) {
-        let combRat = 0;
-        let arrLen = ratingArr.length;
-        ratingArr.map(rat => {
-            combRat = combRat + rat;
-        });
-        avg = combRat / arrLen;
-    }
-    return { result: true, 'message': 'rating returned', rating: avg };
 }
 
 async function EmployeeDataRequest(id, omit) {
@@ -643,7 +645,6 @@ async function EmployeeDataRequest(id, omit) {
     } else {
         return { result: false, 'message': 'data not found' };
     }
-
 }
 
 async function Usergroupby(id) {
@@ -815,10 +816,8 @@ async function PushNotif(param) {
                 .then((response) => {
                     // Response is a message ID string.
                     resolve({ result: true, message: response });
-                    console.log('Successfully sent message:', response);
                 })
                 .catch((error) => {
-                    console.log('Error sending message:', error);
                     reject({ result: true, message: error });
                 });
         });

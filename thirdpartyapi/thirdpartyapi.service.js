@@ -6,22 +6,16 @@ module.exports = {
   SendMail
 };
 
-
-
-
 async function SendSMS(param) {
-  console.log(param);
   if (typeof param.to === 'undefined' || typeof param.otp === 'undefined') {
     return { result: false, message: 'to and otp is required' };
   }
-
 
   const request = require('request')
   var formData = {};
 
   formData['to'] = param.to;
   formData['body'] = "Your otp is " + param.otp + " .";
-
 
   return new Promise(function (resolve, reject) {
     request({
