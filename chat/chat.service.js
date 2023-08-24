@@ -13,41 +13,34 @@ const zoomEndpoint = process.env.ZOOM_END_POINT
 const zoomAuthAccessToken = process.env.ZOOM_AUTH_ACCESS_TOKE
 
 const storeChat = async chatObject => {
-    const { sender, recipient, time } = chatObject;
-    await chats.findOne({ sender, recipient, time }, (err, data) => {
-        if (err) return err;
-        else if (data) return "chat stored already";
-        else {
-            newChats = new chats(chatObject);
-            newChats.save((err, details) => {
-                if (err) return err;
-                else return ({ saved: true, details });
-            });
-        }
-    }).catch(e => {
-        return e;
-    });
+    try {
+        const { sender, recipient, time } = chatObject;
+        if (await chats.findOne({ sender, recipient, time }))
+            return { result: false, message: "chat stored already" }
+        newChats = new chats(chatObject);
+        if (await newChats.save())
+            return { result: true, data: details, message: "Chat stored successfully" };
+        return { result: false, message: "Chat couldn't be stored" }
+
+    } catch (e) {
+        return { result: false, message: e.message };
+    };
 }
 
 const fetchChatMessages = async (req, res) => {
     const { sender, userType } = req;
     let Verification = userType === 'client' ? userService.findUserById : employeeService.findUserById;
     // either or condition
-    await Verification(sender).then(verification => {
-        const { result, message } = verification;
-        if (result) {
-            chats.find({ $or: [{ sender }, { recipient: sender }] }, (err, result) => {
-                if (err) res.send(err);
-                res.json(result);
-            });
-        }
-        else {
-            res.send({ message });
-        }
-    }).catch(e => {
-
-        res.send({ error: e.errorInfo.message });
-    });
+    const verification = await Verification(sender);
+    const { result, message } = verification;
+    if (result) {
+        const chatInfo = await chats.find({ $or: [{ sender }, { recipient: sender }] });
+        if (chatInfo) return res.send({ result: true, data: chatInfo, message: "Chats found successfully" });
+        return res.send({ result: false, message: "No chats found" });
+    }
+    else {
+        return res.send({ result, message });
+    }
 }
 
 const listZoomRooms = async (req, res) => {
@@ -65,12 +58,10 @@ const listZoomRooms = async (req, res) => {
                     method: "list"
                 })
             }).then(response => response.json()).then(response => {
-                res.send(response)
-            }).catch(e => {
-                res.send({ error: e.message });
-            })
+                return res.send({ result: true, data: response, message: "Zoom rooms retrieved" });
+            });
     } catch (e) {
-        res.send({ error: e.message });
+        return res.send({ result: false, message: e.message });
     }
 }
 
@@ -86,12 +77,10 @@ const listRoomLocations = async (req, res) => {
                     "Connection": "keep-alive"
                 }
             }).then(response => response.json()).then(response => {
-                res.send(response.locations);
-            }).catch(e => {
-                res.send({ error: e.message });
-            })
+                return res.send({ result: true, data: response.locations, message: "Locations retrieved" });
+            });
     } catch (e) {
-        res.send({ error: e.message });
+        return res.send({ result: false, message: e.message });
     }
 }
 
@@ -113,12 +102,10 @@ const createZoomRoom = async (req, res) => {
                     "location_id": null
                 })
             }).then(response => response.json()).then(response => {
-                res.send(response)
-            }).catch(e => {
-                res.send({ error: e.message })
-            })
+                return res.send({ result: true, data: response });
+            });
     } catch (e) {
-        res.send({ error: e.message })
+        return res.send({ result: false, message: e.message });
     }
 }
 
@@ -144,12 +131,10 @@ const createZoomUser = async (req, res) => {
                     }
                 })
             }).then(response => response.json()).then(response => {
-                res.send(response)
-            }).catch(e => {
-                res.send({ error: e.message })
-            })
+                return res.send({ result: true, data: response, message: "User created" });
+            });
     } catch (e) {
-        res.send({ error: e.message })
+        return res.send({ result: true, message: e.message })
     }
 }
 
@@ -169,12 +154,10 @@ const updateZoomUserStatus = async (req, res) => {
                     "action": action
                 })
             }).then(response => response.json()).then(response => {
-                res.send(response)
-            }).catch(e => {
-                res.send({ error: e.message })
-            })
+                return res.send({ result: true, data: response, message: "Zoom user statuses retrieved" });
+            });
     } catch (e) {
-        res.send({ error: e.message })
+        return res.send({ result: false, message: e.message });
     }
 
 }
@@ -196,16 +179,11 @@ const setupZoomMeeting = async (req, res) => {
                     "duration": "120",
                     "password": "",
                 })
-            }).then(response => {
-                return response.json()
-            }).then(response => {
-                res.send(response)
-            }).catch(e => {
-                console.log('new meeting error', e)
-                res.send({ error: e.message })
-            })
+            }).then(response => response.json()).then(response => {
+                return res.send({ result: true, data: response, message: "Meeting created successfully" });
+            });
     } catch (e) {
-        res.send({ error: e.message })
+        return res.send({ result: false, message: e.message })
     }
 }
 
@@ -224,9 +202,9 @@ const generateSignature = (req, res) => {
         const signature = Buffer.from(
             `${apiKey}.${meetingNumber}.${timestamp}.${role}.${hash}`
         ).toString('base64')
-        res.send({ signature })
+        return res.send({ signature })
     } catch (e) {
-        res.send({ error: e.errorInfo.message })
+        return res.send({ error: e.errorInfo.message })
     }
 }
 
@@ -339,10 +317,10 @@ const storeMessage = async (params, userType) => {
             "body": senderName + " has sent you a message!",
         };
         if (fcm_id) return PushNotif(notification);
-        return { msgId, message: "Message stored but notification not sent" };
+        return { result: true, msgId, message: "Message stored but notification not sent" };
     } catch (err) {
         console.log(err);
-        return { message: "Error", error: err.message };
+        return { result: false, message: "Error", error: err.message };
     }
 }
 
