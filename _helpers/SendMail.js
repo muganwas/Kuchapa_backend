@@ -1,7 +1,6 @@
 require('dotenv').config();
-const config = require('../config.js')
-const request = require('request')
-const nodemailer = require('nodemailer')
+const config = require('../config.js');
+const nodemailer = require('nodemailer');
 
 module.exports = async (email, subject, message) => {
   if (
@@ -9,7 +8,7 @@ module.exports = async (email, subject, message) => {
     typeof subject === 'undefined' ||
     message === 'undefined'
   ) {
-    return { result: false, message: 'email, subject and message is required' }
+    return { result: false, message: 'eMail, subject and message is required' }
   }
 
   // Generate test SMTP service account from ethereal.email
@@ -36,8 +35,8 @@ module.exports = async (email, subject, message) => {
     text: message, // plain text body
     html: message // html body
   }).then(res => {
-    return { result: true, message: 'mail sent' }
+    return { result: true, message: 'eMail sent' }
   }).catch(e => {
-    return { result: false, message: 'something went wrong', error: e.message }
+    return { result: false, message: 'Something went wrong', error: e.message }
   });
 }

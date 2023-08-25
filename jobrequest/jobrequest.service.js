@@ -381,7 +381,7 @@ async function Ratingreview(param) {
     let output = await newRequest.save();
 
     if (output) {
-        notif_save.save();
+        await notif_save.save();
         return { result: true, message: 'Update successfull', data: output };
     }
     else {
@@ -826,7 +826,7 @@ async function PushNotif(param) {
 }
 
 
-function distance(lat1, lon1, lat2, lon2, unit) {
+async function distance(lat1, lon1, lat2, lon2, unit) {
     if ((lat1 == lat2) && (lon1 == lon2)) {
         return 0;
     }

@@ -106,7 +106,7 @@ async function getById(id, param) {
 const findUserById = async id => {
   const output = await User.findById(id)
   if (output) {
-    return { result: true, message: 'Customer verified successfully' }
+    return { result: true, data: output, message: 'Customer found successfully' }
   } else {
     return { result: false, message: 'Customer Not Found' }
   }
