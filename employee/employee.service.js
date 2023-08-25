@@ -338,9 +338,7 @@ async function create(params) {
               title: 'New Provider'
             })
 
-            await notification.save().then(notification => {
-              //if (notification) console.log('notification saved')
-            })
+            await notification.save();
 
             let mystr = output.services
             let arr = mystr.split(',')
