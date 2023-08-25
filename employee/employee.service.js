@@ -44,7 +44,6 @@ async function authenticate(param) {
   }
 
   if ((user && bcrypt.compareSync(param.password, user.hash)) || param.loginType === 'Firebase') {
-    //const { hash, userWithoutHash } = user.toObject();
     const token = jwt.sign({ sub: user.id }, config.secret)
     let mystr = user.services
     arr = mystr.split(',')
