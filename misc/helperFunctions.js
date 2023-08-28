@@ -21,6 +21,18 @@ module.exports.storeChat = async chatObject => {
   return 'huh!';
 }
 
+module.exports.validateFirebaseUser = async (bearerToken) => {
+  const idToken = bearerToken.split(" ")[1];
+  try {
+    const result = await admin.auth().verifyIdToken(idToken);
+    if (result.uid)
+      return true;
+    return false;
+  } catch (e) {
+    return false;
+  }
+}
+
 module.exports.createSession = async ({ idToken }) => {
   const expiresIn = 60 * 60 * 24 * 2 * 1000;// Two days
   admin.auth().createSessionCookie(idToken, { expiresIn })

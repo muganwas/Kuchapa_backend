@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 const employeeService = require('./employee.service');
+const { validateFirebaseUser } = require('misc/helperFunctions');
+const { enums: { VALIDATION_ERROR, UNAUTHORIZED_ERROR }, constants: { VALIDATION_MESSAGE, UNAUTHORIZED_MESSAGE } } = require('_helpers/constants');
 
 // routes
 router.post('/authenticate', authenticate);
@@ -21,7 +23,7 @@ module.exports = router;
 
 function authenticate(req, res, next) {
     employeeService.authenticate(req.body)
-        .then(user => user ? res.json(user) : res.status(400).json({ message: 'Username or password is incorrect' }))
+        .then(info => res.json(info))
         .catch(err => next(err));
 }
 
@@ -67,8 +69,9 @@ function PushNotif(req, res, next) {
         .catch(err => next(err));
 }
 
-function getById(req, res, next) {
-
+async function getById(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     employeeService.getById(req.params.id, req.query)
         .then(user => user ? res.json(user) : res.sendStatus(404))
         .catch(err => next(err));
