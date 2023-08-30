@@ -1,47 +1,63 @@
 const express = require('express');
 const router = express.Router();
 const Notification = require('./notification.service');
+const { validateFirebaseUser } = require('misc/helperFunctions');
+const { enums: { VALIDATION_ERROR, UNAUTHORIZED_ERROR }, constants: { VALIDATION_MESSAGE, UNAUTHORIZED_MESSAGE } } = require('_helpers/constants');
 
 
-const AddReviewRequest = (req, res, next) => {
+const AddReviewRequest = async (req, res, next) => {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     Notification.AddReviewRequest(req.body)
-        .then(users => res.json(users))
+        .then(data => res.json(data))
         .catch(err => next(err));
 }
 
-const GetCustomerNotification = (req, res, next) => {
+const GetCustomerNotification = async (req, res, next) => {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     Notification.GetCustomerNotification(req.params.id)
-        .then(users => res.json(users))
+        .then(data => res.json(data))
         .catch(err => next(err));
 }
 
-const GetEmployeeNotifications = (req, res, next) => {
+const GetEmployeeNotifications = async (req, res, next) => {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     Notification.GetEmployeeNotifications(req.params.id)
-        .then(users => res.json(users))
+        .then(data => res.json(data))
         .catch(err => next(err));
 }
 
-const GetAdminNotification = (req, res, next) => {
+const GetAdminNotification = async (req, res, next) => {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     Notification.GetAdminNotification(req.params.id)
-        .then(users => res.json(users))
+        .then(data => res.json(data))
         .catch(err => next(err));
 }
 
-const SendNotification = (req, res, next) => {
+const SendNotification = async (req, res, next) => {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     Notification.PushNotif(req.body)
-        .then(resp => res.json(resp))
+        .then(data => res.json(data))
         .catch(err => next(err));
 }
 
-const ReadNotification = (req, res, next) => {
+const ReadNotification = async (req, res, next) => {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     Notification.ReadNotification(req.params.id)
-        .then(resp => res.json(resp))
+        .then(data => res.json(data))
         .catch(err => next(err));
 }
 
-const DeleteNotification = (req, res, next) => {
+const DeleteNotification = async (req, res, next) => {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     Notification.DeleteNotification(req.params.id)
-        .then(resp => res.json(resp))
+        .then(data => res.json(data))
         .catch(err => next(err));
 }
 

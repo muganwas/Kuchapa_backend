@@ -2,16 +2,14 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 const userService = require('./user.service');
-const { createSession, validateFirebaseUser } = require('../misc/helperFunctions');
+const { createSession, validateFirebaseUser } = require('misc/helperFunctions');
 const { enums: { VALIDATION_ERROR, UNAUTHORIZED_ERROR }, constants: { VALIDATION_MESSAGE, UNAUTHORIZED_MESSAGE } } = require('_helpers/constants');
 
 router.post('/authenticate', authenticate);
 router.post('/createSession', authCreateSession);
-router.post('/register/create', register);
+router.post('/register', register);
 router.get('/', getAll);
-router.post('/get_search', get_search);
 router.get('/verification/:id', Verification);
-router.get('/current', getCurrent);
 router.get('/:id', getById);
 router.post('/:id', update);
 router.post('/check/mobile', CheckMobile);
@@ -21,52 +19,50 @@ router.delete('/:id', _delete);
 
 module.exports = router;
 
-function authenticate(req, res, next) {
+async function authenticate(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     userService.authenticate(req.body)
-        .then(info => res.json(info))
+        .then(data => res.json(data))
         .catch(err => next(err));
 }
 
-function authCreateSession(req, res, next) {
+async function authCreateSession(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     createSession(req.body).then(session => res.json(session)).catch(err => next(err));
 }
 
 function register(req, res, next) {
     userService.create(req.body)
-        .then(user => res.json(user))
+        .then(data => res.json(data))
         .catch(err => next(err));
 }
 
-function CheckMobile(req, res, next) {
+async function CheckMobile(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     userService.CheckMobile(req.body)
-        .then((user) => res.json(user))
+        .then((data) => res.json(data))
         .catch(err => next(err));
 }
-function ForgotPassword(req, res, next) {
+async function ForgotPassword(req, res, next) {
     userService.ForgotPassword(req.body)
-        .then((user) => res.json(user))
+        .then((data) => res.json(data))
         .catch(err => next(err));
 }
 
-function getAll(req, res, next) {
+async function getAll(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     userService.getAll()
-        .then(users => res.json(users))
+        .then(data => res.json(data))
         .catch(err => next(err));
 }
 
-function get_search(req, res, next) {
-    userService.get_search(req.body)
-        .then(users => res.json(users))
-        .catch(err => next(err));
-}
-
-function getCurrent(req, res, next) {
-    userService.getById(req.user.sub)
-        .then(user => user ? res.json(user) : res.sendStatus(404))
-        .catch(err => next(err));
-}
-
-function Verification(req, res, next) {
+async function Verification(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     userService.Verification(req.params.id)
         .then(user => {
             if (user) {
@@ -85,20 +81,26 @@ async function getById(req, res, next) {
         .catch(err => next(err));
 }
 
-function update(req, res, next) {
+async function update(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     userService.update(req.params.id, req.body)
-        .then((rslt) => rslt ? res.json(rslt) : res.sendStatus(404))
+        .then((data) => res.json(data))
         .catch(err => next(err));
 }
 
-function uploadImage(req, res, next) {
+async function uploadImage(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     userService.uploadImage(req.body)
-        .then((data) => data ? res.json(data) : res.sendStatus(404))
+        .then((data) => res.json(data))
         .catch(err => next(err));
 }
 
-function _delete(req, res, next) {
+async function _delete(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     userService._delete(req.params.id)
-        .then(() => res.json({}))
+        .then((data) => res.json(data))
         .catch(err => next(err));
 }

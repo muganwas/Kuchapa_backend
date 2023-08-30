@@ -9,7 +9,6 @@ const { enums: { VALIDATION_ERROR, UNAUTHORIZED_ERROR }, constants: { VALIDATION
 router.post('/authenticate', authenticate);
 router.post('/register', register);
 router.get('/', getAll);
-router.get('/current', getCurrent);
 router.get('/:id', getById);
 router.get('/verification/:id', Verification);
 router.post('/:id', update);
@@ -21,19 +20,27 @@ router.post('/forgot_password/email', ForgotPassword);
 
 module.exports = router;
 
-function authenticate(req, res, next) {
+async function authenticate(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     employeeService.authenticate(req.body)
-        .then(info => res.json(info))
+        .then(data => res.json(data))
         .catch(err => next(err));
 }
 
 function register(req, res, next) {
+    console.log('creating ...')
     employeeService.create(req.body)
-        .then((user) => res.json(user))
+        .then((data) => {
+            console.log({ data })
+            return res.json(data)
+        })
         .catch(err => next(err));
 }
 
-function Verification(req, res, next) {
+async function Verification(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     employeeService.Verification(req.params.id)
         .then(user => {
             if (user) {
@@ -45,25 +52,25 @@ function Verification(req, res, next) {
         .catch(err => next(err));
 }
 
-function checkEmail(req, res, next) {
+async function checkEmail(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     employeeService.checkEmail(req.body)
-        .then((user) => res.json(user))
+        .then((data) => res.json(data))
         .catch(err => next(err));
 }
 
-function getAll(req, res, next) {
+async function getAll(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     employeeService.getAll()
-        .then(users => res.json(users))
+        .then(data => res.json(data))
         .catch(err => next(err));
 }
 
-function getCurrent(req, res, next) {
-    employeeService.getById(req.user.sub)
-        .then(user => user ? res.json(user) : res.sendStatus(404))
-        .catch(err => next(err));
-}
-
-function PushNotif(req, res, next) {
+async function PushNotif(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     employeeService.PushNotif(req.body)
         .then(user => res.json(user))
         .catch(err => next(err));
@@ -77,32 +84,32 @@ async function getById(req, res, next) {
         .catch(err => next(err));
 }
 
-function update(req, res, next) {
-    // employeeService.update(req.params.id, req.body)
+async function update(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     employeeService.update(req.params.id, req.body)
-        .then((data) => data ? res.json(data) : res.sendStatus(404))
+        .then((data) => res.json(data))
         .catch(err => next(err));
 }
 
-function uploadImage(req, res, next) {
+async function uploadImage(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     employeeService.uploadImage(req.body)
-        .then((data) => data ? res.json(data) : res.sendStatus(404))
+        .then((data) => res.json(data))
         .catch(err => next(err));
-
 }
 
-function ForgotPassword(req, res, next) {
+async function ForgotPassword(req, res, next) {
     employeeService.ForgotPassword(req.body)
-        .then((user) => {
-            if (user)
-                res.json(user)
-            res.send({ message: 'Nothing was returned' })
-        })
+        .then((data) => res.json(data))
         .catch(err => next(err));
 }
 
-function _delete(req, res, next) {
-    employeeService.delete(req.params.id)
-        .then(() => res.json({}))
+async function _delete(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
+    employeeService._delete(req.params.id)
+        .then((data) => res.json(data))
         .catch(err => next(err));
 }

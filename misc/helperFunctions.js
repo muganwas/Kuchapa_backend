@@ -1,3 +1,4 @@
+require('dotenv').config();
 const admin = require("firebase-admin");
 const mongoose = require('mongoose');
 // Get a reference to the database service
@@ -26,6 +27,18 @@ module.exports.validateFirebaseUser = async (bearerToken) => {
   try {
     const result = await admin.auth().verifyIdToken(idToken);
     if (result.uid)
+      return true;
+    return false;
+  } catch (e) {
+    return false;
+  }
+}
+
+module.exports.validateFirebaseAdmin = async (bearerToken) => {
+  const idToken = bearerToken.split(" ")[1];
+  try {
+    const result = await admin.auth().verifyIdToken(idToken);
+    if (result.uid && result.email === process.env.ADMIN_EMAIL)
       return true;
     return false;
   } catch (e) {

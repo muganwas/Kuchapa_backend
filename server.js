@@ -92,7 +92,6 @@ app.use('/job', require('./job/job.controller'));
 app.use('/jobrequest', require('./jobrequest/jobrequest.controller'));
 app.use('/chat', require('./chat/chat.controller'));
 app.use('/notification', require('./notification/notification.controller'));
-app.use('/cron', require('./cron/cron.controller'));
 app.use('/thirdpartyapi', require('./thirdpartyapi/thirdpartyapi.controller'));
 
 // global error handler
