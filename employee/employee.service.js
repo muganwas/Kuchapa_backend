@@ -44,7 +44,6 @@ async function authenticate(param) {
   }
 
   if ((user && bcrypt.compareSync(param.password, user.hash)) || param.loginType === 'Firebase') {
-    //const { hash, userWithoutHash } = user.toObject();
     const token = jwt.sign({ sub: user.id }, config.secret)
     let mystr = user.services
     arr = mystr.split(',')
@@ -253,12 +252,11 @@ async function checkEmail(param) {
 }
 
 async function create(params) {
-  const userParam = JSON.parse(params.data)
+  const userParam = params.data;
   const mobile = userParam.mobile
   const email = userParam.email
   const image = userParam.image
   const username = userParam.username
-  let data;
   if (
     (typeof mobile === 'undefined' || mobile && mobile.length === 0) &&
     ((typeof username === 'undefined' || username && username.length === 0) ||
@@ -285,12 +283,13 @@ async function create(params) {
   }
   if ((typeof mobile !== 'undefined' && mobile.length > 0) && (typeof email === 'undefined' || email && email.length === 0)) {
     /** mobile based user search */
-    await Employee.findOne({ mobile }).then(async user => {
+    try {
+      const existingUser = await Employee.findOne({ mobile });
       let emp_data;
       let arr;
-      if (user) {
+      if (existingUser) {
         if (userParam.type === 'google' || userParam.type === 'facebook' || userParam.type === 'phone') {
-          emp_data = Object.assign(user, {
+          emp_data = Object.assign(existingUser, {
             username,
             image: userParam.image
           });
@@ -310,19 +309,22 @@ async function create(params) {
             emp_data.img_status = '1'
           }
           if (emp_data.status === '0') {
-            data = {
+            return {
               result: false,
               message: 'Your account is deactivated by admin'
             }
           }
-          data = emp_data
+          return {
+            result: true, message: 'You signed up successfully.', data: emp_data
+          };
         } else {
-          data = { result: false, message: 'Email is already Exist' }
+          return { result: false, message: 'Email is already Exist' }
         }
       }
       else {
-        const emp = new Employee(userParam)
-        await emp.save().then(async output => {
+        const emp = new Employee(userParam);
+        try {
+          const output = await emp.save();
           if (output) {
             const message = `Please <a href="${config.URL}employee/verification/${output.id}">Click Here </a> To verify your Email`
             if (userParam.email_verification === 0) SendMail(userParam.email, 'Email Address Verification', message)
@@ -338,7 +340,7 @@ async function create(params) {
               title: 'New Provider'
             })
 
-            await notification.save();
+            const notificationRes = await notification.save();
 
             let mystr = output.services
             let arr = mystr.split(',')
@@ -352,26 +354,29 @@ async function create(params) {
                 }
               }
             }
-            output.services = JSON.stringify(ser_arr)
-            data = output
+            output.services = JSON.stringify(ser_arr);
+            if (notificationRes)
+              return { result: true, message: 'You signed up successfully.', data: output };
+            return { result: true, message: 'You signed up successfully with some errors.', data: output };
           } else {
-            data = { result: false, message: 'Registeration failed try again later' }
+            return { result: false, message: 'Registeration failed try again later' };
           }
-        }).catch(e => {
-          data = { result: false, message: e.message }
-        })
+        } catch (e) {
+          return { result: false, message: e.message };
+        };
       }
-    }).catch(e => {
-      data = { result: false, message: e.message }
-    });
+    } catch (e) {
+      return { result: false, message: e.message };
+    };
   } else {
     /** email based user search */
-    await Employee.findOne({ email: userParam.email }).then(async user => {
+    try {
+      const existingUser = await Employee.findOne({ email: userParam.email });
       let emp_data;
       let arr;
-      if (user) {
+      if (existingUser) {
         if (userParam.type === 'google' || userParam.type === 'facebook') {
-          emp_data = Object.assign(user, {
+          emp_data = Object.assign(existingUser, {
             username: userParam.username,
             image: userParam.image
           });
@@ -390,20 +395,21 @@ async function create(params) {
           if (emp_data.image !== undefined && emp_data.image !== '') {
             emp_data.img_status = '1'
           }
-          if (emp_data.status === '0') {
-            data = {
+          if (emp_data.status === '0')
+            return {
               result: false,
               message: 'Your account is deactivated by admin'
             }
-          } else { data = emp_data }
+          return { result: true, message: 'You signed in successfully.', data: emp_data };
         } else {
-          data = { result: false, message: 'Email already Exists' }
+          return { result: false, message: 'Email already Exists' };
         }
       }
       else {
         userParam.password && delete userParam.passwoard;
         const emp = new Employee(userParam)
-        await emp.save().then(async output => {
+        try {
+          const output = await emp.save();
           if (output) {
             const message = `Please <a href="${config.URL}employee/verification/${output.id}">Click Here </a> To verify your Email`
             if (userParam.email_verification === 0 || userParam.email_verification === undefined) SendMail(userParam.email, 'Email Address Verification', message)
@@ -419,10 +425,7 @@ async function create(params) {
               title: 'New Provider'
             })
 
-            await notification.save().then(notification => {
-              //if (notification) console.log('notification saved')
-            })
-
+            const notificationRes = await notification.save();
             let mystr = output.services
             let arr = mystr.split(',')
             let ser_arr = new Array()
@@ -435,21 +438,26 @@ async function create(params) {
                 }
               }
             }
-            output.services = JSON.stringify(ser_arr)
-            data = output
+            output.services = JSON.stringify(ser_arr);
+            if (notificationRes)
+              return {
+                result: true, message: 'You signed up successfully.', data: output
+              };
+            return {
+              result: true, message: 'You signed up successfully with errors.', data: output
+            };
           } else {
-            data = { result: false, message: 'Registeration failed try again later' }
+            return { result: false, message: 'Registeration failed try again later' };
           }
-        }).catch(e => {
+        } catch (e) {
           //console.log('new user error --', e)
-          data = { result: false, message: e.message }
-        })
+          return { result: false, message: e.message };
+        };
       }
-    }).catch(e => {
-      data = { result: false, message: e.message }
-    });
+    } catch (e) {
+      return { result: false, message: e.message };
+    };
   }
-  return data
 }
 
 async function ForgotPassword(param) {

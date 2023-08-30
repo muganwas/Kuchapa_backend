@@ -1,13 +1,15 @@
 require('dotenv').config();
 require('rootpath')();
+const fs = require('fs');
+const key = fs.readFileSync('./cert/localhost/localhost.decrypted.key')
+const cert = fs.readFileSync('./cert/localhost/localhost.crt')
 const express = require('express');
 const app = express();
-const httpServer = require('http').createServer(app);
+//const httpServer = require('http').createServer(app);
+const httpsServer = require('https').createServer({ key, cert }, app);
 const cors = require('cors');
 const bodyParser = require('body-parser');
-// const jwt = require('_helpers/jwt');
 const errorHandler = require('_helpers/error-handler');
-const cron = require('node-cron');
 const admin = require("firebase-admin");
 const { Server } = require('socket.io');
 const serviceAccount = require("./adminsdk.js").vars;
@@ -90,7 +92,6 @@ app.use('/job', require('./job/job.controller'));
 app.use('/jobrequest', require('./jobrequest/jobrequest.controller'));
 app.use('/chat', require('./chat/chat.controller'));
 app.use('/notification', require('./notification/notification.controller'));
-app.use('/cron', require('./cron/cron.controller'));
 app.use('/thirdpartyapi', require('./thirdpartyapi/thirdpartyapi.controller'));
 
 // global error handler
@@ -99,9 +100,9 @@ app.use(errorHandler);
 // start server
 const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : (process.env.PORT || 8080);
 
-const io = new Server(httpServer, {});
+const io = new Server(httpsServer, {});
 
-httpServer.listen(port, function () {
+httpsServer.listen(port, function () {
   console.log('Server listening on port ' + port);
 });
 

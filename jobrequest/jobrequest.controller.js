@@ -1,64 +1,88 @@
 const express = require('express');
 const router = express.Router();
 const JobRequest = require('./jobrequest.service');
+const { validateFirebaseUser } = require('misc/helperFunctions');
+const { enums: { VALIDATION_ERROR, UNAUTHORIZED_ERROR }, constants: { VALIDATION_MESSAGE, UNAUTHORIZED_MESSAGE } } = require('_helpers/constants');
 
-function serviceprovider(req, res, next) {
+async function serviceprovider(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     JobRequest.serviceprovider(req.params.id, req.body)
-        .then(users => res.json(users))
+        .then(data => res.json(data))
         .catch(err => next(err));
 }
 
-function getEmpReviews(req, res, next) {
+async function getEmpReviews(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     JobRequest.employeeRatingsDataRequest(req.params.id)
         .then(data => res.json(data))
         .catch(err => next(err))
 }
 
-function AddJobRequest(req, res, next) {
+async function AddJobRequest(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     JobRequest.AddJobRequest(req.body)
-        .then(users => res.json(users))
+        .then(data => res.json(data))
         .catch(err => next(err));
 }
 
-function UpdateJobRequest(req, res, next) {
+async function UpdateJobRequest(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     JobRequest.UpdateJobRequest(req.body)
-        .then(resp => res.json(resp))
+        .then(data => res.json(data))
         .catch(err => next(err));
 }
-function Ratingreview(req, res, next) {
+async function Ratingreview(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     JobRequest.Ratingreview(req.body)
-        .then(users => res.json(users))
+        .then(data => res.json(data))
         .catch(err => next(err));
 }
-function CustomerDataRequest(req, res, next) {
+async function CustomerDataRequest(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     JobRequest.CustomerDataRequest(req.params.id, req.params.omit)
-        .then(users => res.json(users))
+        .then(data => res.json(data))
         .catch(err => next(err));
 }
-function EmployeeDataRequest(req, res, next) {
+async function EmployeeDataRequest(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     JobRequest.EmployeeDataRequest(req.params.id, req.params.omit)
-        .then(users => res.json(users))
+        .then(data => res.json(data))
         .catch(err => next(err));
 }
-function Usergroupby(req, res, next) {
+async function Usergroupby(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     JobRequest.Usergroupby(req.params.id)
-        .then(users => res.json(users))
+        .then(data => res.json(data))
         .catch(err => next(err));
 }
-function Providerstatuscheck(req, res, next) {
+async function Providerstatuscheck(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     JobRequest.Providerstatuscheck(req.params.id, req.params.type)
-        .then(users => res.json(users))
+        .then(data => res.json(data))
         .catch(err => next(err));
 }
-function Customerstatuscheck(req, res, next) {
+async function Customerstatuscheck(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     JobRequest.Customerstatuscheck(req.params.id, req.params.type)
-        .then(users => res.json(users))
+        .then(data => res.json(data))
         .catch(err => next(err));
 }
 
-function Addrating(req, res, next) {
+async function Addrating(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     JobRequest.Addrating(req.body)
-        .then(users => res.json(users))
+        .then(data => res.json(data))
         .catch(err => next(err));
 }
 

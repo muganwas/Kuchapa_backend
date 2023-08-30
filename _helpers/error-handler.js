@@ -1,4 +1,4 @@
-module.exports = errorHandler;
+const { enums: { VALIDATION_ERROR, UNAUTHORIZED_ERROR } } = require('./constants');
 
 function errorHandler(err, req, res, next) {
     if (typeof (err) === 'string') {
@@ -6,16 +6,18 @@ function errorHandler(err, req, res, next) {
         return res.status(400).json({ message: err });
     }
 
-    if (err.name === 'ValidationError') {
-        // mongoose validation error
+    if (err.name === VALIDATION_ERROR) {
+        // No JWT
         return res.status(400).json({ message: err.message });
     }
 
-    if (err.name === 'UnauthorizedError') {
-        // jwt authentication error
-        return res.status(401).json({ message: 'Invalid Token' });
+    if (err.name === UNAUTHORIZED_ERROR) {
+        // Wrong JWT
+        return res.status(401).json({ message: 'Invalid Token, re-authenticate' });
     }
 
     // default to 500 server error
     return res.status(500).json({ message: err.message });
 }
+
+module.exports = errorHandler;

@@ -1,64 +1,74 @@
 ﻿const express = require('express');
 const router = express.Router();
 const adminService = require('./admin.service');
+const { validateFirebaseAdmin } = require('misc/helperFunctions');
+const { enums: { VALIDATION_ERROR, UNAUTHORIZED_ERROR }, constants: { VALIDATION_MESSAGE, UNAUTHORIZED_MESSAGE } } = require('_helpers/constants');
 
 // routes
 router.post('/authenticate', authenticate);
 router.get('/', getAll);
 router.get('/:id', getById);
 router.post('/update/:id', update);
-// router.get('/register', register);
+router.post('/register', register);
 router.get('/dashboard/count', dashboard);
 router.post('/changepassword/:id', ChangePassword);
 
 module.exports = router;
 
-function authenticate(req, res, next) {
-
+async function authenticate(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseAdmin(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     adminService.authenticate(req.body.userInfo)
-        .then(user => user ? res.json(user) : res.status(400).json({ message: 'email and   is incorrect' }))
+        .then(data => res.json(data))
         .catch(err => next({ result: false, message: err }));
 }
 
-
-
-function getAll(req, res, next) {
+async function getAll(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseAdmin(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     adminService.getAll()
-        .then(users => res.json(users))
+        .then(data => res.json(data))
         .catch(err => next(err));
-
 }
 
-
-function getById(req, res, next) {
+async function getById(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseAdmin(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     adminService.getById(req.params.id)
-        .then(users => res.json(users))
+        .then(data => res.json(data))
         .catch(err => next(err));
 
 }
-function dashboard(req, res, next) {
+async function dashboard(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseAdmin(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     adminService.dashboard(req.params.id)
         .then(users => res.json(users))
         .catch(err => next(err));
 
 }
 
-
-// function register(req, res, next) {
-//     adminService.create({ name: "admin", email: "kuchapamobileapp@gmail.com", mobile: "750941137", address: "Buwate", password: "admin" })
-//         .then(() => res.json({}))
-//         .catch(err => next(err));
-// }
-
-function update(req, res, next) {
-    adminService.update(req.params.id, req.body)
-        .then((rslt) => res.json(rslt))
+async function register(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseAdmin(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
+    adminService.create(req.body)
+        .then(() => res.json({}))
         .catch(err => next(err));
 }
 
-function ChangePassword(req, res, next) {
+async function update(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseAdmin(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
+    adminService.update(req.params.id, req.body)
+        .then((data) => res.json(data))
+        .catch(err => next(err));
+}
+
+async function ChangePassword(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseAdmin(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     adminService.ChangePassword(req.params.id, req.body)
-        .then((rslt) => res.json(rslt))
+        .then((data) => res.json(data))
         .catch(err => next(err));
 }
 

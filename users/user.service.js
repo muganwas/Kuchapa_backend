@@ -61,29 +61,6 @@ async function getAll() {
   }
 }
 
-async function get_search(param) {
-  var data = await User.find({
-    $or: [
-      { username: { $regex: param.search.value, $options: 'i' } },
-      { mobile: { $regex: param.search.value, $options: 'i' } }
-    ]
-  }).select('-hash')
-  var data_all = await User.find().select('-hash')
-  var recordsTotal = data_all.length
-  var recordsFiltered = data.length
-  if (data) {
-    return {
-      result: true,
-      message: 'User Found',
-      data: data,
-      recordsTotal: recordsTotal,
-      recordsFiltered: recordsFiltered
-    }
-  } else {
-    return { result: false, message: 'User Not Found' }
-  }
-}
-
 async function getById(id, param) {
   var output = '';
   var avgRating = 0;
@@ -148,7 +125,7 @@ async function CheckMobile(param) {
 }
 
 async function create(params) {
-  const userParam = JSON.parse(params.data)
+  const userParam = params.data;
   const mobile = userParam.mobile
   const email = userParam.email
   const image = userParam.image
@@ -180,79 +157,84 @@ async function create(params) {
 
   if ((typeof mobile !== 'undefined' && mobile.length > 0) && (typeof email === 'undefined' || email && email.length === 0)) {
     /** mobile based user search */
-    await User.findOne({ mobile }).then(async user => {
+    try {
+      const user = await User.findOne({ mobile });
       if (user) {
         if (userParam.type === 'google' || userParam.type === 'facebook' || userParam.type === 'phone') {
           const output = Object.assign(user, {
             username,
             image: userParam.image,
             img_status: userParam.img_status
-          })
+          });
           if (output.status === '0') {
             return {
               result: false,
               message: 'Your account is deactivated by admin'
             }
           }
-          data = output
+          return {
+            result: true, message: 'You signed in successfully.', data: output
+          };
         } else {
-          return { result: false, message: 'Email already Exist' }
+          return { result: false, message: 'Email already Exist' };
         }
       } else {
         userParam.password && delete userParam.password;
         const user = new User(userParam);
-        await user
-          .save()
-          .then(async res => {
-            data = res
-            if (data) {
-              const message = `Please <a href="${config.URL}users/verification/${data.id}">Click Here </a> To verify your Email`
-              /**send verification email if not verified */
-              if (userParam.email_verification === 0 || userParam.email_verification === undefined) SendMail(userParam.email, 'Email Address Verification', message)
-              const notification = new Notification({
-                type: 'New User',
-                order_id: '',
-                message: userParam.username + ' registered as a Customer',
-                notification_for: 'Admin',
-                notification_by: 'Customer',
-                notification_link: '/user/' + data._id,
-                user_id: data._id,
-                title: 'New Customer'
-              })
-              await notification
-                .save()
-                .then(res => {
-                  if (res) console.log('notification saved')
-                })
-                .catch(e => {
-                  return {
-                    result: false,
-                    message: 'Something went wrong',
-                    error: e.message
-                  }
-                })
-            } else {
-              return { result: false, message: 'Something went wrong' }
+        try {
+          const res = await user
+            .save();
+          data = res
+          if (data) {
+            const message = `Please <a href="${config.URL}users/verification/${data.id}">Click Here </a> To verify your Email`
+            /**send verification email if not verified */
+            if (userParam.email_verification === 0 || userParam.email_verification === undefined) SendMail(userParam.email, 'Email Address Verification', message)
+            const notification = new Notification({
+              type: 'New User',
+              order_id: '',
+              message: userParam.username + ' registered as a Customer',
+              notification_for: 'Admin',
+              notification_by: 'Customer',
+              notification_link: '/user/' + data._id,
+              user_id: data._id,
+              title: 'New Customer'
+            });
+            const notificationRes = await notification.save();
+            if (notificationRes) {
+              console.log('notification saved');
+              return {
+                result: true,
+                message: 'You signed up successfully.',
+                data
+              };
             }
-          })
-          .catch(e => {
             return {
-              result: false,
-              message: 'Something went wrong',
-              error: e.message
-            }
-          })
+              result: true,
+              message: 'You signed up successfully with some errors.',
+              data
+            };
+          } else {
+            return { result: false, message: 'Something went wrong' }
+          }
+        } catch (e) {
+          return {
+            result: false,
+            message: 'Something went wrong',
+            error: e.message
+          }
+        };
       }
-    }).catch(error => {
+    } catch (error) {
       return { result: false, message: error.message }
-    });
+    };
   }
   else {
     /** email based user search */
-    await User.findOne({ email: userParam.email }).then(async user => {
-      if (user) {
+    try {
+      const existingUser = await User.findOne({ email: userParam.email });
+      if (existingUser) {
         if (userParam.type === 'google' || userParam.type === 'facebook') {
-          var output = Object.assign(user, {
+          var output = Object.assign(existingUser, {
             username: userParam.username,
             image: userParam.image,
             img_status: userParam.img_status
@@ -263,61 +245,60 @@ async function create(params) {
               message: 'Your account is deactivated by admin'
             }
           }
-          data = output
+          return {
+            result: true, message: 'You signed in successfully.', data: output
+          };
         } else {
           return { result: false, message: 'Email already Exist' }
         }
       } else {
         const user = new User(userParam);
-        await user
-          .save()
-          .then(async res => {
-            data = res
-            if (data) {
-              const message = `Please <a href="${config.URL}users/verification/${data.id}">Click Here </a> To verify your Email`
-              /**send verification email if not verified */
-              if (userParam.email_verification === 0)
-                SendMail(userParam.email, 'Email Address Verification', message)
-              const notification = new Notification({
-                type: 'New User',
-                order_id: '',
-                message: userParam.username + ' registered as a Customer',
-                notification_for: 'Admin',
-                notification_by: 'Customer',
-                notification_link: '/user/' + data._id,
-                user_id: data._id,
-                title: 'New Customer'
-              })
-              await notification
-                .save()
-                .then(res => {
-                  if (res) console.log('notification saved')
-                })
-                .catch(e => {
-                  return {
-                    result: false,
-                    message: 'Something went wrong',
-                    error: e.message
-                  }
-                })
-            } else {
-              return { result: false, message: 'Something went wrong' }
+        try {
+          const res = await user.save();
+          data = res
+          if (data) {
+            const message = `Please <a href="${config.URL}users/verification/${data.id}">Click Here </a> To verify your Email`
+            /**send verification email if not verified */
+            if (userParam.email_verification === 0)
+              SendMail(userParam.email, 'Email Address Verification', message)
+            const notification = new Notification({
+              type: 'New User',
+              order_id: '',
+              message: userParam.username + ' registered as a Customer',
+              notification_for: 'Admin',
+              notification_by: 'Customer',
+              notification_link: '/user/' + data._id,
+              user_id: data._id,
+              title: 'New Customer'
+            })
+            const notificationRes = await notification.save();
+            if (notificationRes) {
+              console.log('notification saved');
+              return {
+                result: true,
+                message: 'You signed up successfully.',
+                data
+              };
             }
-          })
-          .catch(e => {
             return {
-              result: false,
-              message: 'Something went wrong',
-              error: e.message
-            }
-          })
+              result: true,
+              message: 'You singed up successfully with some errors.',
+              data
+            };
+          } else {
+            return { result: false, message: 'Something went wrong' }
+          }
+        } catch (e) {
+          return {
+            result: false,
+            message: 'Something went wrong',
+            error: e.message
+          }
+        };
       }
-    }).catch(error => {
+    } catch (error) {
       return { result: false, message: error.message }
-    });
-  }
-  return {
-    result: false, data, message: "Something went wrong."
+    };
   }
 }
 
@@ -392,7 +373,6 @@ module.exports = {
   authenticate,
   Verification,
   getAll,
-  get_search,
   getById,
   create,
   update,
