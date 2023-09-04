@@ -29,10 +29,8 @@ async function authenticate(req, res, next) {
 }
 
 function register(req, res, next) {
-    console.log('creating ...')
     employeeService.create(req.body)
         .then((data) => {
-            console.log({ data })
             return res.json(data)
         })
         .catch(err => next(err));
