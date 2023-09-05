@@ -34,6 +34,23 @@ module.exports.validateFirebaseUser = async (bearerToken) => {
   }
 }
 
+module.exports.synchroniseOnlineStatus = async (body) => {
+  const { id, savedStatus } = body;
+  try {
+    let status = savedStatus;
+    const usersRef = admin.database().ref(`users/${id}`);
+    const snapshot = await usersRef.once('value');
+    const value = snapshot.val();
+    if (value && value.status != status) {
+      await usersRef.set({ status });
+      return { result: true, message: 'Status updated successfully', data: { userId: id, status: value.status } };
+    }
+    return { result: true, message: 'Status is already synchronised', data: { userId: id, status: value.status } };
+  } catch (e) {
+    return { result: false, message: e.message, }
+  }
+};
+
 module.exports.validateFirebaseAdmin = async (bearerToken) => {
   const idToken = bearerToken.split(" ")[1];
   try {

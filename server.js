@@ -54,7 +54,7 @@ mongoose.connect(db_connection_url, mongooseOptions, err => {
 });
 
 // Get a reference to the database service
-const database = firebase.database;
+const database = admin.database;
 const usersRef = database().ref('users');
 
 let messages = {};

@@ -2,12 +2,13 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 const userService = require('./user.service');
-const { createSession, validateFirebaseUser } = require('misc/helperFunctions');
+const { createSession, validateFirebaseUser, synchroniseOnlineStatus } = require('misc/helperFunctions');
 const { enums: { VALIDATION_ERROR, UNAUTHORIZED_ERROR }, constants: { VALIDATION_MESSAGE, UNAUTHORIZED_MESSAGE } } = require('_helpers/constants');
 
 router.post('/authenticate', authenticate);
 router.post('/createSession', authCreateSession);
 router.post('/register', register);
+router.post('/updateOnlineStatus', updateOnlineStatus);
 router.get('/', getAll);
 router.get('/verification/:id', Verification);
 router.get('/:id', getById);
@@ -31,6 +32,13 @@ async function authCreateSession(req, res, next) {
     if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
     if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     createSession(req.body).then(session => res.json(session)).catch(err => next(err));
+}
+
+async function updateOnlineStatus(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
+    const response = await synchroniseOnlineStatus(req.body);
+    res.json(response);
 }
 
 function register(req, res, next) {
