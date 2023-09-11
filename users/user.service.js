@@ -1,15 +1,15 @@
 const config = require('../config')
-const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const db = require('_helpers/db')
 const User = db.User;
 const { employeeRatingsDataRequest } = require('../jobrequest/jobrequest.service');
 const Notification = db.Notification
-const SendMail = require('../_helpers/SendMail')
+const SendMail = require('../_helpers/SendMail');
+const { imageExists } = require('../misc/helperFunctions');
 
 async function authenticate(param) {
   var avgRating;
-  const user = await User.findOne({ email: param.email })
+  var user = await User.findOne({ email: param.email })
 
   if (!user) {
     return { result: false, message: 'Email does not exist' }
@@ -29,7 +29,6 @@ async function authenticate(param) {
   }
 
   if ((user && bcrypt.compareSync(param.password, user.hash)) || param.loginType === 'Firebase') {
-    const token = jwt.sign({ sub: user.id }, config.secret)
     if (typeof param.fcm_id !== 'undefined') {
       if (user._id)
         await employeeRatingsDataRequest(user._id).then(res => {
@@ -40,10 +39,11 @@ async function authenticate(param) {
       Object.assign(user, fcm);
       await user.save();
     }
+    user = user.toJSON();
+    user['image_available'] = await imageExists(user.image);
     return {
       result: true,
       message: 'Login successfull',
-      token: token,
       id: user.id,
       data: user
     }
@@ -53,8 +53,12 @@ async function authenticate(param) {
 }
 
 async function getAll() {
-  var data = await User.find().select('-hash')
+  var data = await User.find().select('-hash');
+  data = data.toJSON();
   if (data.length) {
+    data.map(async (user, i) => {
+      data[i]['image_available'] = await imageExists(data[i].image);
+    })
     return { result: true, message: 'Users Found', data: data }
   } else {
     return { result: false, message: 'Users Not Found' }
@@ -71,18 +75,22 @@ async function getById(id, param) {
           avgRating = res.rating;
         });
       var fcm = { fcm_id: param.fcm_id, avgRating }
-      Object.assign(output, fcm)
+      Object.assign(output, fcm);
       await output.save()
     }
-    return { result: true, message: 'Customer Found', data: output }
+    const data = output.toJSON();
+    data['image_available'] = await imageExists(output.image);
+    return { result: true, message: 'Customer Found', data }
   } else {
     return { result: false, message: 'Customer Not Found' }
   }
 }
 
 const findUserById = async id => {
-  const output = await User.findById(id)
+  var output = await User.findById(id);
+  output = output.toJSON();
   if (output) {
+    output['image_available'] = await imageExists(output.image);
     return { result: true, data: output, message: 'Customer found successfully' }
   } else {
     return { result: false, message: 'Customer Not Found' }
@@ -90,7 +98,7 @@ const findUserById = async id => {
 }
 
 async function Verification(id) {
-  const output = await User.findById(id)
+  var output = await User.findById(id)
   if (output) {
     var userParam = {}
     userParam['email_verification'] = 1
@@ -201,7 +209,6 @@ async function create(params) {
             });
             const notificationRes = await notification.save();
             if (notificationRes) {
-              console.log('notification saved');
               return {
                 result: true,
                 message: 'You signed up successfully.',
@@ -273,7 +280,6 @@ async function create(params) {
             })
             const notificationRes = await notification.save();
             if (notificationRes) {
-              console.log('notification saved');
               return {
                 result: true,
                 message: 'You signed up successfully.',

@@ -4,6 +4,7 @@ const Notification = db.Notification;
 const JobRequest = db.JobRequest;
 const Employee = db.Employee;
 const admin = require("firebase-admin");
+const { imageExists } = require('../misc/helperFunctions');
 const monthNames = ["January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
 ];
@@ -79,9 +80,11 @@ async function AddJobRequest(param) {
                 order_id = order_id.substr(order_id.length - 5);
 
                 param.notification.data['order_id'] = 'HRF-' + order_id.toUpperCase();
-                PushNotif(param.notification).then(notification => notif = notification).catch(e => {
-                    console.log('notification error', e)
-                });
+                notif = await PushNotif(param.notification);
+                console.log({ notif });
+                if (!notif.result) {
+                    return { result: true, message: 'Add request successfull without sending notification.', data: output };
+                }
             }
             return { result: true, 'message': 'Add request successfull', 'notification': notif, data: output };
         } else {
@@ -168,6 +171,7 @@ async function Customerstatuscheck(id, type) {
 
                 new_data['order_id'] = order_id_str;
                 var new_emp = JSon[i].employee_details[0];
+                new_emp['image_available'] = await imageExists(new_emp.image);
                 new_data['employee_details'] = new_emp;
                 var new_ser = JSon[i].service_details[0];
 
@@ -263,6 +267,8 @@ async function Providerstatuscheck(id, type) {
                 order_id_str = 'HRF-' + order_id_str.toUpperCase();
                 new_data['order_id'] = order_id_str;
                 var new_cust = JSon[i].customer_details[0];
+                new_cust['image_available'] = await imageExists(new_cust.image);
+
                 new_data['customer_details'] = new_cust;
 
                 var new_ser = JSon[i].service_details[0];
@@ -293,9 +299,11 @@ async function Addrating(param) {
             param.notification.data['main_id'] = order_id;
             order_id = order_id.substr(order_id.length - 5);
             param.notification.data['order_id'] = 'HRF-' + order_id.toUpperCase();
-            PushNotif(param.notification).then(notification => notif = notification).catch(e => {
-                console.log('notification error', e)
-            });
+            notif = await PushNotif(param.notification);
+            console.log({ notif });
+            if (!notif.result) {
+                return { result: true, message: 'Add request successfull without sending notification.', data: output };
+            }
         }
 
         return { result: true, 'message': 'Add request successfull', 'notification': notif, 'data': output };
@@ -325,18 +333,17 @@ async function UpdateJobRequest(param) {
     }
 
     request = Object.assign(request, save_);
+    var notif = {};
     const output = await request.save();
     if (output) {
-        var notif = {};
         if (param.notification !== undefined) {
-            PushNotif(param.notification).then(notification => notif = notification).catch(e => {
-                console.log('notification error', e)
-            });
+            notif = await PushNotif(param.notification);
+            console.log({ notif });
+            if (!notif.result) {
+                return { result: true, message: 'Update successfull without sending notification.', data: output };
+            }
         }
-        else {
-            console.log('notification not saved');
-        }
-        return { result: true, message: 'Update successfull', data: output };
+        return { result: true, message: 'Update successfull', notification: notif, data: output };
     }
     else {
         return { result: false, message: 'Something went wrong' };
@@ -390,7 +397,6 @@ async function Ratingreview(param) {
 }
 
 async function CustomerDataRequest(id, omit) {
-
     if (typeof id === 'undefined') {
         return { result: false, 'message': 'id is required' };
     }
@@ -399,9 +405,9 @@ async function CustomerDataRequest(id, omit) {
     param['user_id'] = new mongoose.Types.ObjectId(id);
     const output = await JobRequest.find(param);
     if (output !== 0) {
-        //const status =  type && type === 'bookings' ? { $nin: ["Pending", "Failed", "Cancelled", "No Response"] } : { $nin: ["Pending"] };
+        const newOmit = omit.split(" ");
         const JSon = await JobRequest.aggregate([
-            { $match: { user_id: new mongoose.Types.ObjectId(id), status: omit ? { $nin: [omit] } : { $nin: [] } } },
+            { $match: { user_id: new mongoose.Types.ObjectId(id), status: omit ? { $nin: newOmit } : { $nin: [] } } },
             {
                 "$project": {
                     "employee_id": {
@@ -483,6 +489,7 @@ async function CustomerDataRequest(id, omit) {
 
                 new_data['order_id'] = order_id_str;
                 var new_emp = JSon[i].employee_details[0];
+                new_emp['image_exists'] = await imageExists(new_emp.image);
                 new_data['employee_details'] = new_emp;
 
                 var new_ser = JSon[i].service_details[0];
@@ -542,8 +549,9 @@ async function EmployeeDataRequest(id, omit) {
     param['employee_id'] = new mongoose.Types.ObjectId(id);
     const output = await JobRequest.find(param);
     if (output !== 0) {
+        const newOmit = omit.split(" ");
         const JSon = await JobRequest.aggregate([
-            { $match: { employee_id: new mongoose.Types.ObjectId(id), status: omit ? { $nin: [omit] } : { $nin: [] } } },
+            { $match: { employee_id: new mongoose.Types.ObjectId(id), status: omit ? { $nin: newOmit } : { $nin: [] } } },
             {
                 "$project": {
                     "user_id": {
@@ -629,6 +637,7 @@ async function EmployeeDataRequest(id, omit) {
 
                 new_data['order_id'] = order_id_str;
                 var new_emp = JSon[i].user_details[0];
+                new_emp['image_exists'] = await imageExists(new_emp.image);
                 new_data['user_details'] = new_emp;
 
                 var new_ser = JSon[i].service_details[0];
@@ -783,35 +792,35 @@ async function Usergroupby(id) {
 }
 
 async function PushNotif(param) {
-    const { save_notification } = param;
-    if (typeof param.fcm_id === 'undefined' || typeof param.title === 'undefined' || typeof param.body == 'undefined') {
-        return { result: false, message: 'fcm_id,title,data(o) and body is required' }
-    }
+    return new Promise(async (resolve, reject) => {
+        const { save_notification } = param;
+        if (typeof param.fcm_id === 'undefined' || typeof param.title === 'undefined' || typeof param.body == 'undefined') {
+            resolve({ result: false, message: 'fcm_id,title,data(o) and body is required' });
+        }
 
-    let newdata = {};
-    if (param.data !== 'undefined') {
-        newdata = Object.assign({}, param.data);
-        newdata.title = param.title;
-        newdata.body = param.body;
-    }
-    if (save_notification) {
-        let save = {};
-        save['user_id'] = new mongoose.Types.ObjectId(param.user_id);
-        save['employee_id'] = new mongoose.Types.ObjectId(param.employee_id);
-        save['order_id'] = param.order_id;
-        save['title'] = param.title;
-        save['message'] = param.body;
-        save['type'] = param.type;
-        save['notification_by'] = param.notification_by;
-        const notif_save = new Notification(save);
-        await notif_save.save();
-    }
-    const message = {
-        data: { data: JSON.stringify(newdata) },
-        token: param.fcm_id
-    }
-    if (newdata) {
-        return new Promise((resolve, reject) => {
+        let newdata = {};
+        if (param.data !== 'undefined') {
+            newdata = Object.assign({}, param.data);
+            newdata.title = param.title;
+            newdata.body = param.body;
+        }
+        if (save_notification) {
+            let save = {};
+            save['user_id'] = new mongoose.Types.ObjectId(param.user_id);
+            save['employee_id'] = new mongoose.Types.ObjectId(param.employee_id);
+            save['order_id'] = param.order_id;
+            save['title'] = param.title;
+            save['message'] = param.body;
+            save['type'] = param.type;
+            save['notification_by'] = param.notification_by;
+            const notif_save = new Notification(save);
+            await notif_save.save();
+        }
+        const message = {
+            data: { data: JSON.stringify(newdata) },
+            token: param.fcm_id
+        }
+        if (newdata) {
             admin.messaging().send(message)
                 .then((response) => {
                     // Response is a message ID string.
@@ -820,9 +829,8 @@ async function PushNotif(param) {
                 .catch((error) => {
                     reject({ result: true, message: error });
                 });
-        });
-    }
-
+        }
+    });
 }
 
 

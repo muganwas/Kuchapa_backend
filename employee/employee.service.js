@@ -3,7 +3,6 @@ const config = require('../config')
 const { employeeRatingsDataRequest } = require('../jobrequest/jobrequest.service');
 const { ObjectId } = require('mongodb')
 const mongoose = require('mongoose');
-const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const admin = require('firebase-admin');
 const db = require('_helpers/db')
@@ -12,7 +11,8 @@ const Employee = db.Employee
 const Service = db.Services
 
 const Notification = db.Notification
-const SendMail = require('../_helpers/SendMail')
+const SendMail = require('../_helpers/SendMail');
+const { imageExists } = require('../misc/helperFunctions');
 
 async function authenticate(param) {
   let avgRating = 0;
@@ -44,7 +44,6 @@ async function authenticate(param) {
   }
 
   if ((user && bcrypt.compareSync(param.password, user.hash)) || param.loginType === 'Firebase') {
-    const token = jwt.sign({ sub: user.id }, config.secret)
     let mystr = user.services
     arr = mystr.split(',')
     let ser_arr = []
@@ -58,10 +57,11 @@ async function authenticate(param) {
       }
     }
     user.services = JSON.stringify(ser_arr);
+    user = user.toJSON();
+    user['image_available'] = await imageExists(user.image);
     return {
       result: true,
       message: 'Login successfull',
-      token: token,
       id: user.id,
       data: user
     }
@@ -72,25 +72,27 @@ async function authenticate(param) {
 
 async function getAll() {
   let output = await Employee.find()
-  for (let i = 0; i < output.length; i++) {
-    let mystr = output[i].services
-    arr = mystr.split(',')
-    let ser_arr = []
+  if (output) {
+    for (let i = 0; i < output.length; i++) {
+      let mystr = output[i].services
+      arr = mystr.split(',')
+      let ser_arr = []
 
-    for (let j = 0; j < arr.length; j++) {
-      if (arr[j].length > 0) {
-        let service = await Service.find(ObjectId(arr[j]))
-        if (service) {
-          ser_arr.push(service[0].service_name)
+      for (let j = 0; j < arr.length; j++) {
+        if (arr[j].length > 0) {
+          let service = await Service.find(ObjectId(arr[j]))
+          if (service) {
+            ser_arr.push(service[0].service_name)
+          }
         }
       }
+      output = output.toJSON();
+      output[i]['image_available'] = await imageExists(output[i].image);
+      output[i].services = ser_arr.toString()
     }
-    output[i].services = ser_arr.toString()
-  }
-  if (await output) {
-    return await output
+    return { result: true, message: 'Service providers found', data: output }
   } else {
-    return { result: false }
+    return { result: false, message: 'No service providers found' }
   }
 }
 
@@ -137,10 +139,8 @@ async function PushNotif(param) {
         .then((response) => {
           // Response is a message ID string.
           resolve({ result: true, message: response });
-          //console.log('Successfully sent message:', response);
         })
         .catch((error) => {
-          //console.log('Error sending message:', error);
           reject({ result: true, message: error });
         });
     });
@@ -149,8 +149,10 @@ async function PushNotif(param) {
 
 
 const findUserById = async id => {
-  const data = await Employee.findById(id)
+  var data = await Employee.findById(id);
+  data = data.toJSON();
   if (data) {
+    data['image_available'] = await imageExists(data.image);
     return { result: true, data, message: 'Service provider found' }
   } else {
     return { result: false, message: 'Service provicer Not Found' }
@@ -202,6 +204,8 @@ async function getById(id, param) {
       }
     }
     output.services = JSON.stringify(ser_arr);
+    output = output.toJSON();
+    output['image_available'] = await imageExists(output.image);
     return { result: true, message: 'employee found', data: output }
   } else {
     return { result: false, message: 'employee not found' }
@@ -214,7 +218,7 @@ async function checkEmail(param) {
   }
 
   let emp_data = null;
-  const user1 = await Employee.findOne({ email: param.email })
+  var user1 = await Employee.findOne({ email: param.email })
   if (user1) {
     emp_data = Object.assign(user1, {
       username: param.username,
@@ -240,7 +244,9 @@ async function checkEmail(param) {
         }
 
       }
-      emp_data.services = JSON.stringify(ser_arr)
+      emp_data.services = JSON.stringify(ser_arr);
+      emp_data = emp_data.toJSON();
+      emp_data['image_available'] = await imageExists(emp_data.image);
       return { result: true, message: 'Email already Exists', data: emp_data }
     }
     else {
@@ -450,7 +456,6 @@ async function create(params) {
             return { result: false, message: 'Registeration failed try again later' };
           }
         } catch (e) {
-          //console.log('new user error --', e)
           return { result: false, message: e.message };
         };
       }

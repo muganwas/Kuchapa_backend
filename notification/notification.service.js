@@ -1,6 +1,7 @@
 const db = require('_helpers/db');
 var mongoose = require('mongoose');
 const admin = require('firebase-admin');
+const { imageExists } = require('../misc/helperFunctions');
 const JobRequest = db.JobRequest;
 const Notification = db.Notification;
 const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
@@ -149,6 +150,7 @@ async function GetEmployeeNotifications(id) {
           notif[i].createdDate = ("0" + d.getDate()).slice(-2) + '-' + shortMonths[d.getMonth()] + '-' + d.getFullYear();
 
           notif[i].customer_details = notif[i].customer_details[0];
+          notif[i].customer_details.imageAvailable = await imageExists(notif[i].customer_details.image);
           output.push(notif[i]);
         }
       }
@@ -224,6 +226,7 @@ async function GetCustomerNotification(id) {
           var d = new Date(notif[i].createdDate);
           notif[i].createdDate = ("0" + d.getDate()).slice(-2) + '-' + shortMonths[d.getMonth()] + '-' + d.getFullYear();
           notif[i].employee_details = notif[i].employee_details[0];
+          notif[i].employee_details.imageAvailable = await imageExists(notif[i].employee_details.image);
           output.push(notif[i]);
 
         }

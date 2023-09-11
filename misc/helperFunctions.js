@@ -1,4 +1,5 @@
 require('dotenv').config();
+const request = require('request');
 const admin = require("firebase-admin");
 const mongoose = require('mongoose');
 // Get a reference to the database service
@@ -21,6 +22,24 @@ module.exports.storeChat = async chatObject => {
   });
   return 'huh!';
 }
+
+module.exports.imageExists = async image_url => {
+  return new Promise(resolve => {
+    try {
+      if (image_url) {
+        request({ uri: image_url, method: 'GET' }, (err, res, body) => {
+          if (err)
+            resolve(false);
+          if (body)
+            resolve(true);
+          resolve(false);
+        });
+      }
+    } catch (e) {
+      resolve(false)
+    }
+  });
+};
 
 module.exports.validateFirebaseUser = async (bearerToken) => {
   const idToken = bearerToken.split(" ")[1];

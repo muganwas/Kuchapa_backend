@@ -1,6 +1,4 @@
 const SendMailFunction = require("../_helpers/SendMail");
-
-
 module.exports = {
   SendSMS,
   SendMail
@@ -11,7 +9,7 @@ async function SendSMS(param) {
     return { result: false, message: 'to and otp is required' };
   }
 
-  const request = require('request')
+  const request = require('request');
   var formData = {};
 
   formData['to'] = param.to;
