@@ -81,7 +81,6 @@ async function AddJobRequest(param) {
 
                 param.notification.data['order_id'] = 'HRF-' + order_id.toUpperCase();
                 notif = await PushNotif(param.notification);
-                console.log({ notif });
                 if (!notif.result) {
                     return { result: true, message: 'Add request successfull without sending notification.', data: output };
                 }
@@ -300,7 +299,6 @@ async function Addrating(param) {
             order_id = order_id.substr(order_id.length - 5);
             param.notification.data['order_id'] = 'HRF-' + order_id.toUpperCase();
             notif = await PushNotif(param.notification);
-            console.log({ notif });
             if (!notif.result) {
                 return { result: true, message: 'Add request successfull without sending notification.', data: output };
             }
@@ -338,7 +336,6 @@ async function UpdateJobRequest(param) {
     if (output) {
         if (param.notification !== undefined) {
             notif = await PushNotif(param.notification);
-            console.log({ notif });
             if (!notif.result) {
                 return { result: true, message: 'Update successfull without sending notification.', data: output };
             }

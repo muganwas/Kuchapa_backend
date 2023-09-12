@@ -7,6 +7,7 @@ const admin = require('firebase-admin');
 const userService = require('../users/user.service');
 const employeeService = require('../employee/employee.service');
 const { PushNotif } = require("../notification/notification.service");
+const { imageExists } = require('../misc/helperFunctions');
 
 const database = admin.database;
 const zoomEndpoint = process.env.ZOOM_END_POINT
@@ -19,7 +20,7 @@ const storeChat = async chatObject => {
             return { result: false, message: "chat stored already" }
         newChats = new chats(chatObject);
         if (await newChats.save())
-            return { result: true, data: details, message: "Chat stored successfully" };
+            return { result: true, data: newChats, message: "Chat stored successfully" };
         return { result: false, message: "Chat couldn't be stored" }
 
     } catch (e) {
@@ -214,34 +215,40 @@ const storeMessage = async (params, userType) => {
         let msgId = database().ref('chatting').child(senderId).child(receiverId).push().key;
         let updates = {};
         let recentUpdates = {};
+        const senderImageExists = await imageExists(senderImage);
+        const receiverImageExists = await imageExists(receiverImage);
 
         let message = file ? {
             textMessage,
             imageMessage: '',
             time,
             file,
-            senderId: senderId,
-            senderImage: senderImage,
-            senderName: senderName,
-            receiverId: receiverId,
-            receiverName: receiverName,
-            receiverImage: receiverImage,
-            serviceName: serviceName,
-            orderId: orderId,
+            senderId,
+            senderImage,
+            senderImageExists,
+            senderName,
+            receiverId,
+            receiverName,
+            receiverImage,
+            receiverImageExists,
+            serviceName,
+            orderId,
             type,
             date,
         } : {
             textMessage,
             imageMessage: '',
             time,
-            senderId: senderId,
-            senderImage: senderImage,
-            senderName: senderName,
-            receiverId: receiverId,
-            receiverName: receiverName,
-            receiverImage: receiverImage,
-            serviceName: serviceName,
-            orderId: orderId,
+            senderId,
+            senderImage,
+            senderImageExists,
+            senderName,
+            receiverId,
+            receiverName,
+            receiverImage,
+            receiverImageExists,
+            serviceName,
+            orderId,
             type,
             date,
         }
@@ -255,6 +262,7 @@ const storeMessage = async (params, userType) => {
             id: senderId,
             name: senderName,
             image: senderImage,
+            imageExists: senderImageExists,
             serviceName: serviceName,
             orderId: orderId,
             type,
@@ -266,6 +274,7 @@ const storeMessage = async (params, userType) => {
             id: senderId,
             name: senderName,
             image: senderImage,
+            imageExists: senderImageExists,
             serviceName: serviceName,
             orderId: orderId,
             type,
@@ -280,6 +289,7 @@ const storeMessage = async (params, userType) => {
             id: receiverId,
             name: receiverName,
             image: receiverImage,
+            imageExists: receiverImageExists,
             serviceName: serviceName,
             orderId: orderId,
             type,
@@ -291,6 +301,7 @@ const storeMessage = async (params, userType) => {
             id: receiverId,
             name: receiverName,
             image: receiverImage,
+            imageExists: receiverImageExists,
             serviceName: serviceName,
             orderId: orderId,
             type,

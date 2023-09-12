@@ -111,7 +111,6 @@ io.on("connection", socket => {
   if (this.sentMessage) socket.off('sent-message', this.sentMessage);
   if (this.onDisconnect) socket.off("disconnect", this.onDisconnect);
   this.authentication = () => socket.on('authentication', async data => {
-    console.log('user authenticated');
     const { id, userType } = data;
     if (id) {
       let Verification = userType === 'client' ? userService.findUserById : employeeService.findUserById;
