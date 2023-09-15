@@ -12,7 +12,7 @@ const Service = db.Services
 
 const Notification = db.Notification
 const SendMail = require('../_helpers/SendMail');
-const { imageExists } = require('../misc/helperFunctions');
+const { imageExists, fetchCountryCodes } = require('../misc/helperFunctions');
 
 async function authenticate(param) {
   let avgRating = 0;
@@ -22,7 +22,7 @@ async function authenticate(param) {
       message: 'email, fcm_id(o) and password is required'
     }
   }
-  const user = await Employee.findOne({ email: param.email });
+  var user = await Employee.findOne({ email: param.email });
 
   if (!user) {
     return { result: false, message: 'email not found' }
@@ -59,6 +59,8 @@ async function authenticate(param) {
     user.services = JSON.stringify(ser_arr);
     user = user.toJSON();
     user['image_available'] = await imageExists(user.image);
+    const country = await fetchCountryCodes();
+    user = Object.assign(user, country.data);
     return {
       result: true,
       message: 'Login successfull',
@@ -71,7 +73,8 @@ async function authenticate(param) {
 }
 
 async function getAll() {
-  let output = await Employee.find()
+  let output = await Employee.find();
+  const country = await fetchCountryCodes();
   if (output) {
     for (let i = 0; i < output.length; i++) {
       let mystr = output[i].services
@@ -88,6 +91,7 @@ async function getAll() {
       }
       output = output.toJSON();
       output[i]['image_available'] = await imageExists(output[i].image);
+      output[i] = Object.assign(output[i], country.data);
       output[i].services = ser_arr.toString()
     }
     return { result: true, message: 'Service providers found', data: output }
@@ -147,12 +151,13 @@ async function PushNotif(param) {
   }
 }
 
-
 const findUserById = async id => {
   var data = await Employee.findById(id);
   data = data.toJSON();
   if (data) {
     data['image_available'] = await imageExists(data.image);
+    const country = await fetchCountryCodes();
+    data = Object.assign(data, country.data);
     return { result: true, data, message: 'Service provider found' }
   } else {
     return { result: false, message: 'Service provicer Not Found' }
@@ -206,6 +211,8 @@ async function getById(id, param) {
     output.services = JSON.stringify(ser_arr);
     output = output.toJSON();
     output['image_available'] = await imageExists(output.image);
+    const country = await fetchCountryCodes();
+    output = Object.assign(output, country.data);
     return { result: true, message: 'employee found', data: output }
   } else {
     return { result: false, message: 'employee not found' }
@@ -295,7 +302,7 @@ async function create(params) {
       let arr;
       if (existingUser) {
         if (userParam.type === 'google' || userParam.type === 'facebook' || userParam.type === 'phone') {
-          emp_data = Object.assign(existingUser, {
+          emp_data = Object.assign(existingUser.toJSON(), {
             username,
             image: userParam.image
           });
@@ -311,6 +318,9 @@ async function create(params) {
             }
           }
           emp_data.services = JSON.stringify(ser_arr);
+          emp_data['image_available'] = await imageExists(emp_data.image);
+          const country = await fetchCountryCodes();
+          emp_data = Object.assign(emp_data, country.data);
           if (emp_data.image != undefined && emp_data.image != '') {
             emp_data.img_status = '1'
           }
@@ -330,7 +340,7 @@ async function create(params) {
       else {
         const emp = new Employee(userParam);
         try {
-          const output = await emp.save();
+          var output = await emp.save();
           if (output) {
             const message = `Please <a href="${config.URL}employee/verification/${output.id}">Click Here </a> To verify your Email`
             if (userParam.email_verification === 0) SendMail(userParam.email, 'Email Address Verification', message)
@@ -361,6 +371,10 @@ async function create(params) {
               }
             }
             output.services = JSON.stringify(ser_arr);
+            output = output.toJSON();
+            output['image_available'] = await imageExists(output.image);
+            const country = await fetchCountryCodes();
+            output = Object.assign(output, country.data);
             if (notificationRes)
               return { result: true, message: 'You signed up successfully.', data: output };
             return { result: true, message: 'You signed up successfully with some errors.', data: output };
@@ -382,7 +396,7 @@ async function create(params) {
       let arr;
       if (existingUser) {
         if (userParam.type === 'google' || userParam.type === 'facebook') {
-          emp_data = Object.assign(existingUser, {
+          emp_data = Object.assign(existingUser.toJSON(), {
             username: userParam.username,
             image: userParam.image
           });
@@ -406,6 +420,9 @@ async function create(params) {
               result: false,
               message: 'Your account is deactivated by admin'
             }
+          emp_data['image_available'] = await imageExists(emp_data.image);
+          const country = await fetchCountryCodes();
+          emp_data = Object.assign(emp_data, country.data);
           return { result: true, message: 'You signed in successfully.', data: emp_data };
         } else {
           return { result: false, message: 'Email already Exists' };
@@ -415,7 +432,7 @@ async function create(params) {
         userParam.password && delete userParam.passwoard;
         const emp = new Employee(userParam)
         try {
-          const output = await emp.save();
+          var output = await emp.save();
           if (output) {
             const message = `Please <a href="${config.URL}employee/verification/${output.id}">Click Here </a> To verify your Email`
             if (userParam.email_verification === 0 || userParam.email_verification === undefined) SendMail(userParam.email, 'Email Address Verification', message)
@@ -445,6 +462,10 @@ async function create(params) {
               }
             }
             output.services = JSON.stringify(ser_arr);
+            output = output.toJSON();
+            output['image_available'] = await imageExists(output.image);
+            const country = await fetchCountryCodes();
+            output = Object.assign(output, country.data);
             if (notificationRes)
               return {
                 result: true, message: 'You signed up successfully.', data: output

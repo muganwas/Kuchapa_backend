@@ -316,18 +316,18 @@ const storeMessage = async (params, userType) => {
 
         database().ref().update(recentUpdates)
 
-        const notification = {
-            "fcm_id": fcm_id,
-            "type": "Message",
-            "user_id": userType === 'client' ? senderId : receiverId,
-            "employee_id": userType === 'client' ? receiverId : senderId,
-            "order_id": orderId,
-            "notification_by": userType === 'client' ? "Customer" : "Employee",
-            "save_notification": false,
-            "title": "Message Recieved",
-            "body": senderName + " has sent you a message!",
-        };
-        if (fcm_id) return PushNotif(notification);
+        // const notification = {
+        //     "fcm_id": fcm_id,
+        //     "type": "Message",
+        //     "user_id": userType === 'client' ? senderId : receiverId,
+        //     "employee_id": userType === 'client' ? receiverId : senderId,
+        //     "order_id": orderId,
+        //     "notification_by": userType === 'client' ? "Customer" : "Employee",
+        //     "save_notification": false,
+        //     "title": "Message Recieved",
+        //     "body": senderName + " has sent you a message!",
+        // };
+        // if (fcm_id) return PushNotif(notification);
         return { result: true, msgId, message: "Message stored but notification not sent" };
     } catch (err) {
         console.log(err);

@@ -5,7 +5,7 @@ const User = db.User;
 const { employeeRatingsDataRequest } = require('../jobrequest/jobrequest.service');
 const Notification = db.Notification
 const SendMail = require('../_helpers/SendMail');
-const { imageExists } = require('../misc/helperFunctions');
+const { imageExists, fetchCountryCodes } = require('../misc/helperFunctions');
 
 async function authenticate(param) {
   var avgRating;
@@ -41,6 +41,8 @@ async function authenticate(param) {
     }
     user = user.toJSON();
     user['image_available'] = await imageExists(user.image);
+    const country = await fetchCountryCodes();
+    user = Object.assign(user, country.data);
     return {
       result: true,
       message: 'Login successfull',
@@ -55,9 +57,11 @@ async function authenticate(param) {
 async function getAll() {
   var data = await User.find().select('-hash');
   data = data.toJSON();
+  const country = await fetchCountryCodes();
   if (data.length) {
     data.map(async (user, i) => {
       data[i]['image_available'] = await imageExists(data[i].image);
+      data[i] = Object.assign(data[i], country.data);
     })
     return { result: true, message: 'Users Found', data: data }
   } else {
@@ -78,8 +82,10 @@ async function getById(id, param) {
       Object.assign(output, fcm);
       await output.save()
     }
-    const data = output.toJSON();
+    var data = output.toJSON();
     data['image_available'] = await imageExists(output.image);
+    const country = await fetchCountryCodes();
+    data = Object.assign(data, country.data);
     return { result: true, message: 'Customer Found', data }
   } else {
     return { result: false, message: 'Customer Not Found' }
@@ -91,6 +97,8 @@ const findUserById = async id => {
   output = output.toJSON();
   if (output) {
     output['image_available'] = await imageExists(output.image);
+    const country = await fetchCountryCodes();
+    output = Object.assign(output, country.data);
     return { result: true, data: output, message: 'Customer found successfully' }
   } else {
     return { result: false, message: 'Customer Not Found' }
@@ -169,7 +177,7 @@ async function create(params) {
       const user = await User.findOne({ mobile });
       if (user) {
         if (userParam.type === 'google' || userParam.type === 'facebook' || userParam.type === 'phone') {
-          const output = Object.assign(user, {
+          const output = Object.assign(user.toJSON(), {
             username,
             image: userParam.image,
             img_status: userParam.img_status
@@ -180,6 +188,9 @@ async function create(params) {
               message: 'Your account is deactivated by admin'
             }
           }
+          output['image_available'] = await imageExists(output.image);
+          const country = await fetchCountryCodes();
+          output = Object.assign(output, country.data);
           return {
             result: true, message: 'You signed in successfully.', data: output
           };
@@ -192,7 +203,7 @@ async function create(params) {
         try {
           const res = await user
             .save();
-          data = res
+          data = res.toJSON();
           if (data) {
             const message = `Please <a href="${config.URL}users/verification/${data.id}">Click Here </a> To verify your Email`
             /**send verification email if not verified */
@@ -208,6 +219,9 @@ async function create(params) {
               title: 'New Customer'
             });
             const notificationRes = await notification.save();
+            data['image_available'] = await imageExists(data.image);
+            const country = await fetchCountryCodes();
+            data = Object.assign(data, country.data);
             if (notificationRes) {
               return {
                 result: true,
@@ -241,7 +255,7 @@ async function create(params) {
       const existingUser = await User.findOne({ email: userParam.email });
       if (existingUser) {
         if (userParam.type === 'google' || userParam.type === 'facebook') {
-          var output = Object.assign(existingUser, {
+          var output = Object.assign(existingUser.toJSON(), {
             username: userParam.username,
             image: userParam.image,
             img_status: userParam.img_status
@@ -252,6 +266,9 @@ async function create(params) {
               message: 'Your account is deactivated by admin'
             }
           }
+          output['image_available'] = await imageExists(output.image);
+          const country = await fetchCountryCodes();
+          output = Object.assign(output, country.data);
           return {
             result: true, message: 'You signed in successfully.', data: output
           };
@@ -262,7 +279,7 @@ async function create(params) {
         const user = new User(userParam);
         try {
           const res = await user.save();
-          data = res
+          data = res.toJSON();
           if (data) {
             const message = `Please <a href="${config.URL}users/verification/${data.id}">Click Here </a> To verify your Email`
             /**send verification email if not verified */
@@ -279,6 +296,9 @@ async function create(params) {
               title: 'New Customer'
             })
             const notificationRes = await notification.save();
+            data['image_available'] = await imageExists(data.image);
+            const country = await fetchCountryCodes();
+            data = Object.assign(data, country.data);
             if (notificationRes) {
               return {
                 result: true,

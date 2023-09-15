@@ -75,11 +75,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
 
-// use JWT auth to secure the api
-// app.use(jwt());
-
-// api routes
-
 app.use('/admin', require('./admin/admin.controller'));
 app.use('/users', require('./users/users.controller'));
 app.use('/contact', require('./contact/contact.controller'));
@@ -146,18 +141,14 @@ io.on("connection", socket => {
       const receipientSocketId = users[receiverId].socketId;
       let messageObject = Object.assign({}, data);
       chatService.storeMessage(messageObject, data.userType);
-      chatService.storeChat({ userType, type, sender: senderId, file, message: textMessage, recipient: receiverId, time, date, fcm_id, orderId, senderName }).then(response => {
-        console.log(response);
-      });
+      chatService.storeChat({ userType, type, sender: senderId, file, message: textMessage, recipient: receiverId, time, date, fcm_id, orderId, senderName });
       socket.to(receipientSocketId).emit('chat-message', { message: textMessage, type, file, recipient: receiverId, sender: senderId, senderName, time, date });
     }
     else {
       // just save the massages for when user available
       let messageObject = Object.assign({}, data);
       chatService.storeMessage(messageObject, data.userType);
-      chatService.storeChat({ userType, type, sender: senderId, file, message: textMessage, recipient: receiverId, time, date, fcm_id, orderId, senderName }).then(response => {
-        console.log(response);
-      });
+      chatService.storeChat({ userType, type, sender: senderId, file, message: textMessage, recipient: receiverId, time, date, fcm_id, orderId, senderName });
       console.log('messaged user is offline');
     }
   });
