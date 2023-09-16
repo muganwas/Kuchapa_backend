@@ -548,35 +548,39 @@ async function update(id, userParam) {
   if (userParam.password) {
     userParam.hash = bcrypt.hashSync(userParam.password, 10)
   }
-
-  // copy userParam properties to user
-  Object.assign(user, userParam)
-  let output = await user.save()
-
-  if (output) {
+  try {
+    // copy userParam properties to user
+    Object.assign(user, userParam);
+    let output = await user.save();
+    output = output.toJSON();
+    output['image_available'] = await imageExists(output.image);
+    const country = await fetchCountryCodes();
+    output = Object.assign(output, country.data);
     return { result: true, message: 'Update successfull', data: output }
-  } else {
+  } catch (e) {
     return { result: false, message: 'Something went wrong' }
   }
 }
 
 async function uploadImage(body) {
   const { userId, uri } = body;
-  if (!id || !uri) {
+  if (!userId || !uri) {
     return { result: false, message: 'id and image is required' };
   }
   const user = await Employee.findById(userId);
-
   if (!user) {
     return { result: false, message: 'id not found' };
   }
-
-  Object.assign(user, { image: uri, img_status: 1 });
-  let output;
-  if ((output = await user.save())) {
+  try {
+    Object.assign(user, { image: uri, img_status: 1 });
+    let output = await user.save();
+    output = output.toJSON();
+    output['image_available'] = await imageExists(output.image);
+    const country = await fetchCountryCodes();
+    output = Object.assign(output, country.data);
     return { result: true, message: 'Image Update successfull', data: output }
-  } else {
-    return { result: false, message: 'Something went wrong' }
+  } catch (e) {
+    return { result: false, message: e.message }
   }
 }
 

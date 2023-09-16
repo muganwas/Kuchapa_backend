@@ -75,7 +75,7 @@ module.exports.synchroniseOnlineStatus = async (body) => {
     const usersRef = admin.database().ref(`users/${id}`);
     const snapshot = await usersRef.once('value');
     const value = snapshot.val();
-    if (value && value.status != status) {
+    if (!value || (value != undefined && value.status != status)) {
       await usersRef.set({ status });
       return { result: true, message: 'Status updated successfully', data: { userId: id, status: value.status } };
     }

@@ -345,9 +345,12 @@ async function update(id, userParam) {
     }
   }
 
-  Object.assign(user, userParam)
-  var output = await user.save()
-
+  Object.assign(user, userParam);
+  var output = await user.save();
+  output = output.toJSON();
+  output['image_available'] = await imageExists(output.image);
+  const country = await fetchCountryCodes();
+  output = Object.assign(output, country.data);
   if (output) {
     return { result: true, message: 'Update successfull', data: output }
   } else {
@@ -365,13 +368,16 @@ async function uploadImage(body) {
   if (!user) {
     return { result: false, message: 'id not found' }
   }
-
-  Object.assign(user, { image: uri, img_status: 1 });
-  var output;
-  if ((output = await user.save())) {
+  try {
+    Object.assign(user, { image: uri, img_status: 1 });
+    var output = await user.save();
+    output = output.toJSON();
+    output['image_available'] = await imageExists(output.image);
+    const country = await fetchCountryCodes();
+    output = Object.assign(output, country.data);
     return { result: true, message: 'Image Update successfull', data: output }
-  } else {
-    return { result: false, message: 'Something went wrong' }
+  } catch (e) {
+    return { result: false, message: e.message }
   }
 }
 
