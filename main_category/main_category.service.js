@@ -20,25 +20,20 @@ async function respond(socket) {
 }
 
 async function getAll(query) {
-    const { page, limit } = query;
+    const { page = 1, limit = 10 } = query;
     var data = [];
     var count = 0;
     var totalPages = 1;
-
-    if (page != undefined && limit != undefined) {
-        count = await Main_Category.countDocuments();
-        data = await Main_Category.find({})
-            // We multiply the "limit" variables by one just to make sure we pass a number and not a string
-            .limit(limit * 1)
-            .skip((page - 1) * limit)
-            // We sort the data by the date of their creation in descending order (user 1 instead of -1 to get ascending order)
-            .sort({ createdDate: -1 });
-        totalPages = Math.ceil(count / limit);
-    } else
-        data = await Main_Category.find();
-
+    count = await Main_Category.countDocuments();
+    data = await Main_Category.find({})
+        // We multiply the "limit" variables by one just to make sure we pass a number and not a string
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
+        // We sort the data by the date of their creation in descending order (user 1 instead of -1 to get ascending order)
+        .sort({ createdDate: -1 });
+    totalPages = Math.ceil(count / limit);
     if (data)
-        return { result: true, message: 'Service Found', currentPage: page || 1, totalPages, data };
+        return { result: true, message: 'Service Found', metadata: { totalPages, page, limit } };
 
     return { result: false, message: 'Service Not Found' };
 }

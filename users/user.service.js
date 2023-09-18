@@ -2,7 +2,7 @@ const config = require('../config')
 const bcrypt = require('bcryptjs')
 const db = require('_helpers/db')
 const User = db.User;
-const { employeeRatingsDataRequest } = require('../jobrequest/jobrequest.service');
+const { EmployeeRatingsDataRequest } = require('../jobrequest/jobrequest.service');
 const Notification = db.Notification
 const SendMail = require('../_helpers/SendMail');
 const { imageExists, fetchCountryCodes } = require('../misc/helperFunctions');
@@ -31,7 +31,7 @@ async function authenticate(param) {
   if ((user && bcrypt.compareSync(param.password, user.hash)) || param.loginType === 'Firebase') {
     if (typeof param.fcm_id !== 'undefined') {
       if (user._id)
-        await employeeRatingsDataRequest(user._id).then(res => {
+        await EmployeeRatingsDataRequest(user._id).then(res => {
           avgRating = res.rating;
         });
       var fcm = { fcm_id: param.fcm_id, avgRating }
@@ -54,16 +54,26 @@ async function authenticate(param) {
   }
 }
 
-async function getAll() {
-  var data = await User.find().select('-hash');
+async function getAll(query) {
+  const { page = 1, limit = 10 } = query;
+  var data = await User.find().select('-hash')
+    // We multiply the "limit" variables by one just to make sure we pass a number and not a string
+    .limit(limit * 1)
+    .skip((page - 1) * limit)
+    // We sort the data by the date of their creation in descending order (user 1 instead of -1 to get ascending order)
+    .sort({ createdDate: 1 });
   data = data.toJSON();
+  var count = 0;
+  var totalPages = 1;
+  count = await User.countDocuments();
+  totalPages = Math.ceil(count / limit);
   const country = await fetchCountryCodes();
   if (data.length) {
     data.map(async (user, i) => {
       data[i]['image_available'] = await imageExists(data[i].image);
       data[i] = Object.assign(data[i], country.data);
     })
-    return { result: true, message: 'Users Found', data: data }
+    return { result: true, message: 'Users Found', data: data, metadata: { totalPages, page, limit } };
   } else {
     return { result: false, message: 'Users Not Found' }
   }
@@ -75,7 +85,7 @@ async function getById(id, param) {
   if ((output = await User.findById(id).select('-hash'))) {
     if (typeof param.fcm_id !== 'undefined') {
       if (output._id)
-        await employeeRatingsDataRequest(output._id).then(res => {
+        await EmployeeRatingsDataRequest(output._id).then(res => {
           avgRating = res.rating;
         });
       var fcm = { fcm_id: param.fcm_id, avgRating }
@@ -132,7 +142,7 @@ async function CheckMobile(param) {
 
     return {
       result: true,
-      message: 'Mobile -> "' + param.mobile + '" is exist',
+      message: 'Mobile number ' + param.mobile + ' is already exists',
       data: output
     }
   } else {

@@ -86,75 +86,90 @@ async function DeleteNotification(id) {
   }
 }
 
-async function GetEmployeeNotifications(id) {
+async function GetEmployeeNotifications(params, query) {
+  const { id } = params;
+  const { page = 1, limit = 10 } = query;
   if (typeof id === 'undefined') {
     return { result: false, message: 'id is required' };
   }
   try {
-    var notif = await Notification.aggregate([
-      { $match: { employee_id: new mongoose.Types.ObjectId(id) } },
-      {
-        "$project": {
-          "employee_id": {
-            "$toObjectId": "$employee_id"
-          },
-          "order_id": {
-            "$toString": "$order_id"
-          },
-          "type": {
-            "$toString": "$type"
-          },
-          "title": {
-            "$toString": "$title"
-          },
-          "status": {
-            "$toString": "$status"
-          },
-          "message": {
-            "$toString": "$message"
-          },
-          "notification_by": {
-            "$toString": "$notification_by"
-          },
-          "createdDate": {
-            "$toString": "$createdDate"
-          },
-          "employee_details": {
-            "$toString": "$employee_details"
-          },
-        }
-      },
-      { '$sort': { 'createdDate': -1 } },
-      {
-        $lookup:
+    const param = { employee_id: new mongoose.Types.ObjectId(id) };
+    const data = await Notification.find(param);
+    const count = await Notification.countDocuments(param);
+    const totalPages = Math.ceil(count / limit);
+    if (data != undefined) {
+      var notif = await Notification.aggregate([
+        { $match: param },
         {
-          from: "users",
-          localField: "user_id",
-          foreignField: "id",
-          as: "customer_details"
+          "$project": {
+            "employee_id": {
+              "$toObjectId": "$employee_id"
+            },
+            "order_id": {
+              "$toString": "$order_id"
+            },
+            "type": {
+              "$toString": "$type"
+            },
+            "title": {
+              "$toString": "$title"
+            },
+            "status": {
+              "$toString": "$status"
+            },
+            "message": {
+              "$toString": "$message"
+            },
+            "notification_by": {
+              "$toString": "$notification_by"
+            },
+            "createdDate": {
+              "$toString": "$createdDate"
+            },
+            "employee_details": {
+              "$toString": "$employee_details"
+            },
+          }
+        },
+        { '$sort': { 'createdDate': -1 } },
+        {
+          $lookup:
+          {
+            from: "users",
+            localField: "user_id",
+            foreignField: "id",
+            as: "customer_details"
+          }
         }
+      ])
+        // We multiply the "limit" variables by one just to make sure we pass a number and not a string
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
+        // We sort the data by the date of their creation in descending order (user 1 instead of -1 to get ascending order)
+        .sort({ createdDate: 1 });
+
+      var output = new Array();
+      if (notif.length > 0) {
+
+        for (var i = 0; i < notif.length; i++) {
+
+          if (notif[i].notification_for == 'Admin') {
+            continue;
+          }
+
+          if (notif[i].notification_by == 'Customer') {
+            var d = new Date(notif[i].createdDate);
+            notif[i].createdDate = ("0" + d.getDate()).slice(-2) + '-' + shortMonths[d.getMonth()] + '-' + d.getFullYear();
+
+            notif[i].customer_details = notif[i].customer_details[0];
+            notif[i].customer_details.imageAvailable = await imageExists(notif[i].customer_details.image);
+            output.push(notif[i]);
+          }
+        }
+        return { result: true, message: 'Data found', data: output, metaData: { totalPages, page, limit } };
+      } else {
+        return { result: false, message: 'Data not found' };
       }
-    ]);
-
-    var output = new Array();
-    if (notif.length > 0) {
-
-      for (var i = 0; i < notif.length; i++) {
-
-        if (notif[i].notification_for == 'Admin') {
-          continue;
-        }
-
-        if (notif[i].notification_by == 'Customer') {
-          var d = new Date(notif[i].createdDate);
-          notif[i].createdDate = ("0" + d.getDate()).slice(-2) + '-' + shortMonths[d.getMonth()] + '-' + d.getFullYear();
-
-          notif[i].customer_details = notif[i].customer_details[0];
-          notif[i].customer_details.imageAvailable = await imageExists(notif[i].customer_details.image);
-          output.push(notif[i]);
-        }
-      }
-      return { result: true, message: 'Data found', data: output };
     } else {
       return { result: false, message: 'Data not found' };
     }

@@ -1,6 +1,6 @@
 const config = require('../config')
 //const express = require('express')
-const { employeeRatingsDataRequest } = require('../jobrequest/jobrequest.service');
+const { EmployeeRatingsDataRequest } = require('../jobrequest/jobrequest.service');
 const { ObjectId } = require('mongodb')
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs')
@@ -35,7 +35,7 @@ async function authenticate(param) {
   if (typeof param.fcm_id !== 'undefined') {
     //if id exists update average rating
     if (user._id)
-      await employeeRatingsDataRequest(user._id).then(res => {
+      await EmployeeRatingsDataRequest(user._id).then(res => {
         avgRating = res.rating;
       });
     let fcm = { fcm_id: param.fcm_id, avgRating }
@@ -72,8 +72,16 @@ async function authenticate(param) {
   }
 }
 
-async function getAll() {
-  let output = await Employee.find();
+async function getAll(query) {
+  const { page = 1, limit = 10 } = query;
+  const count = await Employee.countDocuments();
+  var output = await Employee.find({})
+    // We multiply the "limit" variables by one just to make sure we pass a number and not a string
+    .limit(limit * 1)
+    .skip((page - 1) * limit)
+    // We sort the data by the date of their creation in descending order (user 1 instead of -1 to get ascending order)
+    .sort({ createdDate: 1 });
+  const totalPages = Math.ceil(count / limit);
   const country = await fetchCountryCodes();
   if (output) {
     for (let i = 0; i < output.length; i++) {
@@ -94,7 +102,7 @@ async function getAll() {
       output[i] = Object.assign(output[i], country.data);
       output[i].services = ser_arr.toString()
     }
-    return { result: true, message: 'Service providers found', data: output }
+    return { result: true, message: 'Service providers found', data: output, metadata: { totalPages, page, limit } }
   } else {
     return { result: false, message: 'No service providers found' }
   }
@@ -187,7 +195,7 @@ async function getById(id, param) {
   let output = ''
   let arr = [];
   if ((output = await Employee.findById(id).select('-hash'))) {
-    await employeeRatingsDataRequest(output._id).then(res => {
+    await EmployeeRatingsDataRequest(output._id).then(res => {
       avgRating = res.rating;
     });
     if (typeof param.fcm_id !== 'undefined') {

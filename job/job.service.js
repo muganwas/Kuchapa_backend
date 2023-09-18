@@ -1,9 +1,5 @@
-const config = require('../config');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const db = require('_helpers/db');
 const { imageExists, distance } = require('../misc/helperFunctions');
-const Job = db.Job;
 const Employee = db.Employee;
 
 
@@ -14,7 +10,7 @@ module.exports = {
 async function serviceprovider(id, job) {
     if (typeof job.lat === 'undefined' ||
         typeof job.lang === 'undefined') {
-        return { result: false, message: 'lat and lang is required' };
+        return { result: false, message: 'lat and lang are required' };
     }
 
     let emp = await Employee.find();
@@ -42,5 +38,4 @@ async function serviceprovider(id, job) {
     } else {
         return { result: false, message: 'Provider not Found' };
     }
-
 }

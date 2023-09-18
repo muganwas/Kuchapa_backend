@@ -1,7 +1,4 @@
-﻿const config = require('../config');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const db = require('_helpers/db');
+﻿const db = require('_helpers/db');
 const Sub_Category = db.Sub_Category;
 const Main_category = db.Main_Category;
 
@@ -16,23 +13,18 @@ module.exports = {
 
 
 async function getAll(query) {
-    const { page, limit } = query;
+    const { page = 1, limit = 10 } = query;
     var data = [];
     var count = 0;
     var totalPages = 1;
-
-    if (page != undefined && limit != undefined) {
-        count = await Sub_Category.countDocuments();
-        data = await Sub_Category.find({})
-            // We multiply the "limit" variables by one just to make sure we pass a number and not a string
-            .limit(limit * 1)
-            .skip((page - 1) * limit)
-            // We sort the data by the date of their creation in descending order (user 1 instead of -1 to get ascending order)
-            .sort({ createdDate: -1 });
-        totalPages = Math.ceil(count / limit);
-    } else
-        data = await Sub_Category.find();
-
+    count = await Sub_Category.countDocuments();
+    data = await Sub_Category.find({})
+        // We multiply the "limit" variables by one just to make sure we pass a number and not a string
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
+        // We sort the data by the date of their creation in descending order (user 1 instead of -1 to get ascending order)
+        .sort({ createdDate: -1 });
+    totalPages = Math.ceil(count / limit);
     if (data) {
         for (var i = 0; i < data.length; i++) {
             try {
@@ -45,7 +37,7 @@ async function getAll(query) {
                 console.log(e.message);
             }
         }
-        return { result: true, message: 'Service Found', data: data, currentPage: page || 1, totalPages, };
+        return { result: true, message: 'Service Found', data: data, metadata: { totalPages, page, limit } };
     } else {
         return { result: false, message: 'Service Not Found' };
 

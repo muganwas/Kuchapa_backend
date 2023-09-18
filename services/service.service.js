@@ -41,7 +41,7 @@ async function getAll(query) {
                 data[i].sub_category = sub_c[0].sub_category;
             }
         }
-        return { result: true, message: 'Service Found', data, currentPage: page || 1, totalPages, };
+        return { result: true, message: 'Service Found', data, metadata: { totalPages, page, limit } };
     } else {
         return { result: false, message: 'Service Not Found' };
 

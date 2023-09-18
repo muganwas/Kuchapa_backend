@@ -7,7 +7,7 @@ const { enums: { VALIDATION_ERROR, UNAUTHORIZED_ERROR }, constants: { VALIDATION
 async function serviceprovider(req, res, next) {
     if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
     if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
-    JobRequest.serviceprovider(req.params.id, req.body)
+    JobRequest.ServiceProvider(req.params.id, req.body)
         .then(data => res.json(data))
         .catch(err => next(err));
 }
@@ -15,7 +15,7 @@ async function serviceprovider(req, res, next) {
 async function getEmpReviews(req, res, next) {
     if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
     if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
-    JobRequest.employeeRatingsDataRequest(req.params.id)
+    JobRequest.EmployeeRatingsDataRequest(req.params.id)
         .then(data => res.json(data))
         .catch(err => next(err))
 }
@@ -38,42 +38,42 @@ async function UpdateJobRequest(req, res, next) {
 async function Ratingreview(req, res, next) {
     if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
     if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
-    JobRequest.Ratingreview(req.body)
+    JobRequest.RatingReview(req.body)
         .then(data => res.json(data))
         .catch(err => next(err));
 }
 async function CustomerDataRequest(req, res, next) {
     if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
     if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
-    JobRequest.CustomerDataRequest(req.params.id, req.params.omit)
+    JobRequest.CustomerDataRequest(req.params, req.query)
         .then(data => res.json(data))
         .catch(err => next(err));
 }
 async function EmployeeDataRequest(req, res, next) {
     if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
     if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
-    JobRequest.EmployeeDataRequest(req.params.id, req.params.omit)
+    JobRequest.EmployeeDataRequest(req.params, req.query)
         .then(data => res.json(data))
         .catch(err => next(err));
 }
 async function Usergroupby(req, res, next) {
     if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
     if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
-    JobRequest.Usergroupby(req.params.id)
+    JobRequest.UserGroupBy(req.params, req.query)
         .then(data => res.json(data))
         .catch(err => next(err));
 }
 async function Providerstatuscheck(req, res, next) {
     if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
     if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
-    JobRequest.Providerstatuscheck(req.params.id, req.params.type)
+    JobRequest.ProviderStatusCheck(req.params, req.query)
         .then(data => res.json(data))
         .catch(err => next(err));
 }
 async function Customerstatuscheck(req, res, next) {
     if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
     if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
-    JobRequest.Customerstatuscheck(req.params.id, req.params.type)
+    JobRequest.CustomerStatusCheck(req.params, req.query)
         .then(data => res.json(data))
         .catch(err => next(err));
 }
@@ -81,7 +81,7 @@ async function Customerstatuscheck(req, res, next) {
 async function Addrating(req, res, next) {
     if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
     if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
-    JobRequest.Addrating(req.body)
+    JobRequest.AddRating(req.body)
         .then(data => res.json(data))
         .catch(err => next(err));
 }

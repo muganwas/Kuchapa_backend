@@ -6,7 +6,6 @@ const _ = require('lodash');
 const admin = require('firebase-admin');
 const userService = require('../users/user.service');
 const employeeService = require('../employee/employee.service');
-const { PushNotif } = require("../notification/notification.service");
 const { imageExists } = require('../misc/helperFunctions');
 
 const database = admin.database;
@@ -29,14 +28,21 @@ const storeChat = async chatObject => {
 }
 
 const fetchChatMessages = async (req, res) => {
-    const { sender, userType } = req;
+    const { sender, userType, page = 1, limit = 10 } = req;
     let Verification = userType === 'client' ? userService.findUserById : employeeService.findUserById;
     // either or condition
     const verification = await Verification(sender);
     const { result, message } = verification;
     if (result) {
-        const chatInfo = await chats.find({ $or: [{ sender }, { recipient: sender }] });
-        if (chatInfo) return res.send({ result: true, data: chatInfo, message: "Chats found successfully" });
+        var count = await chats.countDocuments();
+        const data = await chats.find({ $or: [{ sender }, { recipient: sender }] })
+            // We multiply the "limit" variables by one just to make sure we pass a number and not a string
+            .limit(limit * 1)
+            .skip((page - 1) * limit)
+            // We sort the data by the date of their creation in descending order (user 1 instead of -1 to get ascending order)
+            .sort({ time: 1 });
+        totalPages = Math.ceil(count / limit);
+        if (data.length) return res.send({ result: true, data, message: "Chats found successfully", metadata: { totalPages, page, limit } });
         return res.send({ result: false, message: "No chats found" });
     }
     else {
