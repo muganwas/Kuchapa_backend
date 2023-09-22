@@ -27,7 +27,7 @@ const storeChat = async chatObject => {
     };
 }
 
-const fetchChatMessages = async (req, res) => {
+const fetchAllChatMessages = async (req, res) => {
     const { sender, userType, page = 1, limit = 10 } = req;
     let Verification = userType === 'client' ? userService.findUserById : employeeService.findUserById;
     // either or condition
@@ -47,6 +47,33 @@ const fetchChatMessages = async (req, res) => {
     }
     else {
         return res.send({ result, message });
+    }
+}
+
+const fetchChatMessages = async (query, res) => {
+    try {
+        const { primary, secondary, page = 1, limit = 10 } = query;
+        var nLimit = Number(limit);
+        if (primary == undefined || secondary == undefined) return res.json({ result: false, message: 'Primary and secondary user ids must be provided' });
+        const ref = admin.database().ref('chatting/' + primary).child(secondary);
+        var limitedRef = ref.orderByKey().limitToLast(nLimit);
+        if (Number(page) > 1) {
+            const tempRef = ref.orderByKey().limitToLast(nLimit * (Number(page) - 1));
+            const tempResp = await tempRef.once('value');
+            const tempRespVal = tempResp.val();
+            const tempRespValArr = Object.keys(tempRespVal);
+            const start = tempRespValArr.shift();
+            limitedRef = ref.orderByKey().endBefore(start).limitToLast(nLimit);
+        }
+        const countResp = await ref.once('value');
+        const resp = await limitedRef.once('value');
+        const chatCount = countResp.numChildren();
+        const pages = (chatCount - ((Number(page) - 1) * nLimit)) / nLimit;
+        const data = resp.val();
+        const dataArray = Object.values(data);
+        return res.json({ result: true, message: 'Messages fetched successfully', data: dataArray, metaData: { page, pages, limit } })
+    } catch (e) {
+        return res.json({ result: false, message: e.message });
     }
 }
 
@@ -321,19 +348,6 @@ const storeMessage = async (params, userType) => {
         recentUpdates['recentMessage/' + receiverId + '/' + senderId] = recentMessageReceiver;
 
         database().ref().update(recentUpdates)
-
-        // const notification = {
-        //     "fcm_id": fcm_id,
-        //     "type": "Message",
-        //     "user_id": userType === 'client' ? senderId : receiverId,
-        //     "employee_id": userType === 'client' ? receiverId : senderId,
-        //     "order_id": orderId,
-        //     "notification_by": userType === 'client' ? "Customer" : "Employee",
-        //     "save_notification": false,
-        //     "title": "Message Recieved",
-        //     "body": senderName + " has sent you a message!",
-        // };
-        // if (fcm_id) return PushNotif(notification);
         return { result: true, msgId, message: "Message stored but notification not sent" };
     } catch (err) {
         console.log(err);
@@ -344,6 +358,7 @@ const storeMessage = async (params, userType) => {
 module.exports = {
     storeMessage,
     storeChat,
+    fetchAllChatMessages,
     fetchChatMessages,
     generateSignature,
     listZoomRooms,
