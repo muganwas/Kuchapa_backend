@@ -97,7 +97,8 @@ async function CustomerStatusCheck(params, query) {
     if (typeof id === 'undefined') {
         return { result: false, 'message': 'id is required' };
     }
-    const status = type.toString().toLowerCase() === 'pending' ? { $in: ["Pending"] } : { $in: ["Failed", "Cancelled", "Rejected", "No Response", "Completed"] };
+    /** Consider accepted jobs as pending */
+    const status = type.toString().toLowerCase() === 'pending' ? { $in: ["Pending", "Accepted"] } : { $in: ["Failed", "Cancelled", "Rejected", "No Response", "Completed"] };
     var param = { user_id: new mongoose.Types.ObjectId(id), status };
     var output = await JobRequest.find(param);
     const count = await JobRequest.countDocuments(param);
@@ -197,9 +198,9 @@ async function ProviderStatusCheck(params, query) {
     if (typeof id === 'undefined') {
         return { result: false, 'message': 'id is required' };
     }
-    const status = type.toString().toLowerCase() === 'pending' ? { $in: ["Pending"] } : { $in: ["Failed", "Cancelled", "Rejected", "No Response", "Completed"] };
+    /** Consider accepted jobs as pending */
+    const status = type.toString().toLowerCase() === 'pending' ? { $in: ["Pending", "Accepted"] } : { $in: ["Failed", "Cancelled", "Rejected", "No Response", "Completed"] };
     var param = { employee_id: new mongoose.Types.ObjectId(id), status };
-    /*param['status']='Pending';*/
     var output = await JobRequest.find(param);
     const count = await JobRequest.countDocuments(param);
     const totalPages = Math.ceil(count / limit);
