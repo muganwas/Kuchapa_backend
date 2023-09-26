@@ -75,10 +75,12 @@ async function authenticate(param) {
 async function getAll(query) {
   const { page = 1, limit = 10 } = query;
   const count = await Employee.countDocuments();
+  const numLimit = Number(limit);
+  const numSkip = (Number(page) - 1) * Number(limit);
   var output = await Employee.find({})
     // We multiply the "limit" variables by one just to make sure we pass a number and not a string
-    .limit(limit * 1)
-    .skip((page - 1) * limit)
+    .limit(numLimit)
+    .skip(numSkip)
     // We sort the data by the date of their creation in descending order (user 1 instead of -1 to get ascending order)
     .sort({ createdDate: 1 });
   const totalPages = Math.ceil(count / limit);

@@ -25,15 +25,17 @@ async function getAll(query) {
     var count = 0;
     var totalPages = 1;
     count = await Main_Category.countDocuments();
+    const numLimit = Number(limit);
+    const numSkip = (Number(page) - 1) * Number(limit);
     data = await Main_Category.find({})
         // We multiply the "limit" variables by one just to make sure we pass a number and not a string
-        .limit(limit * 1)
-        .skip((page - 1) * limit)
+        .limit(numLimit)
+        .skip(numSkip)
         // We sort the data by the date of their creation in descending order (user 1 instead of -1 to get ascending order)
         .sort({ createdDate: -1 });
     totalPages = Math.ceil(count / limit);
     if (data)
-        return { result: true, message: 'Service Found', metadata: { totalPages, page, limit } };
+        return { result: true, message: 'Service Found', data, metadata: { totalPages, page, limit } };
 
     return { result: false, message: 'Service Not Found' };
 }

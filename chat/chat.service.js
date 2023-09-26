@@ -33,12 +33,14 @@ const fetchAllChatMessages = async (req, res) => {
     // either or condition
     const verification = await Verification(sender);
     const { result, message } = verification;
+    const numLimit = Number(limit);
+    const numSkip = (Number(page) - 1) * Number(limit);
     if (result) {
         var count = await chats.countDocuments();
         const data = await chats.find({ $or: [{ sender }, { recipient: sender }] })
             // We multiply the "limit" variables by one just to make sure we pass a number and not a string
-            .limit(limit * 1)
-            .skip((page - 1) * limit)
+            .limit(numLimit)
+            .skip(numSkip)
             // We sort the data by the date of their creation in descending order (user 1 instead of -1 to get ascending order)
             .sort({ time: 1 });
         totalPages = Math.ceil(count / limit);

@@ -55,27 +55,33 @@ async function authenticate(param) {
 }
 
 async function getAll(query) {
-  const { page = 1, limit = 10 } = query;
-  var data = await User.find().select('-hash')
-    // We multiply the "limit" variables by one just to make sure we pass a number and not a string
-    .limit(limit * 1)
-    .skip((page - 1) * limit)
-    // We sort the data by the date of their creation in descending order (user 1 instead of -1 to get ascending order)
-    .sort({ createdDate: 1 });
-  data = data.toJSON();
-  var count = 0;
-  var totalPages = 1;
-  count = await User.countDocuments();
-  totalPages = Math.ceil(count / limit);
-  const country = await fetchCountryCodes();
-  if (data.length) {
-    data.map(async (user, i) => {
-      data[i]['image_available'] = await imageExists(data[i].image);
-      data[i] = Object.assign(data[i], country.data);
-    })
-    return { result: true, message: 'Users Found', data: data, metadata: { totalPages, page, limit } };
-  } else {
-    return { result: false, message: 'Users Not Found' }
+  try {
+    const { page = 1, limit = 10 } = query;
+    const numLimit = Number(limit);
+    const numSkip = (Number(page) - 1) * Number(limit);
+    var data = await User.find().select('-hash')
+      // We multiply the "limit" variables by one just to make sure we pass a number and not a string
+      .limit(numLimit)
+      .skip(numSkip)
+      // We sort the data by the date of their creation in descending order (user 1 instead of -1 to get ascending order)
+      .sort({ createdDate: 1 });
+    data = data.toJSON();
+    var count = 0;
+    var totalPages = 1;
+    count = await User.countDocuments();
+    totalPages = Math.ceil(count / limit);
+    const country = await fetchCountryCodes();
+    if (data.length) {
+      data.map(async (user, i) => {
+        data[i]['image_available'] = await imageExists(data[i].image);
+        data[i] = Object.assign(data[i], country.data);
+      })
+      return { result: true, message: 'Users Found', data: data, metadata: { totalPages, page, limit } };
+    } else {
+      return { result: false, message: 'Users Not Found' };
+    }
+  } catch (e) {
+    return { result: false, message: e.message };
   }
 }
 

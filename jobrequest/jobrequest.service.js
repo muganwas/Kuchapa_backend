@@ -103,6 +103,8 @@ async function CustomerStatusCheck(params, query) {
     var output = await JobRequest.find(param);
     const count = await JobRequest.countDocuments(param);
     const totalPages = Math.ceil(count / limit);
+    const numLimit = Number(limit);
+    const numSkip = (Number(page) - 1) * Number(limit);
     if (output != undefined) {
         var JSon = await JobRequest.aggregate([
             { $match: param },
@@ -155,13 +157,17 @@ async function CustomerStatusCheck(params, query) {
                     foreignField: "_id",
                     as: "service_details"
                 }
+            },
+            {
+                $skip: numSkip
+            },
+            {
+                $sort: { createdDate: 1 }
+            },
+            {
+                $limit: numLimit
             }
-        ])
-            // We multiply the "limit" variables by one just to make sure we pass a number and not a string
-            .limit(limit * 1)
-            .skip((page - 1) * limit)
-            // We sort the data by the date of their creation in descending order (user 1 instead of -1 to get ascending order)
-            .sort({ createdDate: 1 });
+        ]);
         var new_arr = [];
         if (JSon) {
             for (var i = 0; i < JSon.length; i++) {
@@ -187,7 +193,7 @@ async function CustomerStatusCheck(params, query) {
         return { result: true, 'message': 'Already exist', data: new_arr, metadata: { totalPages, page, limit } };
     }
     else {
-        return { result: false, message: 'data not found' };
+        return { result: false, message: 'No data to load' };
     }
 
 }
@@ -204,6 +210,8 @@ async function ProviderStatusCheck(params, query) {
     var output = await JobRequest.find(param);
     const count = await JobRequest.countDocuments(param);
     const totalPages = Math.ceil(count / limit);
+    const numLimit = Number(limit);
+    const numSkip = (Number(page) - 1) * Number(limit);
     if (output != undefined) {
         var JSon = await JobRequest.aggregate([
             { $match: param },
@@ -256,13 +264,17 @@ async function ProviderStatusCheck(params, query) {
                     foreignField: "_id",
                     as: "service_details"
                 }
+            },
+            {
+                $skip: numSkip
+            },
+            {
+                $sort: { createdDate: 1 }
+            },
+            {
+                $limit: numLimit
             }
-        ])
-            // We multiply the "limit" variables by one just to make sure we pass a number and not a string
-            .limit(limit * 1)
-            .skip((page - 1) * limit)
-            // We sort the data by the date of their creation in descending order (user 1 instead of -1 to get ascending order)
-            .sort({ createdDate: 1 });
+        ]);
         var new_arr = [];
         if (JSon) {
             for (var i = 0; i < JSon.length; i++) {
@@ -289,7 +301,7 @@ async function ProviderStatusCheck(params, query) {
         return { result: true, 'message': 'exists', data: new_arr, metadata: { totalPages, page, limit } };
     }
     else {
-        return { result: false, message: 'data not found' };
+        return { result: false, message: 'No data to load' };
     }
 }
 
@@ -415,6 +427,8 @@ async function CustomerDataRequest(params, query) {
     const output = await JobRequest.find(param);
     const count = await JobRequest.countDocuments(param);
     const totalPages = Math.ceil(count / limit);
+    const numLimit = Number(limit);
+    const numSkip = (Number(page) - 1) * Number(limit);
     if (output != undefined) {
         const JSon = await JobRequest.aggregate([
             { $match: param },
@@ -476,13 +490,17 @@ async function CustomerDataRequest(params, query) {
                     foreignField: "_id",
                     as: "service_details"
                 }
+            },
+            {
+                $skip: numSkip
+            },
+            {
+                $sort: { createdDate: 1 }
+            },
+            {
+                $limit: numLimit
             }
-        ])
-            // We multiply the "limit" variables by one just to make sure we pass a number and not a string
-            .limit(limit * 1)
-            .skip((page - 1) * limit)
-            // We sort the data by the date of their creation in descending order (user 1 instead of -1 to get ascending order)
-            .sort({ createdDate: 1 });
+        ]);
         if (JSon) {
             var new_arr = []
             for (var i = 0; i < JSon.length; i++) {
@@ -515,11 +533,11 @@ async function CustomerDataRequest(params, query) {
             }
             return { result: true, 'message': 'data found', data: new_arr, metadata: { totalPages, page, limit } };
         } else {
-            return { result: false, 'message': 'data not found' };
+            return { result: false, 'message': 'No data to load' };
         }
     }
     else {
-        return { result: false, 'message': 'data not found' };
+        return { result: false, 'message': 'No data to load' };
     }
 
 }
@@ -567,6 +585,8 @@ async function EmployeeDataRequest(params, query) {
     const output = await JobRequest.find(param);
     const count = await JobRequest.countDocuments(param);
     const totalPages = Math.ceil(count / limit);
+    const numLimit = Number(limit);
+    const numSkip = (Number(page) - 1) * Number(limit);
     if (output != undefined) {
         const JSon = await JobRequest.aggregate([
             { $match: param },
@@ -631,13 +651,17 @@ async function EmployeeDataRequest(params, query) {
                     foreignField: "_id",
                     as: "service_details"
                 }
+            },
+            {
+                $skip: numSkip
+            },
+            {
+                $sort: { createdDate: 1 }
+            },
+            {
+                $limit: numLimit
             }
-        ])
-            // We multiply the "limit" variables by one just to make sure we pass a number and not a string
-            .limit(limit * 1)
-            .skip((page - 1) * limit)
-            // We sort the data by the date of their creation in descending order (user 1 instead of -1 to get ascending order)
-            .sort({ createdDate: 1 });
+        ]);
         if (JSon.length) {
             var new_arr = []
             for (var i = 0; i < JSon.length; i++) {
@@ -671,10 +695,10 @@ async function EmployeeDataRequest(params, query) {
             }
             return { result: true, 'message': 'data found', data: new_arr, metadata: { totalPages, page, limit } };
         } else {
-            return { result: false, 'message': 'data not found' };
+            return { result: false, 'message': 'No data to load' };
         }
     } else {
-        return { result: false, 'message': 'data not found' };
+        return { result: false, 'message': 'No data to load' };
     }
 }
 
@@ -689,6 +713,8 @@ async function UserGroupBy(params, query) {
     const output = await JobRequest.find(param);
     const count = await JobRequest.countDocuments(param);
     const totalPages = Math.ceil(count / limit);
+    const numLimit = Number(limit);
+    const numSkip = (Number(page) - 1) * Number(limit);
     if (output != undefined) {
         var JSon = await JobRequest.aggregate([
             { $match: param },
@@ -769,12 +795,16 @@ async function UserGroupBy(params, query) {
                     as: "service_details"
                 }
             },
-        ])
-            // We multiply the "limit" variables by one just to make sure we pass a number and not a string
-            .limit(limit * 1)
-            .skip((page - 1) * limit)
-            // We sort the data by the date of their creation in descending order (user 1 instead of -1 to get ascending order)
-            .sort({ createdDate: 1 });
+            {
+                $skip: numSkip
+            },
+            {
+                $sort: { createdDate: 1 }
+            },
+            {
+                $limit: numLimit
+            }
+        ]);
 
         if (JSon.length) {
             var new_arr = []
@@ -810,10 +840,10 @@ async function UserGroupBy(params, query) {
             }
             return { result: true, 'message': 'data found', data: new_arr, metadata: { totalPages, page, limit } };
         } else {
-            return { result: false, 'message': 'data not found' };
+            return { result: false, 'message': 'No data to load' };
         }
     } else {
-        return { result: false, 'message': 'data not found' };
+        return { result: false, 'message': 'No data to load' };
     }
 }
 

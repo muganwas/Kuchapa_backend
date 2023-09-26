@@ -87,16 +87,18 @@ async function DeleteNotification(id) {
 }
 
 async function GetEmployeeNotifications(params, query) {
-  const { id } = params;
-  const { page = 1, limit = 10 } = query;
-  if (typeof id === 'undefined') {
-    return { result: false, message: 'id is required' };
-  }
   try {
+    const { id } = params;
+    const { page = 1, limit = 10 } = query;
+    if (typeof id === 'undefined') {
+      return { result: false, message: 'id is required' };
+    }
     const param = { employee_id: new mongoose.Types.ObjectId(id) };
     const data = await Notification.find(param);
     const count = await Notification.countDocuments(param);
     const totalPages = Math.ceil(count / limit);
+    const numLimit = Number(limit);
+    const numSkip = (Number(page) - 1) * Number(limit);
     if (data != undefined) {
       var notif = await Notification.aggregate([
         { $match: param },
@@ -140,13 +142,17 @@ async function GetEmployeeNotifications(params, query) {
             foreignField: "id",
             as: "customer_details"
           }
+        },
+        {
+          $limit: numLimit
+        },
+        {
+          $skip: numSkip
+        },
+        {
+          $sort: { createdDate: 1 }
         }
-      ])
-        // We multiply the "limit" variables by one just to make sure we pass a number and not a string
-        .limit(limit * 1)
-        .skip((page - 1) * limit)
-        // We sort the data by the date of their creation in descending order (user 1 instead of -1 to get ascending order)
-        .sort({ createdDate: 1 });
+      ]);
 
       var output = new Array();
       if (notif.length > 0) {
@@ -166,7 +172,7 @@ async function GetEmployeeNotifications(params, query) {
             output.push(notif[i]);
           }
         }
-        return { result: true, message: 'Data found', data: output, metaData: { totalPages, page, limit } };
+        return { result: true, message: 'Data found', data: output, metadata: { totalPages, page, limit } };
       } else {
         return { result: false, message: 'Data not found' };
       }

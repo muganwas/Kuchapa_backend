@@ -17,11 +17,13 @@ async function getAll(query) {
     var data = [];
     var count = 0;
     var totalPages = 1;
+    const numLimit = Number(limit);
+    const numSkip = (Number(page) - 1) * Number(limit);
     count = await Sub_Category.countDocuments();
     data = await Sub_Category.find({})
         // We multiply the "limit" variables by one just to make sure we pass a number and not a string
-        .limit(limit * 1)
-        .skip((page - 1) * limit)
+        .limit(numLimit)
+        .skip(numSkip)
         // We sort the data by the date of their creation in descending order (user 1 instead of -1 to get ascending order)
         .sort({ createdDate: -1 });
     totalPages = Math.ceil(count / limit);
@@ -40,7 +42,6 @@ async function getAll(query) {
         return { result: true, message: 'Service Found', data: data, metadata: { totalPages, page, limit } };
     } else {
         return { result: false, message: 'Service Not Found' };
-
     }
 }
 
@@ -61,7 +62,6 @@ async function getByMId(id) {
     } else {
         return { result: false, message: 'Sub Category Not Found' };
     }
-
 }
 
 async function create(params) {
@@ -79,14 +79,14 @@ async function create(params) {
 }
 
 async function update(body) {
-    const { id, updateInfo } = body;
-    var category = await Sub_Category.findById(id);
-
-    // validate
-    if (!category) {
-        return { result: false, message: "sub category not found" };
-    }
     try {
+        const { id, updateInfo } = body;
+        var category = await Sub_Category.findById(id);
+
+        // validate
+        if (!category) {
+            return { result: false, message: "sub category not found" };
+        }
         var data = await Sub_Category.findOneAndUpdate({ _id: id }, updateInfo, {
             new: true
         });
@@ -98,7 +98,6 @@ async function update(body) {
 
 async function _delete(id) {
     if (await Sub_Category.findById(id)) {
-
         if (await Sub_Category.findByIdAndRemove(id)) {
             return { result: true, message: "Category deleted Successfull" };
         } else {
