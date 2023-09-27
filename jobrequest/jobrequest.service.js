@@ -575,12 +575,13 @@ const EmployeeRatingsDataRequest = async id => {
 
 async function EmployeeDataRequest(params, query) {
     const { id, omit } = params;
-    const { page = 1, limit = 10, only = '' } = query;
+    const { page = 1, limit = 10, only = '', filter = false } = query;
     if (typeof id === 'undefined') {
         return { result: false, 'message': 'id is required' };
     }
     const newOmit = omit.split(" ");
     const newOnly = only.split(",");
+    const newFilter = Boolean(filter);
     let param = { employee_id: new mongoose.Types.ObjectId(id), status: only ? { $in: newOnly } : omit ? { $nin: newOmit } : { $nin: [] } };
     const output = await JobRequest.find(param);
     const count = await JobRequest.countDocuments(param);
@@ -693,7 +694,14 @@ async function EmployeeDataRequest(params, query) {
                 new_arr.push(new_data);
 
             }
-            return { result: true, 'message': 'data found', data: new_arr, metadata: { totalPages, page, limit } };
+            var filteredData;
+            if (newFilter) {
+                filteredData = {};
+                newOnly.forEach(nly => {
+                    filteredData[nly] = new_arr.filter(dt => dt.status == nly);
+                });
+            }
+            return { result: true, 'message': 'data found', filteredData, data: new_arr, metadata: { totalPages, page, limit } };
         } else {
             return { result: false, 'message': 'No data to load' };
         }
