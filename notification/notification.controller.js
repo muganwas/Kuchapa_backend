@@ -16,7 +16,7 @@ const AddReviewRequest = async (req, res, next) => {
 const GetCustomerNotification = async (req, res, next) => {
     if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
     if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
-    Notification.GetCustomerNotification(req.params.id)
+    Notification.GetCustomerNotification(req.params, req.query)
         .then(data => res.json(data))
         .catch(err => next(err));
 }

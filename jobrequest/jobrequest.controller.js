@@ -28,6 +28,14 @@ async function AddJobRequest(req, res, next) {
         .catch(err => next(err));
 }
 
+async function JobRequestDetails(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
+    JobRequest.JobRequestDetails(req.query)
+        .then(data => res.json(data))
+        .catch(err => next(err));
+}
+
 async function UpdateJobRequest(req, res, next) {
     if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
     if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
@@ -45,14 +53,19 @@ async function Ratingreview(req, res, next) {
 async function CustomerDataRequest(req, res, next) {
     if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
     if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
-    JobRequest.CustomerDataRequest(req.params, req.query)
+    /** Destructure params and query so that method can be called internally too */
+    const { id, omit = '' } = req.params;
+    const { page = 1, limit = 10, only = '' } = req.query;
+    JobRequest.CustomerDataRequest({ id, omit, page, limit, only })
         .then(data => res.json(data))
         .catch(err => next(err));
 }
 async function EmployeeDataRequest(req, res, next) {
     if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
     if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
-    JobRequest.EmployeeDataRequest(req.params, req.query)
+    const { id, omit } = req.params;
+    const { page = 1, limit = 10, only = '', filter = false } = req.query;
+    JobRequest.EmployeeDataRequest({ id, omit, page, filter, limit, only })
         .then(data => res.json(data))
         .catch(err => next(err));
 }
@@ -66,14 +79,18 @@ async function Usergroupby(req, res, next) {
 async function Providerstatuscheck(req, res, next) {
     if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
     if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
-    JobRequest.ProviderStatusCheck(req.params, req.query)
+    const { id, type } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+    JobRequest.ProviderStatusCheck({ id, type, page, limit })
         .then(data => res.json(data))
         .catch(err => next(err));
 }
 async function Customerstatuscheck(req, res, next) {
     if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
     if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
-    JobRequest.CustomerStatusCheck(req.params, req.query)
+    const { id, type } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+    JobRequest.CustomerStatusCheck({ id, type, page, limit })
         .then(data => res.json(data))
         .catch(err => next(err));
 }
@@ -97,5 +114,6 @@ router.get('/usergroupby/:id', Usergroupby);
 router.get('/addrating/:id/:rating/:review', Addrating);
 router.get('/provider_status_check/:id/:type', Providerstatuscheck);
 router.get('/customer_status_check/:id/:type', Customerstatuscheck);
+router.get('/job_details', JobRequestDetails);
 
 module.exports = router;

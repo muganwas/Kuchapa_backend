@@ -190,7 +190,7 @@ async function Verification(id) {
 
 async function getById(id, param) {
   let avgRating = 0;
-  if (typeof id === 'undefined') {
+  if (typeof id === 'undefined' || id == 'undefined') {
     return { result: false, message: 'id is required' }
   }
 

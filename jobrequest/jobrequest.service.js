@@ -44,6 +44,25 @@ async function ServiceProvider(id, job) {
     }
 }
 
+async function JobRequestDetails(query) {
+    try {
+        const { orderId, userType, employeeId, userId, omit = '', only = '' } = query;
+        if (!orderId || orderId == 'undefined') return { result: false, message: 'orderId is required' };
+        let usersJobs;
+        if (userType == 'Employee')
+            usersJobs = await EmployeeDataRequest({ id: employeeId, userId, omit, page: 1, only, limit: 0 });
+        else usersJobs = await CustomerDataRequest({ id: userId, employeeId, omit, page: 1, only, limit: 0 });
+        var job;
+        if (usersJobs && usersJobs.result) {
+            job = usersJobs.data.find(j => j.order_id === orderId);
+            return { result: true, data: job, message: 'Job found' };
+        }
+        return { result: false, message: 'Job was not found' };
+    } catch (e) {
+        return { result: false, message: e.message };
+    }
+}
+
 async function AddJobRequest(param) {
     if (typeof param.user_id === 'undefined' ||
         typeof param.employee_id === 'undefined' ||
@@ -91,10 +110,8 @@ async function AddJobRequest(param) {
 
 }
 
-async function CustomerStatusCheck(params, query) {
-    const { id, type } = params;
-    const { page = 1, limit = 10 } = query;
-    if (typeof id === 'undefined') {
+async function CustomerStatusCheck({ id, type, page = 1, limit = 10 }) {
+    if (id == undefined || id == 'undefined') {
         return { result: false, 'message': 'id is required' };
     }
     /** Consider accepted jobs as pending */
@@ -198,10 +215,8 @@ async function CustomerStatusCheck(params, query) {
 
 }
 
-async function ProviderStatusCheck(params, query) {
-    const { id, type } = params;
-    const { page = 1, limit = 10 } = query;
-    if (typeof id === 'undefined') {
+async function ProviderStatusCheck({ id, type, page = 1, limit = 10 }) {
+    if (id == undefined || id == 'undefined') {
         return { result: false, 'message': 'id is required' };
     }
     /** Consider accepted jobs as pending */
@@ -415,20 +430,27 @@ async function RatingReview(param) {
     }
 }
 
-async function CustomerDataRequest(params, query) {
-    const { id, omit } = params;
-    const { page = 1, limit = 10, only = '' } = query;
-    if (typeof id === 'undefined') {
+async function CustomerDataRequest({ id, employeeId, omit = '', page = 1, limit, only = '' }) {
+    if (typeof id === 'undefined' || id == 'undefined') {
         return { result: false, 'message': 'id is required' };
     }
     const newOmit = omit.split(" ");
     const newOnly = only.split(",");
     let param = { user_id: new mongoose.Types.ObjectId(id), status: only ? { $in: newOnly } : omit ? { $nin: newOmit } : { $nin: [] } };
+    if (employeeId && employeeId != 'undefined')
+        param = { user_id: new mongoose.Types.ObjectId(id), employee_id: new mongoose.Types.ObjectId(employeeId), status: only ? { $in: newOnly } : omit ? { $nin: newOmit } : { $nin: [] } };
     const output = await JobRequest.find(param);
     const count = await JobRequest.countDocuments(param);
     const totalPages = Math.ceil(count / limit);
     const numLimit = Number(limit);
     const numSkip = (Number(page) - 1) * Number(limit);
+    const limitArr = limit ?
+        [{
+            $skip: numSkip
+        },
+        {
+            $limit: numLimit
+        }] : [];
     if (output != undefined) {
         const JSon = await JobRequest.aggregate([
             { $match: param },
@@ -492,14 +514,9 @@ async function CustomerDataRequest(params, query) {
                 }
             },
             {
-                $skip: numSkip
-            },
-            {
                 $sort: { createdDate: 1 }
             },
-            {
-                $limit: numLimit
-            }
+            ...limitArr
         ]);
         if (JSon) {
             var new_arr = []
@@ -546,7 +563,7 @@ const EmployeeRatingsDataRequest = async id => {
     let param = {};
     let ratingArr = [];
     let avg = 0;
-    if (typeof id === 'undefined') {
+    if (typeof id === 'undefined' || id == 'undefined') {
         return { result: false, 'message': 'id is required' };
     }
     try {
@@ -573,21 +590,28 @@ const EmployeeRatingsDataRequest = async id => {
     }
 }
 
-async function EmployeeDataRequest(params, query) {
-    const { id, omit } = params;
-    const { page = 1, limit = 10, only = '', filter = false } = query;
-    if (typeof id === 'undefined') {
+async function EmployeeDataRequest({ id, userId, omit = '', page, filter = false, limit, only }) {
+    if (typeof id === 'undefined' || id == 'undefined') {
         return { result: false, 'message': 'id is required' };
     }
     const newOmit = omit.split(" ");
     const newOnly = only.split(",");
     const newFilter = Boolean(filter);
     let param = { employee_id: new mongoose.Types.ObjectId(id), status: only ? { $in: newOnly } : omit ? { $nin: newOmit } : { $nin: [] } };
+    if (userId && userId != 'undefined')
+        param = { employee_id: new mongoose.Types.ObjectId(id), user_id: new mongoose.Types.ObjectId(userId), status: only ? { $in: newOnly } : omit ? { $nin: newOmit } : { $nin: [] } };
     const output = await JobRequest.find(param);
     const count = await JobRequest.countDocuments(param);
     const totalPages = Math.ceil(count / limit);
-    const numLimit = Number(limit);
+    const numLimit = limit ? Number(limit) : 0;
     const numSkip = (Number(page) - 1) * Number(limit);
+    const limitArr = limit ?
+        [{
+            $skip: numSkip
+        },
+        {
+            $limit: numLimit
+        }] : [];
     if (output != undefined) {
         const JSon = await JobRequest.aggregate([
             { $match: param },
@@ -634,7 +658,6 @@ async function EmployeeDataRequest(params, query) {
                     }
                 }
             },
-
             {
                 $lookup:
                 {
@@ -654,14 +677,9 @@ async function EmployeeDataRequest(params, query) {
                 }
             },
             {
-                $skip: numSkip
-            },
-            {
                 $sort: { createdDate: 1 }
             },
-            {
-                $limit: numLimit
-            }
+            ...limitArr
         ]);
         if (JSon.length) {
             var new_arr = []
@@ -713,7 +731,7 @@ async function EmployeeDataRequest(params, query) {
 async function UserGroupBy(params, query) {
     const { id } = params
     const { page = 1, limit = 10 } = query;
-    if (typeof id === 'undefined') {
+    if (typeof id === 'undefined' || id == 'undefined') {
         return { result: false, 'message': 'id is required' };
     }
 
@@ -784,7 +802,6 @@ async function UserGroupBy(params, query) {
                     }
                 }
             },
-
             {
                 $lookup:
                 {
@@ -906,6 +923,7 @@ module.exports = {
     AddRating,
     ProviderStatusCheck,
     CustomerStatusCheck,
+    JobRequestDetails,
     RatingReview,
     UserGroupBy,
     EmployeeRatingsDataRequest
