@@ -73,7 +73,25 @@ const fetchChatMessages = async (query, res) => {
         const pages = (chatCount - ((Number(page) - 1) * nLimit)) / nLimit;
         const data = resp.val();
         const dataArray = Object.values(data);
-        return res.json({ result: true, message: 'Messages fetched successfully', data: dataArray, metaData: { page, pages, limit } })
+        return res.json({ result: true, message: 'Messages fetched successfully', data: dataArray, metadata: { page, pages, limit } })
+    } catch (e) {
+        return res.json({ result: false, message: e.message });
+    }
+}
+
+const fetcheRecentChatMessages = async (query, res) => {
+    try {
+        const { id, page = 1, limit = 10 } = query;
+        const nLimit = Number(limit) * Number(page);
+        const ref = database().ref('recentMessage').child(id);
+        var limitedRef = ref.orderByKey().limitToLast(nLimit);
+        const countResp = await ref.once('value');
+        const resp = await limitedRef.once('value');
+        const chatCount = countResp.numChildren();
+        const totalPages = (chatCount - nLimit) / Number(limit);
+        const data = resp.val();
+        const dataArray = Object.values(data);
+        return res.json({ result: true, message: 'Messages fetched successfully', data: dataArray, metadata: { page, totalPages, limit } })
     } catch (e) {
         return res.json({ result: false, message: e.message });
     }
@@ -361,6 +379,7 @@ module.exports = {
     storeMessage,
     storeChat,
     fetchAllChatMessages,
+    fetcheRecentChatMessages,
     fetchChatMessages,
     generateSignature,
     listZoomRooms,
