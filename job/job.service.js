@@ -11,8 +11,8 @@ module.exports = {
 async function serviceprovider(id, body) {
     try {
         const { lat, lang, page = 1, limit = 10 } = body;
-        if (typeof job.lat === 'undefined' ||
-            typeof job.lang === 'undefined') {
+        if ((typeof lat === 'undefined' || lat == 'undefined') ||
+            (typeof lang === 'undefined' || lang == 'undefined')) {
             return { result: false, message: 'lat and lang are required' };
         }
         const param = { services: { "$regex": id, "$options": "i" } };
