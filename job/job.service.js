@@ -42,10 +42,9 @@ async function serviceprovider(id, body) {
         if (data.length) {
             return { result: true, message: 'Employee Found', data: data, metadata: { page, totalPages, limit } };
         } else {
-            return { result: false, message: 'Provider not Found' };
+            return { result: false, message: 'No data found' };
         }
     } catch (e) {
-        console.log(e.message)
         return { result: false, message: e.message };
     }
 }

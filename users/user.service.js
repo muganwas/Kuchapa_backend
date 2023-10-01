@@ -148,7 +148,7 @@ async function CheckMobile(param) {
 
     return {
       result: true,
-      message: 'Mobile number ' + param.mobile + ' is already exists',
+      message: 'Mobile number ' + param.mobile + ' already exists',
       data: output
     }
   } else {

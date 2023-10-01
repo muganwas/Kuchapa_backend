@@ -73,7 +73,7 @@ async function AddJobRequest(param) {
     var request = await JobRequest.find(search);
 
     if (request.length > 0) {
-        return { result: false, 'message': 'Already Exist' };
+        return { result: false, 'message': 'Job already exists.' };
     }
     else {
         var save = {};
@@ -207,7 +207,7 @@ async function CustomerStatusCheck({ id, type, page = 1, limit = 10 }) {
                 new_arr.push(new_data);
             }
         }
-        return { result: true, 'message': 'Already exist', data: new_arr, metadata: { totalPages, page, limit } };
+        return { result: true, 'message': 'Job request found.', data: new_arr, metadata: { totalPages, page, limit } };
     }
     else {
         return { result: false, message: 'No data to load' };
@@ -313,7 +313,7 @@ async function ProviderStatusCheck({ id, type, page = 1, limit = 10 }) {
                 new_arr.push(new_data);
             }
         }
-        return { result: true, 'message': 'exists', data: new_arr, metadata: { totalPages, page, limit } };
+        return { result: true, 'message': 'Job requests found.', data: new_arr, metadata: { totalPages, page, limit } };
     }
     else {
         return { result: false, message: 'No data to load' };
