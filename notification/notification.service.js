@@ -163,12 +163,12 @@ async function GetEmployeeNotifications(params, query) {
           notif[i].customer_details.imageAvailable = await imageExists(notif[i].customer_details.image);
           output.push(notif[i]);
         }
-        return { result: true, message: 'Data found', data: output, metadata: { totalPages, page, limit } };
+        return { result: true, message: 'Notifications retrieved', data: output, metadata: { totalPages, page, limit } };
       } else {
-        return { result: false, message: 'Data not found' };
+        return { result: false, message: 'You have no notifications' };
       }
     } else {
-      return { result: false, message: 'Data not found' };
+      return { result: false, message: 'You have no notifications' };
     }
   } catch (e) {
     return { result: false, message: e.message };
