@@ -20,6 +20,7 @@ const userService = require('./users/user.service');
 const chatService = require('./chat/chat.service');
 const employeeService = require('./employee/employee.service');
 const firebase = require('firebase');
+const { synchroniseOnlineStatus, setSocketInformation, retrieveUserSocketInformation } = require('./misc/helperFunctions.js');
 const config = {
   apiKey: process.env.FIREBASE_API_KEY,
   authDomain: process.env.AUTH_DOMAIN,
@@ -51,24 +52,6 @@ mongoose.connect(db_connection_url, mongooseOptions, err => {
     process.exit(1);
   }
   console.log("connected to db");
-});
-
-// Get a reference to the database service
-const database = admin.database;
-const usersRef = database().ref('users');
-
-let messages = {};
-//live users
-let users = {};
-let connectedUsers = {};
-
-usersRef.once('value').then(snapshot => {
-  const current = snapshot.val();
-  Object.keys(current).map(userId => {
-    users[userId] = { status: '0' };
-  });
-}, error => {
-  console.log(error);
 });
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -109,14 +92,12 @@ io.on("connection", socket => {
     const { id, userType } = data;
     if (id) {
       let Verification = userType === 'client' ? userService.findUserById : employeeService.findUserById;
-      Verification(id).then(verification => {
+      Verification(id).then(async verification => {
         const { result, message } = verification;
         if (result) {
-          users[id] = { status: '1', socketId: socket.id };
-          connectedUsers[id] = { status: '1', socketId: socket.id };
           socket.uid = id;
-          socket.emit('authorized', { message });
-          io.emit('user-joined', users);
+          const socketResults = await setSocketInformation({ socketId: socket.id, uid: id, status: "1" });
+          socket.emit('authorized', { message: socketResults.message });
         }
         else {
           console.log(`Socket ${socket.id} unauthorized.`);
@@ -133,12 +114,13 @@ io.on("connection", socket => {
     }
   });
 
-  this.sentMessage = () => socket.on('sent-message', data => {
+  this.sentMessage = () => socket.on('sent-message', async data => {
     const { fcm_id, orderId, senderName, file, textMessage, senderId, receiverId, userType, type, time, date } = Object.assign({}, data);
-    messages[receiverId] = { sender: senderId, message: textMessage, file };
+    const userSocketInfo = await retrieveUserSocketInformation({ uid: receiverId });
+    const { socketId, status } = userSocketInfo;
     // -- make sure to save message to the db
-    if (users[receiverId]) {
-      const receipientSocketId = users[receiverId].socketId;
+    if (userSocketInfo.result && status == "1") {
+      const receipientSocketId = socketId;
       let messageObject = Object.assign({}, data);
       chatService.storeMessage(messageObject, data.userType);
       chatService.storeChat({ userType, type, sender: senderId, file, message: textMessage, recipient: receiverId, time, date, fcm_id, orderId, senderName });
@@ -161,13 +143,11 @@ io.on("connection", socket => {
     else console.log(`Socket: ${socket.id} is authenticated.`);
   }, process.env.AUTH_TIMEOUT);
 
-  this.onDisconnect = () => socket.on('disconnect', () => {
+  this.onDisconnect = () => socket.on('disconnect', async () => {
     //console.log(`Socket: ${socket.id} has disconnected.`);
     if (socket.uid) {
-      console.log('user disconnected...')
-      delete connectedUsers[socket.uid];
-      users[socket.uid].status = "0";
-      io.emit('user-disconnected', users);
+      console.log(`user ${socket.uid} disconnected...`);
+      const result = await synchroniseOnlineStatus({ id: socket.uid, savedStatus: "0" });
     }
   })
 

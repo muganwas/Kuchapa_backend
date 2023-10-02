@@ -68,8 +68,7 @@ module.exports.validateFirebaseUser = async (bearerToken) => {
   }
 }
 
-module.exports.synchroniseOnlineStatus = async (body) => {
-  const { id, savedStatus } = body;
+module.exports.synchroniseOnlineStatus = async ({ id, savedStatus }) => {
   try {
     let status = savedStatus;
     const usersRef = admin.database().ref(`users/${id}`);
@@ -77,9 +76,30 @@ module.exports.synchroniseOnlineStatus = async (body) => {
     const value = snapshot.val();
     if (!value || (value != undefined && value.status != status)) {
       await usersRef.set({ status });
-      return { result: true, message: 'Status updated successfully', data: { userId: id, status: value.status } };
+      return { result: true, message: 'Status updated successfully', data: { userId: id, status } };
     }
     return { result: true, message: 'Status is already synchronised', data: { userId: id, status: value.status } };
+  } catch (e) {
+    return { result: false, message: e.message, }
+  }
+};
+
+module.exports.setSocketInformation = async ({ socketId, uid, status }) => {
+  try {
+    const usersRef = admin.database().ref(`users/${uid}`);
+    await usersRef.set({ socketId, status });
+    return { result: true, message: 'Socket information succesfully set.', data: { uid, socketId, status } };
+  } catch (e) {
+    return { result: false, message: e.message, }
+  }
+};
+
+module.exports.retrieveUserSocketInformation = async ({ uid }) => {
+  try {
+    const usersRef = admin.database().ref(`users/${uid}`);
+    const response = await usersRef.once('value').val();
+    const { socketId, status } = response;
+    return { result: true, message: 'Socket information succesfully retrieved.', data: { socketId, status } };
   } catch (e) {
     return { result: false, message: e.message, }
   }

@@ -13,6 +13,7 @@ router.get('/', getAll);
 router.get('/verification/:id', Verification);
 router.get('/:id', getById);
 router.post('/:id', update);
+router.post('/db/liveStatuses', fetchDBStatuses);
 router.post('/check/mobile', CheckMobile);
 router.post('/forgot_password/email', ForgotPassword);
 router.put('/upload', uploadImage);
@@ -83,6 +84,14 @@ async function getById(req, res, next) {
     if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
     if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
     userService.getById(req.params.id, req.query)
+        .then(info => res.json(info))
+        .catch(err => next(err));
+}
+
+async function fetchDBStatuses(req, res, next) {
+    if (!req.headers.authorization) return next({ name: VALIDATION_ERROR, message: VALIDATION_MESSAGE }, req, res, next);
+    if (!await validateFirebaseUser(req.headers.authorization)) return next({ name: UNAUTHORIZED_ERROR, message: UNAUTHORIZED_MESSAGE }, req, res, next);
+    userService.fetchDBStatuses(req.body)
         .then(info => res.json(info))
         .catch(err => next(err));
 }

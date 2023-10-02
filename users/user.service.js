@@ -1,7 +1,9 @@
-const config = require('../config')
-const bcrypt = require('bcryptjs')
-const db = require('_helpers/db')
+const config = require('../config');
+const bcrypt = require('bcryptjs');
+const db = require('_helpers/db');
+const admin = require('firebase-admin');
 const User = db.User;
+const Employee = db.Employee;
 const { EmployeeRatingsDataRequest } = require('../jobrequest/jobrequest.service');
 const Notification = db.Notification
 const SendMail = require('../_helpers/SendMail');
@@ -413,6 +415,24 @@ async function ForgotPassword(param) {
   )
 }
 
+async function fetchDBStatuses(body) {
+  try {
+    const { userIds, userType } = body;
+    if (!userIds || !Array.isArray(userIds)) return { result: false, message: 'userIds should be an array of ids' };
+    const liveStatuses = {};
+    const usersRef = userType === 'Client' ? Employee.find().where('_id').in(userIds) : User.find().where('_id').in(userIds);
+    const users = await usersRef.exec();
+    for (let i = 0; i < users.length; i++) {
+      const id = users[i]._id;
+      const status = users[i].online;
+      liveStatuses[id] = status;
+    }
+    return { result: true, message: 'Statuses fetched successfully.', data: liveStatuses };
+  } catch (e) {
+    return { result: false, message: e.message };
+  }
+}
+
 async function _delete(id) {
   await User.findByIdAndRemove(id)
 }
@@ -420,6 +440,7 @@ async function _delete(id) {
 module.exports = {
   authenticate,
   Verification,
+  fetchDBStatuses,
   getAll,
   getById,
   create,
